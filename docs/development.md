@@ -77,3 +77,17 @@ CI 在 `main` 分支提交和 Pull Request 时运行，检查 Debug / Release �
 资源下载验证可启动 `python tools/fixture_server.py`，通过 `adb reverse tcp:8765 tcp:8765` 后访问 `http://127.0.0.1:8765/resources`。页面只使用合成 Cookie、静音 WAV 与示例播放列表，可验证资源分类及带 Cookie、Referer 的下载。
 
 完成合成页面的手动验证后，可运行 `adb shell am instrument -w -e cleanupResources true dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation` 清理该测试页、生成的屏蔽规则和测试下载。
+
+## 0.7 成熟度回归
+
+新增 JVM 检查覆盖地址解析（端口、本地域名、IPv6、IDN、危险协议和凭据不泄漏到搜索）、本地建议优先级/去重、严格 HTTPS origin 比较及设置备份拒绝损坏值。
+
+```sh
+adb shell am instrument -w -e maturity core dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+```
+
+该检查使用独立的 `qa-maturity-reading` 目录和临时标签，验证离线正文存取/替换/删除/长度限制、未知权限与跨源请求拒绝、前台同源请求确认后取消。不会启动真实相机、麦克风或位置采集。
+
+下载异常检查需要先运行本机 8877 fixture 和 ADB reverse，再执行 `-e maturity download`。它向 `/fail` 提交合成下载，最长等待 90 秒，允许厂商用 ERROR_UNKNOWN 代替 HTTP 状态码，并保留一个合成失败记录用于界面重试检查。检查后通过下载页删除该记录；不要把厂商超时/未知错误当作浏览器识别出的 HTTP 404。
+
+WebView 权限实现参考 Android 官方 `PermissionRequest`、`GeolocationPermissions.Callback`；仅明确允许视频/音频资源子集，系统权限完成后再次校验当前标签与 HTTPS origin。离线文章索引采用 AtomicFile，正文文件先写入，再原子替换索引，最后删除旧快照；读写在单线程工作队列完成。
