@@ -1,0 +1,16 @@
+<resources>
+    <style name="AppThemeBase" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#286658</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">#F8FAF9</item>
+    </style>
+    <style name="AppTheme" parent="AppThemeBase" />
+    <style name="AppThemeDark" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#A3D6C5</item>
+        <item name="android:windowBackground">#151A19</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+</resources>
