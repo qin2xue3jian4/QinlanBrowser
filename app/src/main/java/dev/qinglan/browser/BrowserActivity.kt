@@ -21,7 +21,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URLEncoder
 
-data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home",var searchOverride:String?=null,var openerId:Long?=null,val filterSession:FilterSession=FilterSession(),val resources:ResourceSession=ResourceSession())
+data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home",var searchOverride:String?=null,var openerId:Long?=null,var error:String?=null,val filterSession:FilterSession=FilterSession(),val resources:ResourceSession=ResourceSession())
 
 class BrowserActivity:Activity() {
     lateinit var store:BrowserStore
@@ -32,6 +32,8 @@ class BrowserActivity:Activity() {
     lateinit var scripts:UserScripts
     lateinit var filtering:AdFiltering
     lateinit var sniffer:ResourceSniffer
+    private val suggestions=AddressSuggestions(this)
+    internal val webPermissions=WebPermissions(this)
     lateinit var root:LinearLayout
     lateinit var content:FrameLayout
     lateinit var address:EditText
@@ -89,9 +91,10 @@ class BrowserActivity:Activity() {
         if(intent.action in listOf(Intent.ACTION_WEB_SEARCH,Intent.ACTION_PROCESS_TEXT,Intent.ACTION_SEARCH)){
             val query=(intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()?:intent.getStringExtra(android.app.SearchManager.QUERY)).orEmpty().take(4096)
             if(query.isNotBlank()){panels.pages.close();open(searchUrl(query),true)}
-        }else if(intent.action==Intent.ACTION_VIEW)intent.dataString?.takeIf(::isHttp)?.let{open(it,true)}
+        }else if(intent.action==Intent.ACTION_VIEW)intent.dataString?.takeIf(::isHttp)?.let{panels.pages.close();open(it,prefs.getBoolean("externalNewTab",true))}
     }
     fun buildChrome() {
+        suggestions.dismiss();undoBar=null
         root=ui.column();root.setBackgroundColor(ui.bg)
         top=ui.row().apply{setPadding(ui.dp(8),ui.dp(5),ui.dp(8),ui.dp(5));setBackgroundColor(ui.panel)}
         val addressBox=ui.row().apply{background=ui.round(ui.soft,15)}
@@ -99,15 +102,18 @@ class BrowserActivity:Activity() {
         address=ui.edit("搜索或输入网址").apply{
             setPadding(0,0,0,0);background=null;imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_GO
             inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI
+            imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_GO or android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI
+            setImeActionLabel("前往",android.view.inputmethod.EditorInfo.IME_ACTION_GO)
             setSelectAllOnFocus(true)
-            setOnFocusChangeListener{_,focused->if(focused)setText(currentUrl.takeIf{isHttp(it)}.orEmpty()) else syncAddress()}
+            setOnFocusChangeListener{_,focused->if(focused)setText(currentUrl.takeIf{isHttp(it)}.orEmpty()) else {suggestions.dismiss();syncAddress()};updateAddressAction()}
             setOnEditorActionListener{_,action,event->
                 if(event?.keyCode==KeyEvent.KEYCODE_ENTER){if(event.action==KeyEvent.ACTION_UP)navigateInput(text.toString());true}
                 else if(action in listOf(android.view.inputmethod.EditorInfo.IME_ACTION_GO,android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH,android.view.inputmethod.EditorInfo.IME_ACTION_DONE)){navigateInput(text.toString());true}else false
             }
         }
+        address.onChange{suggestions.update(it)}
         addressBox.addView(address,LinearLayout.LayoutParams(0,ui.dp(48),1f))
-        refreshButton=ui.icon("qr","扫描二维码"){startActivityForResult(Intent(this,QrScanActivity::class.java),104)};addressBox.addView(refreshButton)
+        refreshButton=ui.icon("refresh","刷新网页"){when{address.hasFocus()->address.setText("");prefs.getString("toolbarAction","refresh")=="qr"->scanQr();progress.visibility==View.VISIBLE->{current?.web?.stopLoading();progress.visibility=View.GONE;updateAddressAction()};else->reload()}};addressBox.addView(refreshButton)
         top.addView(addressBox,LinearLayout.LayoutParams(-1,-2))
         progress=ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal).apply{max=100;visibility=View.GONE;progressTintList=android.content.res.ColorStateList.valueOf(ui.accent)}
         content=FrameLayout(this).apply{isFocusableInTouchMode=true}
@@ -136,44 +142,50 @@ class BrowserActivity:Activity() {
     }
     fun isHttp(s:String)=runCatching{val u=Uri.parse(s);u.scheme in listOf("http","https")&&!u.host.isNullOrBlank()&&u.userInfo==null}.getOrDefault(false)
     fun navigateInput(input:String) {
-        val v=input.trim();if(v.isBlank())return
-        val url=when {isHttp(v)->v;v.contains(' ')||(!v.contains('.')&&!v.startsWith("localhost"))->searchUrl(v);else->"https://$v"}
-        if(!isHttp(url)){toast("请输入有效的网址");return}
-        address.clearFocus();content.requestFocus();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).hideSoftInputFromWindow(address.windowToken,0);open(url)
+        when(val result=AddressInput.resolve(input)){
+            is AddressInput.Result.Navigate->open(result.url)
+            is AddressInput.Result.Search->open(searchUrl(result.text))
+            is AddressInput.Result.Invalid->toast(result.message)
+        }
     }
+
     fun searchUrl(query:String):String {
         val template=current?.searchOverride?:prefs.getString("search",SearchEngines.default)!!
-        return template.replace("%s",URLEncoder.encode(query,"UTF-8"))
+        return AddressInput.searchUrl(template,query)
     }
     fun open(url:String,newTab:Boolean=false){
         address.clearFocus();content.requestFocus();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).hideSoftInputFromWindow(address.windowToken,0)
         dismissTabs();showAddress()
         if(!isHttp(url)){toast("只支持 HTTP / HTTPS 网页");return}
         if(newTab){if(tabs.size>=50){toast("最多打开 50 个标签页");return};tabs.add(BrowserTab(url=url,openerId=current?.id));switchTab(tabs.lastIndex);return}
-        val t=current?:return;t.url=url;folderOpen="";if(t.web==null){t.saved=null;attach(t)}else{configure(t.web!!,url);content.removeAllViews();(t.web!!.parent as? android.view.ViewGroup)?.removeView(t.web);content.addView(t.web,FrameLayout.LayoutParams(-1,-1));t.web!!.loadUrl(url)}
+        val t=current?:return;t.error=null;t.url=url;folderOpen="";if(t.web==null){t.saved=null;attach(t)}else{configure(t.web!!,url);content.removeAllViews();(t.web!!.parent as? android.view.ViewGroup)?.removeView(t.web);content.addView(t.web,FrameLayout.LayoutParams(-1,-1));t.web!!.loadUrl(url)}
         syncAddress();persistSession()
     }
-    fun goHome(){dismissTabs();showAddress();val t=current?:return;t.web?.stopLoading();t.url="about:home";t.committedUrl="about:home";t.title="主页";t.resources.start("about:home","");t.filterSession.start("about:home");folderOpen="";closeFind();renderHome();syncAddress();persistSession()}
+    fun goHome(){dismissTabs();showAddress();val t=current?:return;t.web?.stopLoading();t.web?.onPause();t.error=null;t.url="about:home";t.committedUrl="about:home";t.title="主页";t.resources.start("about:home","");t.filterSession.start("about:home");folderOpen="";closeFind();renderHome();syncAddress();persistSession()}
     fun switchTab(index:Int){
-        if(index !in tabs.indices)return;address.clearFocus();content.requestFocus();dismissTabs();showAddress();closeFind();current?.web?.onPause();selected=index;val t=tabs[index];t.used=System.currentTimeMillis()
+        if(index !in tabs.indices)return;webPermissions.cancel();address.clearFocus();content.requestFocus();dismissTabs();showAddress();closeFind();current?.web?.onPause();selected=index;val t=tabs[index];t.used=System.currentTimeMillis()
         if(t.url=="about:home")renderHome()else attach(t)
         tabCount.text=tabs.size.toString();syncAddress();progress.visibility=View.GONE;persistSession();trimTabs()
     }
     fun openBackground(url:String){
         if(!isHttp(url)){toast("只支持 HTTP / HTTPS 网页");return}
         if(tabs.size>=50){toast("最多 50 个标签页");return}
-        val t=BrowserTab(url=url,title=Uri.parse(url).host?:"网页",openerId=current?.id)
+        val t=BrowserTab(url=url,title=Uri.parse(url).host?:"网页",openerId=current?.id,used=System.currentTimeMillis())
         tabs.add(t);t.web=createWeb(t).also{configure(it,url);it.loadUrl(url);it.onPause()}
         tabCount.text=tabs.size.toString();persistSession();trimTabs();toast("已在后台打开")
     }
     fun closeTab(id:Long){
-        val i=tabs.indexOfFirst{it.id==id};if(i<0)return
+        val i=tabs.indexOfFirst{it.id==id};if(i<0)return;if(current?.id==id)webPermissions.cancel()
         val activeId=current?.id;val t=tabs.removeAt(i)
         if(isHttp(t.url)||t.url=="about:home")closedTabs.push(ClosedTab(t.url,t.title,i,t.openerId,t.searchOverride))
         (t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()
         if(tabs.isEmpty()){val home=BrowserTab();tabs.add(home);emptyReplacementId=home.id}
         val next=if(activeId!=id)tabs.indexOfFirst{it.id==activeId}else tabs.indexOfFirst{it.id==t.openerId}
         switchTab(if(next>=0)next else i.coerceAtMost(tabs.lastIndex));showCloseUndo()
+    }
+    fun closeOtherTabs(){val keep=current?:return;val closing=tabs.withIndex().filter{it.value!==keep}
+        closing.forEach{(index,t)->if(isHttp(t.url)||t.url=="about:home")closedTabs.push(ClosedTab(t.url,t.title,index,t.openerId,t.searchOverride));(t.web?.parent as? ViewGroup)?.removeView(t.web);t.web?.destroy()}
+        tabs.removeAll{it!==keep};selected=0;switchTab(0);if(closing.isNotEmpty())showCloseUndo()
     }
     fun undoCloseTab(){
         if(tabs.size>=50){toast("请先关闭一个标签");return}
@@ -190,9 +202,11 @@ class BrowserActivity:Activity() {
         root.addView(bar,root.indexOfChild(bottom));undoBar=bar
         bar.postDelayed({if(undoBar===bar){root.removeView(bar);undoBar=null}},7000)
     }
+    fun clearHistoryData(){store.history.clear();store.save();closedTabs.clear();undoBar?.let{root.removeView(it)};undoBar=null;tabs.forEach{it.web?.clearHistory();it.saved=null}}
     fun newHome(){if(tabs.size>=50){toast("最多 50 个标签页");return};tabs.add(BrowserTab());switchTab(tabs.lastIndex)}
-    private fun trimTabs(){tabs.filter{it!=current&&it.web!=null}.sortedByDescending{it.used}.drop(3).forEach{t->t.saved=Bundle().also{t.web?.saveState(it)};t.web?.destroy();t.web=null}}
+    internal fun trimTabs(){tabs.filter{it!=current&&it.web!=null}.sortedByDescending{it.used}.drop(prefs.getInt("activeWebViews",4).coerceIn(2,8)-1).forEach{t->t.saved=Bundle().also{t.web?.saveState(it)};t.web?.destroy();t.web=null}}
     private fun attach(t:BrowserTab){
+        if(t.error!=null){showPageError(t);return}
         content.removeAllViews()
         if(t.web==null){val web=createWeb(t);t.web=web;configure(web,t.url);val restored=t.saved?.let{web.restoreState(it)};t.saved=null;if(restored==null)web.loadUrl(t.url)}
         (t.web!!.parent as? android.view.ViewGroup)?.removeView(t.web);content.addView(t.web,FrameLayout.LayoutParams(-1,-1));t.web!!.onResume()
@@ -204,7 +218,7 @@ class BrowserActivity:Activity() {
             allowFileAccess=false;allowContentAccess=false;mixedContentMode=WebSettings.MIXED_CONTENT_NEVER_ALLOW
             setSupportZoom(true);builtInZoomControls=true;displayZoomControls=false;useWideViewPort=true;loadWithOverviewMode=true
             javaScriptCanOpenWindowsAutomatically=false;setSupportMultipleWindows(true)
-            mediaPlaybackRequiresUserGesture=true;loadsImagesAutomatically=!store.siteBool(url,"noImages",prefs.getBoolean("noImages",false));blockNetworkImage=!loadsImagesAutomatically
+            mediaPlaybackRequiresUserGesture=!store.siteBool(url,"autoplay",prefs.getBoolean("autoplay",false));loadsImagesAutomatically=!store.siteBool(url,"noImages",prefs.getBoolean("noImages",false));blockNetworkImage=!loadsImagesAutomatically
             textZoom=store.siteZoom(url)
             val ua=if(desktop)"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${WebView.getCurrentWebViewPackage()?.versionName?:"130.0.0.0"} Safari/537.36" else WebSettings.getDefaultUserAgent(this@BrowserActivity)
             if(userAgentString!=ua)userAgentString=ua
@@ -266,23 +280,23 @@ class BrowserActivity:Activity() {
             override fun shouldOverrideUrlLoading(view:WebView,request:WebResourceRequest):Boolean {
                 val url=request.url.toString()
                 if(isHttp(url)){if(request.isForMainFrame){tab.url=url;configure(view,url)};return false}
-                if(request.isForMainFrame)openExternal(url);return true
+                if(request.isForMainFrame&&request.hasGesture()&&tab==current&&hasWindowFocus())openExternal(url);return true
             }
-            override fun onPageStarted(view:WebView,url:String,favicon:Bitmap?){if(tab.url=="about:home"&&url=="about:blank")return;tab.url=url;tab.filterSession.start(url);tab.resources.start(url,view.settings.userAgentString);if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.VISIBLE}}
+            override fun onPageStarted(view:WebView,url:String,favicon:Bitmap?){if(tab.url=="about:home"){view.stopLoading();return};if(tab==current)webPermissions.cancel();tab.url=url;tab.error=null;configure(view,url);tab.filterSession.start(url);tab.resources.start(url,view.settings.userAgentString);if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.VISIBLE}}
             override fun onPageFinished(view:WebView,url:String){
                 scripts.finished(view)
                 filtering.finished(view,tab.filterSession)
                 sniffer.scan(view,tab.resources)
-                if(tab.url=="about:home")return;tab.url=url;tab.committedUrl=url;tab.title=view.title?.takeIf{it.isNotBlank()}?:Uri.parse(url).host?:"网页"
-                if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.GONE};store.visit(tab.title,url);CookieManager.getInstance().flush();persistSession()
+                if(tab.url=="about:home"||tab.error!=null)return;tab.url=url;tab.committedUrl=url;tab.title=view.title?.takeIf{it.isNotBlank()}?:Uri.parse(url).host?:"网页"
+                if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.GONE};if(prefs.getBoolean("recordHistory",true))store.visit(tab.title,url);CookieManager.getInstance().flush();persistSession()
             }
-            override fun onReceivedSslError(view:WebView,handler:SslErrorHandler,error:SslError){handler.cancel();if(tab==current)toast("证书验证失败，已停止加载")}
-            override fun onReceivedError(view:WebView,request:WebResourceRequest,error:WebResourceError){if(request.isForMainFrame&&tab==current){this@BrowserActivity.progress.visibility=View.GONE;toast("页面加载失败：${error.description}")}}
-            override fun onRenderProcessGone(view:WebView,detail:RenderProcessGoneDetail):Boolean{(view.parent as? android.view.ViewGroup)?.removeView(view);view.destroy();tab.web=null;tab.saved=null;if(tab==current){toast("网页进程已退出，重新加载中");attach(tab)};return true}
+            override fun onReceivedSslError(view:WebView,handler:SslErrorHandler,error:SslError){handler.cancel();if(error.url==view.url||error.url==tab.url){tab.error="证书验证失败，连接已停止。请检查网址及设备日期时间，或稍后重试。";if(tab==current)showPageError(tab)}else if(tab==current)toast("部分网页资源证书异常，已阻止加载")}
+            override fun onReceivedError(view:WebView,request:WebResourceRequest,error:WebResourceError){if(request.isForMainFrame&&tab.url!="about:home"){tab.error=when(error.errorCode){ERROR_HOST_LOOKUP->"找不到这个网站，请检查网址或网络。";ERROR_CONNECT,ERROR_TIMEOUT->"连接失败或超时，请检查网络后重试。";else->"网页暂时无法加载：${error.description}"};if(tab==current)showPageError(tab)}}
+            override fun onRenderProcessGone(view:WebView,detail:RenderProcessGoneDetail):Boolean{(view.parent as? android.view.ViewGroup)?.removeView(view);view.destroy();tab.web=null;tab.saved=null;tab.error="网页进程已退出。点击重新加载可恢复；未提交的表单可能无法找回。";if(tab==current)showPageError(tab);return true}
         }
         webChromeClient=object:WebChromeClient(){
             override fun onReceivedIcon(view:WebView,icon:Bitmap){icons.save(view.url?:tab.url,icon)}
-            override fun onProgressChanged(view:WebView,value:Int){if(tab==current){this@BrowserActivity.progress.progress=value;this@BrowserActivity.progress.visibility=if(value==100)View.GONE else View.VISIBLE}}
+            override fun onProgressChanged(view:WebView,value:Int){if(tab==current){this@BrowserActivity.progress.progress=value;this@BrowserActivity.progress.visibility=if(value==100||tab.error!=null)View.GONE else View.VISIBLE;updateAddressAction()}}
             override fun onReceivedTitle(view:WebView,title:String?){if(tab.url!="about:home")tab.title=title?:tab.title}
             override fun onCreateWindow(view:WebView,isDialog:Boolean,isUserGesture:Boolean,resultMsg:Message):Boolean{
                 if(!isUserGesture||tabs.size>=50)return false
@@ -298,8 +312,10 @@ class BrowserActivity:Activity() {
             }
             override fun onShowCustomView(view:View,callback:CustomViewCallback){if(customView!=null){callback.onCustomViewHidden();return};customView=view;customViewCallback=callback;(window.decorView as android.view.ViewGroup).addView(view,android.view.ViewGroup.LayoutParams(-1,-1));setFullscreen(true)}
             override fun onHideCustomView(){hideVideo()}
-            override fun onPermissionRequest(request:PermissionRequest){request.deny();toast("首版暂不开放网页摄像头和麦克风；可使用文件上传")}
-            override fun onGeolocationPermissionsShowPrompt(origin:String,callback:GeolocationPermissions.Callback){callback.invoke(origin,false,false)}
+            override fun onPermissionRequest(request:PermissionRequest){webPermissions.media(tab,request)}
+            override fun onPermissionRequestCanceled(request:PermissionRequest){webPermissions.cancel(request)}
+            override fun onGeolocationPermissionsShowPrompt(origin:String,callback:GeolocationPermissions.Callback){webPermissions.location(tab,origin,callback)}
+            override fun onGeolocationPermissionsHidePrompt(){webPermissions.cancel()}
         }
     }
     fun hideVideo(){customView?.let{(it.parent as? android.view.ViewGroup)?.removeView(it)};customView=null;customViewCallback?.onCustomViewHidden();customViewCallback=null;setFullscreen(false)}
@@ -317,8 +333,20 @@ class BrowserActivity:Activity() {
     // This override is only the legacy Android 8-12 path.
     @android.annotation.SuppressLint("GestureBackNavigation")
     override fun onBackPressed(){goBack()}
-    fun reload(){if(currentUrl=="about:home")renderHome()else current?.web?.let{configure(it,currentUrl);it.reload()}}
-    private fun syncAddress(){if(!address.hasFocus())address.setText(if(isHttp(currentUrl))currentUrl.removePrefix("https://").trimEnd('/')else "")}
+    fun reload(){if(currentUrl=="about:home")renderHome()else current?.let{t->t.error=null;val existed=t.web!=null;attach(t);if(existed)t.web?.let{configure(it,currentUrl);it.reload()}}}
+    private fun showPageError(tab:BrowserTab){
+        if(tab!=current)return;progress.visibility=View.GONE;updateAddressAction();content.removeAllViews()
+        val col=ui.column(24);col.addView(ui.title("网页暂时无法打开"));col.addView(ui.label(tab.error.orEmpty()));col.addView(ui.label(tab.url,13f,ui.muted).apply{setTextIsSelectable(true)})
+        col.addView(ui.button("重新加载",true){reload()});col.addView(ui.button("编辑网址"){focusAddress()});col.addView(ui.button("返回主页"){goHome()});content.addView(ScrollView(this).apply{addView(col)})
+    }
+    fun focusAddress(){showAddress();address.requestFocus();address.selectAll();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).showSoftInput(address,InputMethodManager.SHOW_IMPLICIT)}
+    fun scanQr(){startActivityForResult(Intent(this,QrScanActivity::class.java),104)}
+    fun openCollection(url:String){when(prefs.getString("collectionOpen","current")){"new"->open(url,true);"background"->openBackground(url);else->open(url)}}
+    private fun updateAddressAction(){if(!::refreshButton.isInitialized||!::progress.isInitialized)return
+        val state=when{address.hasFocus()->"close" to "清空地址";prefs.getString("toolbarAction","refresh")=="qr"->"qr" to "扫描二维码";progress.visibility==View.VISIBLE->"close" to "停止加载";else->"refresh" to "刷新网页"}
+        (refreshButton as? IconView)?.setIcon(state.first);refreshButton.contentDescription=state.second
+    }
+    private fun syncAddress(){updateAddressAction();if(!address.hasFocus())address.setText(if(isHttp(currentUrl))currentUrl.removePrefix("https://").trimEnd('/')else "")}
     fun setFullscreen(enabled:Boolean){fullScreen=enabled;top.visibility=if(enabled)View.GONE else View.VISIBLE;bottom.visibility=if(enabled)View.GONE else View.VISIBLE
         if(Build.VERSION.SDK_INT>=28)window.attributes=window.attributes.apply{layoutInDisplayCutoutMode=if(enabled){if(Build.VERSION.SDK_INT>=30)WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES}else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT}
         window.statusBarColor=if(enabled)android.graphics.Color.TRANSPARENT else ui.panel
@@ -333,19 +361,21 @@ class BrowserActivity:Activity() {
     }
     private fun closeFind(){if(findBar==null)return;findBar?.let{root.removeView(it);current?.web?.clearMatches();current?.web?.setFindListener(null)};findBar=null;content.requestFocus();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).hideSoftInputFromWindow(address.windowToken,0)}
     private fun openExternal(url:String){
+        if(prefs.getString("externalApps","ask")=="block"){toast("已阻止网页唤起外部应用");return}
         if(url.startsWith("javascript:")||url.startsWith("file:")||url.startsWith("content:")||url.startsWith("data:"))return
-        val external=runCatching{if(url.startsWith("intent:"))Intent.parseUri(url,Intent.URI_INTENT_SCHEME).apply{component=null;selector=null;addCategory(Intent.CATEGORY_BROWSABLE)}else Intent(Intent.ACTION_VIEW,Uri.parse(url))}.getOrNull()?:return
+        val external=runCatching{if(url.startsWith("intent:"))Intent.parseUri(url,Intent.URI_INTENT_SCHEME).apply{component=null;selector=null;action=Intent.ACTION_VIEW;flags=0;addCategory(Intent.CATEGORY_BROWSABLE)}else Intent(Intent.ACTION_VIEW,Uri.parse(url))}.getOrNull()?:return
         AlertDialog.Builder(this).setTitle("打开外部应用？").setMessage(Uri.parse(url).scheme?:"外部链接").setNegativeButton("取消",null).setPositiveButton("打开"){_,_->try{startActivity(external)}catch(e:Exception){external.getStringExtra("browser_fallback_url")?.takeIf(::isHttp)?.let{open(it)}?:toast("未找到对应应用")}}.show()
     }
-    fun requestDownload(url:String,ua:String,disposition:String,mime:String,referer:String=currentUrl,contentLength:Long=-1){
+    fun requestDownload(url:String,ua:String,disposition:String,mime:String,referer:String=currentUrl,contentLength:Long=-1,suggestedName:String?=null){
         if(!isHttp(url)){toast("支持 HTTP/HTTPS 下载，Blob 地址不能直接下载");return}
-        val guessed=URLUtil.guessFileName(url,disposition,mime).replace(Regex("[\\\\/:*?\"<>|]"),"_")
+        val guessed=(suggestedName?:URLUtil.guessFileName(url,disposition,mime)).replace(Regex("[\\\\/:*?\"<>|]"),"_")
         val name=ui.edit("文件名",guessed)
         val details=ui.column(16);details.addView(ui.label("来源：${Uri.parse(url).host.orEmpty()}\n类型：${mime.ifBlank{"未知"}}\n大小：${if(contentLength>=0)android.text.format.Formatter.formatFileSize(this,contentLength)else"未知（以下载结果为准）"}",13f,ui.muted));details.addView(name)
         AlertDialog.Builder(this).setTitle("下载文件").setView(details).setNegativeButton("取消",null).setPositiveButton("下载"){_,_->
             val fileName=name.text.toString().trim().replace(Regex("[\\\\/:*?\"<>|]"),"_").take(180).ifBlank{"download"}
             try{
                 val req=DownloadManager.Request(Uri.parse(url)).setTitle(fileName).setDescription(Uri.parse(url).host).setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED).setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,fileName)
+                if(prefs.getBoolean("downloadWifiOnly",false))req.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI)
                 if(mime.isNotBlank())req.setMimeType(mime);req.addRequestHeader("User-Agent",ua)
                 CookieManager.getInstance().getCookie(url)?.let{req.addRequestHeader("Cookie",it)}
                 if(isHttp(referer))req.addRequestHeader("Referer",referer)
@@ -356,6 +386,7 @@ class BrowserActivity:Activity() {
     }
     fun readDocument(mime:String="*/*",callback:(String)->Unit){documentRead=callback;startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mime),101)}
     fun writeDocument(name:String,mime:String,text:String){documentWrite=text;startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mime).putExtra(Intent.EXTRA_TITLE,name),102)}
+    override fun onRequestPermissionsResult(code:Int,permissions:Array<out String>,results:IntArray){super.onRequestPermissionsResult(code,permissions,results);if(code==105)webPermissions.result()}
     override fun onActivityResult(requestCode:Int,resultCode:Int,data:Intent?){super.onActivityResult(requestCode,resultCode,data)
         when(requestCode){
             101->{val callback=documentRead;documentRead=null;if(resultCode==RESULT_OK)data?.data?.let{uri->try{val bytes=contentResolver.openInputStream(uri)?.use{input->val out=java.io.ByteArrayOutputStream();val buffer=ByteArray(8192);while(true){val n=input.read(buffer);if(n<0)break;require(out.size()+n<=2_097_152){"文件超过 2 MB"};out.write(buffer,0,n)};out.toByteArray()}?:throw Exception("读取失败");callback?.invoke(bytes.toString(Charsets.UTF_8))}catch(e:Exception){toast(e.message?:"读取失败")}}}
@@ -365,17 +396,18 @@ class BrowserActivity:Activity() {
         }
     }
     fun persistSession(){val a=JSONArray();tabs.forEach{a.put(JSONObject().put("url",it.url).put("title",it.title))};prefs.edit().putString("tabs",a.toString()).putInt("selected",selected).apply()}
-    override fun onPause(){super.onPause();speech.pause();current?.web?.onPause();persistSession();CookieManager.getInstance().flush()}
+    override fun onPause(){suggestions.dismiss();super.onPause();speech.pause();current?.web?.onPause();persistSession();CookieManager.getInstance().flush()}
+    override fun onStop(){webPermissions.cancel();super.onStop()}
     override fun onResume(){super.onResume();current?.web?.onResume()}
-    override fun onDestroy(){panels.pages.close();speech.close();filtering.subscriptions.close();uploadCallback?.onReceiveValue(null);tabs.forEach{t->(t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()};super.onDestroy()}
+    override fun onDestroy(){webPermissions.cancel();suggestions.dismiss();panels.pages.close();panels.reader.close();speech.close();filtering.subscriptions.close();uploadCallback?.onReceiveValue(null);tabs.forEach{t->(t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()};super.onDestroy()}
     fun toast(message:String){Toast.makeText(this,message,Toast.LENGTH_SHORT).show()}
     fun copy(label:String,text:String){(getSystemService(CLIPBOARD_SERVICE)as ClipboardManager).setPrimaryClip(ClipData.newPlainText(label,text));toast("已复制")}
 
     fun renderHome(){
         content.removeAllViews();folderOverlay=null
         val scroll=ScrollView(this);val column=ui.column(20);scroll.addView(column);content.addView(scroll)
-        val heading=ui.row();heading.setPadding(0,ui.dp(40),0,ui.dp(25));val names=ui.column();names.addView(ui.title("清岚"));heading.addView(names,LinearLayout.LayoutParams(0,-2,1f));column.addView(heading)
-        val grid=GridLayout(this).apply{columnCount=4};column.addView(grid,LinearLayout.LayoutParams(-1,-2));populateHome(grid,"")
+        val heading=ui.row();heading.setPadding(0,ui.dp(40),0,ui.dp(25));val names=ui.column();names.addView(ui.title("清岚"));heading.addView(names,LinearLayout.LayoutParams(0,-2,1f));if(prefs.getBoolean("homeTitle",true))column.addView(heading)
+        val grid=GridLayout(this).apply{columnCount=prefs.getInt("homeColumns",4).coerceIn(3,5)};column.addView(grid,LinearLayout.LayoutParams(-1,-2));populateHome(grid,"")
         if(folderOpen.isNotEmpty())showFolder(folderOpen)
     }
     private fun moveHome(id:String,parent:String,target:String?=null,after:Boolean=false){
@@ -391,7 +423,7 @@ class BrowserActivity:Activity() {
                 else{children.forEach{child->mini.addView(icons.view(ui,child.title,child.url,20),GridLayout.LayoutParams().apply{width=ui.dp(20);height=ui.dp(20)})};badge.addView(mini)}
             }else badge.addView(icons.view(ui,item.title,item.url,48),FrameLayout.LayoutParams(-1,-1))
             tile.addView(badge,LinearLayout.LayoutParams(ui.dp(54),ui.dp(54)));tile.addView(ui.label(item.title,12f).apply{maxLines=2;gravity=Gravity.CENTER;ellipsize=android.text.TextUtils.TruncateAt.END})
-            tile.setOnClickListener{if(item.folder)showFolder(item.id)else open(item.url)}
+            tile.setOnClickListener{if(item.folder)showFolder(item.id)else openCollection(item.url)}
             DragSupport.source(tile,DragSupport.Item("home",item.id)){homeItemActions(item,tile)}
             DragSupport.target(tile,"home",{it.id!=item.id}){drag,x,_->
                 val moving=store.home.find{it.id==drag.id}

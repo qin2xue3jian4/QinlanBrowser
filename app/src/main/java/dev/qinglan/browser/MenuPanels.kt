@@ -25,6 +25,10 @@ class MenuPanels(private val p:BrowserPanels) {
         Action("resources","media","网页资源"){p.resources.show()},
         Action("speech","speaker","朗读控制"){p.reading()},
         Action("reader","book","阅读模式"){p.reader.show()},
+        Action("readingList","book","离线文章"){p.reader.saved()},
+        Action("qr","qr","扫描二维码"){a.scanQr()},
+        Action("pageTop","back","回到顶部"){a.current?.web?.pageUp(true)},
+        Action("pageBottom","forward","跳到页底"){a.current?.web?.pageDown(true)},
         Action("print","download","打印 / 保存 PDF"){p.reader.printPage()},
         Action("cookies","cookie","Cookie 管理"){p.cookies()},
         Action("undo","back","撤销关闭标签"){a.undoCloseTab()},
@@ -43,9 +47,17 @@ class MenuPanels(private val p:BrowserPanels) {
         }
         repeat((columns-grid.childCount%columns)%columns){grid.addView(View(a),GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED),GridLayout.spec(GridLayout.UNDEFINED,1f)).apply{width=0;height=1})}
         col.addView(grid)
-        val footer=u.row();footer.addView(u.button("更多工具"){a.dismissTabs();p.pages.show("网页工具"){out->actions().filter{it.id!="settings"}.forEach{item->out.addView(u.item(item.title){p.pages.close();item.run()})}}},LinearLayout.LayoutParams(0,-2,1f))
+        val footer=u.row();footer.addView(u.button("更多工具"){a.dismissTabs();allTools()},LinearLayout.LayoutParams(0,-2,1f))
         footer.addView(u.button("定制菜单"){a.dismissTabs();editor()},LinearLayout.LayoutParams(0,-2,1f));col.addView(footer);a.showTabs(col,"menu")
     }
+    fun allTools(){var query="";p.pages.show("全部工具"){col->
+        val input=u.edit("搜索工具",query);col.addView(input);val rows=u.column();col.addView(rows)
+        val groups=linkedMapOf("阅读与页面" to listOf("reader","readingList","speech","find","print","qr","refresh","share","pageTop","pageBottom"),"收藏与标签" to listOf("collect","bookmarks","history","downloads","tabSearch","undo"),"网站与外观" to listOf("site","desktop","theme","images","fullscreen","filter","resources","cookies"))
+        fun render(){rows.removeAllViews();val map=actions().associateBy{it.id};var count=0
+            groups.forEach{(title,ids)->val items=ids.mapNotNull{map[it]}.filter{it.title.contains(query,true)};if(items.isNotEmpty()){rows.addView(u.label(title,13f,u.accent));items.forEach{item->count++;rows.addView(u.item(item.title){p.pages.close();item.run()})}}}
+            if(count==0)rows.addView(u.label("没有匹配的工具"))
+        };input.onChange{query=it;render()};render()
+    }}
     fun editor(){p.pages.show("菜单定制"){col->
         col.addView(u.label("勾选显示，长按移动柄拖动排序，也可用箭头调整。隐藏的功能仍在更多工具中。",13f,u.muted))
         val active=MenuLayout.parse(p.prefs.getString("menuLayout",null));val map=actions().associateBy{it.id}

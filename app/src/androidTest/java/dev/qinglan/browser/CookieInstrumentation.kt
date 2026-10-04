@@ -20,8 +20,10 @@ class CookieInstrumentation:Instrumentation(){
     private var features=false
     private var cleanupFeatures=false
     private var improvements=false
-    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);improvements=arguments?.getString("improvements")=="true";cleanupResources=arguments?.getString("cleanupResources")=="true";resources=arguments?.getString("resources")=="true";filtering=arguments?.getString("filtering")=="true";revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
+    private var maturity=""
+    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);maturity=arguments?.getString("maturity").orEmpty();improvements=arguments?.getString("improvements")=="true";cleanupResources=arguments?.getString("cleanupResources")=="true";resources=arguments?.getString("resources")=="true";filtering=arguments?.getString("filtering")=="true";revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
     override fun onStart(){
+        if(maturity.isNotEmpty()){if(maturity=="download")MaturityChecks.download(this)else MaturityChecks.run(this);return}
         if(improvements){ImprovementChecks.run(this);return}
         if(cleanupResources){ResourceChecks.cleanup(this);return}
         if(resources){ResourceChecks.run(this);return}

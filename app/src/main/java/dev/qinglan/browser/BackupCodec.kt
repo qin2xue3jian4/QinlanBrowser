@@ -7,7 +7,7 @@ import org.json.JSONObject
 object BackupCodec {
     data class Snapshot(val home:List<HomeItem>?,val bookmarks:List<Visit>?,val settings:Map<String,Any>?,val passwords:List<SavedPassword>?=null)
     private val boolKeys=setOf("bottomAddress","restore","thirdParty","noImages","autoHideAddress","adblockEnabled","adblockAutoUpdate","resourceSniffing")
-    fun allowed(key:String)=SettingCatalog.find(key)?.default!=null||key in boolKeys||key in setOf("theme","search","textZoom","palette","menuColumns","menuLayout","customColor","customSearches","filterRules","filterSubscriptions")||Regex("site\\.[a-zA-Z0-9.:-]{1,253}\\.(desktop|js|thirdParty|dark|noImages|adblock|textZoom)").matches(key)
+    fun allowed(key:String)=SettingCatalog.find(key)?.default!=null||key in boolKeys||key in setOf("theme","search","textZoom","palette","menuColumns","menuLayout","customColor","customSearches","filterRules","filterSubscriptions")||Regex("site\\.[a-zA-Z0-9.:-]{1,253}\\.(desktop|js|thirdParty|dark|noImages|adblock|textZoom|autoplay|camera|microphone|location)").matches(key)
     private fun validUrl(s:String)=s.length<=8192&&runCatching{val u=java.net.URI(s);u.scheme in listOf("http","https")&&!u.host.isNullOrBlank()&&u.userInfo==null}.getOrDefault(false)
     private fun settings(raw:JSONObject):Map<String,Any> {
         require(raw.length()<=3000){"设置项过多"}

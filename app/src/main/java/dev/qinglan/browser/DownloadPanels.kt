@@ -30,14 +30,17 @@ class DownloadPanels(private val p:BrowserPanels){
         DownloadManager.STATUS_PENDING->"等待下载"
         else->"下载中"}
     private fun summary(e:Entry)=state(e)+" · "+size(e.done)+" / "+size(e.total)+(if(e.total>0&&e.status!=DownloadManager.STATUS_SUCCESSFUL)" · ${(100.0*e.done/e.total).toInt().coerceIn(0,100)}%" else "")
-    fun show(){p.pages.show("下载"){col->
+    fun show(){var query="";var filter=0;p.pages.show("下载"){col->
         col.addView(u.label("下载由系统继续处理。点击记录查看详情。",13f,u.muted))
+        val input=u.edit("搜索下载文件",query);col.addView(input)
+        val tabs=u.row();listOf("全部","进行中","已完成","失败").forEachIndexed{i,title->tabs.addView(u.button((if(filter==i)"✓ "else"")+title){filter=i;p.pages.refresh()},android.widget.LinearLayout.LayoutParams(0,-2,1f))};col.addView(tabs)
         val rows=u.column();col.addView(rows)
         var fingerprint=""
-        fun update(){val list=entries();val next=list.toString();if(next==fingerprint)return;fingerprint=next;rows.removeAllViews()
-            if(list.isEmpty())rows.addView(u.label("暂无下载记录"))
+        fun update(){val list=entries().filter{(it.title.contains(query,true)||it.url.contains(query,true))&&when(filter){1->it.status in setOf(DownloadManager.STATUS_PENDING,DownloadManager.STATUS_RUNNING,DownloadManager.STATUS_PAUSED);2->it.status==DownloadManager.STATUS_SUCCESSFUL;3->it.status==DownloadManager.STATUS_FAILED;else->true}};val next=list.toString()+query+filter;if(next==fingerprint)return;fingerprint=next;rows.removeAllViews()
+            if(list.isEmpty())rows.addView(u.label("没有匹配的下载记录"))
             list.forEach{e->rows.addView(u.item(e.title,summary(e)){detail(e.id)})}
         }
+        input.onChange{query=it;update()}
         update();col.addView(u.button("刷新列表"){update()})
         val tick=object:Runnable{override fun run(){if(!col.isAttachedToWindow)return;update();col.postDelayed(this,1500)}}
         col.postDelayed(tick,1500)
@@ -51,7 +54,7 @@ class DownloadPanels(private val p:BrowserPanels){
         if(e.status==DownloadManager.STATUS_SUCCESSFUL){
             col.addView(u.button("打开文件",true){file(e,false)})
             col.addView(u.button("分享文件"){file(e,true)})
-        }else if(e.status==DownloadManager.STATUS_FAILED){col.addView(u.button("重新下载"){a.requestDownload(e.url,p.prefs.getString("download.$id.ua",null)?:WebSettings.getDefaultUserAgent(a),"",e.mime,p.prefs.getString("download.$id.referer","").orEmpty())})}
+        }else if(e.status==DownloadManager.STATUS_FAILED){col.addView(u.button("重新下载"){a.requestDownload(e.url,p.prefs.getString("download.$id.ua",null)?:WebSettings.getDefaultUserAgent(a),"",e.mime,p.prefs.getString("download.$id.referer","").orEmpty(),suggestedName=e.title)})}
         col.addView(u.button("复制来源链接"){a.copy("下载来源",e.url)})
         col.addView(u.button("仅移除清岚记录"){AlertDialog.Builder(a).setTitle("移除记录？").setMessage("文件会保留，进行中的系统下载会继续。").setNegativeButton("取消",null).setPositiveButton("移除"){_,_->forget(id);p.pages.back()}.show()})
         col.addView(u.button(if(e.status==DownloadManager.STATUS_SUCCESSFUL)"删除文件及记录"else"取消下载并删除文件"){AlertDialog.Builder(a).setTitle("删除下载？").setMessage("系统下载任务及其文件将被删除，无法撤销。").setNegativeButton("取消",null).setPositiveButton("删除"){_,_->runCatching{manager.remove(id);forget(id);p.pages.back()}.onFailure{a.toast("系统未能删除此下载")}}.show()})

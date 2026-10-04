@@ -40,7 +40,7 @@ class LibraryPanels(private val p:BrowserPanels){
                 status.text=if(editing)"已选 ${selected.size} 项 · ${if(query.isBlank())"按住右侧 ≡ 拖动排序"else"清空搜索后可拖动排序"}"else"长按项目可编辑，或进入编辑模式批量整理"
                 val data=data();if(data.isEmpty())list.addView(u.label("暂无书签",14f,u.muted))
                 data.take(300).forEach{v->
-                    val item=row(v,if(v.folder)"${store.bookmarks.count{it.parent==v.id}} 个网站"else v.url){if(editing)select(v.id)else if(v.folder)bookmarks(v.id)else{pages.close();a.open(v.url)}}
+                    val item=row(v,if(v.folder)"${store.bookmarks.count{it.parent==v.id}} 个网站"else v.url){if(editing)select(v.id)else if(v.folder)bookmarks(v.id)else{pages.close();a.openCollection(v.url)}}
                     if(editing){
                         item.addView(CheckBox(a).apply{isChecked=v.id in selected;contentDescription="选择 ${v.title}";setOnCheckedChangeListener{_,b->if(b)selected.add(v.id)else selected.remove(v.id);status.text="已选 ${selected.size} 项 · 按住右侧 ≡ 拖动排序"}},0)
                         val handle=u.icon("menu","移动 ${v.title}"){a.toast("按住拖动柄上下移动")};item.addView(handle)

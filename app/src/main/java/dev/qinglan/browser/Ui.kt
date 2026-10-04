@@ -35,6 +35,7 @@ class Ui(val context:Context,val dark:Boolean) {
         text=s;isAllCaps=false;textSize=14f;minHeight=dp(48);minimumHeight=dp(48);minWidth=0;minimumWidth=0
         setTextColor(if(primary)contrast(accent) else this@Ui.text);background=round(if(primary)accent else soft,12)
         setPadding(dp(12),dp(6),dp(12),dp(6));setOnClickListener{action()}
+        layoutParams=LinearLayout.LayoutParams(-1,-2).apply{topMargin=dp(3);bottomMargin=dp(3)}
     }
     fun icon(name:String,description:String,action:()->Unit)=IconView(context,name,accent).apply {
         contentDescription=description;isClickable=true;isFocusable=true
@@ -51,14 +52,16 @@ class Ui(val context:Context,val dark:Boolean) {
     fun rule()=View(context).apply{setBackgroundColor(soft);layoutParams=LinearLayout.LayoutParams(-1,dp(1))}
     fun item(title:String,subtitle:String="",action:()->Unit):LinearLayout {
         val r=row();r.setPadding(dp(5),dp(6),dp(5),dp(6));r.minimumHeight=dp(56)
-        val c=column();c.addView(label(title));if(subtitle.isNotBlank())c.addView(label(subtitle,12f,muted))
+        val c=column();c.addView(label(title).apply{maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END});if(subtitle.isNotBlank())c.addView(label(subtitle,12f,muted).apply{maxLines=3;ellipsize=android.text.TextUtils.TruncateAt.END})
+        r.background=context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground)).let{attrs->try{attrs.getDrawable(0)}finally{attrs.recycle()}}
         r.addView(c,LinearLayout.LayoutParams(0,-2,1f));r.addView(label("›",22f,muted));r.setOnClickListener{action()};r.isFocusable=true;return r
     }
 }
 
-class IconView @JvmOverloads constructor(context:Context,private val name:String="globe",private val tint:Int=Color.DKGRAY):View(context) {
+class IconView @JvmOverloads constructor(context:Context,private var name:String="globe",private val tint:Int=Color.DKGRAY):View(context) {
     private val p=Paint(Paint.ANTI_ALIAS_FLAG).apply{color=tint;strokeWidth=1.7f;style=Paint.Style.STROKE;strokeCap=Paint.Cap.ROUND;strokeJoin=Paint.Join.ROUND}
     private val path=Path()
+    fun setIcon(value:String){if(name!=value){name=value;invalidate()}}
     override fun onDraw(canvas:Canvas) {
         super.onDraw(canvas);canvas.save();val s=resources.displayMetrics.density;canvas.translate((width-24*s)/2,(height-24*s)/2);canvas.scale(s,s)
         fun line(vararg pts:Float){path.reset();path.moveTo(pts[0],pts[1]);for(i in 2 until pts.size step 2)path.lineTo(pts[i],pts[i+1]);canvas.drawPath(path,p)}

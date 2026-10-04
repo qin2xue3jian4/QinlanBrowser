@@ -12,6 +12,20 @@ class ReaderPanels(private val p:BrowserPanels) {
     private val a get()=p.a
     private val u get()=p.u
     private val library by lazy { a.assets.open("reader/Readability.js").bufferedReader().use{it.readText()} }
+    private val archive by lazy { ReadingList(a) }
+    private val worker=java.util.concurrent.Executors.newSingleThreadExecutor()
+    fun close(){worker.shutdown()}
+    private fun <T> work(task:()->T,done:(T)->Unit){worker.execute{val result=runCatching(task);a.runOnUiThread{if(!a.isFinishing&&!a.isDestroyed)result.onSuccess(done).onFailure{a.toast(it.message?:"文章操作失败")}}}}
+    fun saved(){var query="";p.pages.show("离线文章"){col->
+        col.addView(u.label("在阅读模式中保存正文，断网也可阅读。最多 100 篇 / 20 MB；不含图片，不包含在设置备份中。",13f,u.muted))
+        val input=u.edit("搜索已保存文章",query);col.addView(input);val rows=u.column();col.addView(rows)
+        fun render(){work({archive.list()}){items->if(!rows.isAttachedToWindow)return@work;rows.removeAllViews()
+            val found=items.filter{it.title.contains(query,true)||it.url.contains(query,true)}
+            if(found.isEmpty())rows.addView(u.label(if(items.isEmpty())"暂无离线文章，打开文章后选择阅读模式保存。"else"没有匹配的文章"))
+            found.forEach{item->val row=u.row();row.addView(u.item(item.title,"${android.net.Uri.parse(item.url).host.orEmpty()} · ${android.text.format.Formatter.formatFileSize(a,item.bytes.toLong())}"){work({archive.text(item)}){text->this@ReaderPanels.render(item.title,text,item.url,false,true)}},LinearLayout.LayoutParams(0,-2,1f));row.addView(u.icon("close","移除 ${item.title.take(40)}"){p.confirm("移除离线文章？",item.title){work({archive.delete(item)}){p.pages.refresh()}}});rows.addView(row)}
+        }}
+        input.onChange{query=it;render()};rows.post{render()}
+    }}
     internal fun extractionScript()="""(()=>{try{
         if(document.getElementsByTagName('*').length>20000)return null;
         $library
@@ -36,20 +50,26 @@ class ReaderPanels(private val p:BrowserPanels) {
             render(article!!.optString("title").take(300),text,url,article.optBoolean("truncated"))
         }
     }
-    private fun render(title:String,text:String,url:String,truncated:Boolean){p.pages.show("阅读模式"){col->
+    private fun render(title:String,text:String,url:String,truncated:Boolean,offline:Boolean=false){p.pages.show(if(offline)"离线阅读"else"阅读模式"){col->
+        col.keepScreenOn=p.prefs.getBoolean("readerKeepAwake",false)
         var size=p.prefs.getInt("readerSize",20).coerceIn(14,32)
         col.addView(u.title(title))
         col.addView(u.label(android.net.Uri.parse(url).host.orEmpty()+" · 纯文字阅读",12f,u.muted))
-        val controls=u.row();val body=u.label(text,size.toFloat()).apply{setTextIsSelectable(true);setLineSpacing(u.dp(5).toFloat(),1.25f)}
-        val sizeLabel=u.label("${size}sp",12f)
-        fun change(delta:Int){size=(size+delta).coerceIn(14,32);p.prefs.edit().putInt("readerSize",size).apply();body.textSize=size.toFloat();sizeLabel.text="${size}sp"}
+        val controls=u.row();val body=u.label(text,size.toFloat()).apply{setTextIsSelectable(true);setLineSpacing(0f,p.prefs.getInt("readerSpacing",135).coerceIn(110,160)/100f)}
+        val sizeLabel=u.label("${size}号",12f)
+        fun change(delta:Int){size=(size+delta).coerceIn(14,32);p.prefs.edit().putInt("readerSize",size).apply();body.textSize=size.toFloat();sizeLabel.text="${size}号"}
         controls.addView(u.button("A−"){change(-2)},LinearLayout.LayoutParams(0,-2,1f));controls.addView(sizeLabel)
         controls.addView(u.button("A＋"){change(2)},LinearLayout.LayoutParams(0,-2,1f))
-        controls.addView(u.button("朗读"){a.speech.readText(text);a.toast("可在菜单的朗读控制中暂停或停止")},LinearLayout.LayoutParams(0,-2,1f))
         col.addView(controls)
+        val speechControls=u.row();lateinit var play:android.widget.Button
+        play=u.button("朗读"){when{!a.speech.matches(text)->a.speech.readText(text);a.speech.speaking->a.speech.pause();a.speech.paused->a.speech.resume();else->a.speech.readText(text)}}
+        speechControls.addView(play,LinearLayout.LayoutParams(0,-2,1f));speechControls.addView(u.button("停止"){a.speech.stop()},LinearLayout.LayoutParams(0,-2,1f));speechControls.addView(u.button("语速"){p.settingsUi.open("speechRate")},LinearLayout.LayoutParams(0,-2,1f));col.addView(speechControls)
+        a.speech.observe(play){play.text=if(!a.speech.matches(text))"朗读"else if(a.speech.speaking)"暂停"else if(a.speech.paused)"继续"else"朗读"}
+        val actions=u.row()
+        actions.addView(u.button(if(offline)"打开原网页"else"保存离线"){if(offline){p.pages.close();a.open(url,true)}else work({archive.save(title,url,text)}){a.toast("已保存，可在离线文章中阅读")}},LinearLayout.LayoutParams(0,-2,1f))
+        actions.addView(u.button("导出 TXT"){a.writeDocument(title.replace(Regex("[\\\\/:*?\"<>|]"),"_").take(80)+".txt","text/plain","$title\n$url\n\n$text")},LinearLayout.LayoutParams(0,-2,1f));col.addView(actions)
         col.addView(u.label("本地提取可能遗漏图片、表格或分页内容；返回即可继续原网页。"+(if(truncated)" 本文超过 20 万字符，当前仅展示前 20 万字符。"else""),12f,u.muted))
         col.addView(body)
-        col.addView(u.button("导出正文 TXT"){a.writeDocument(title.replace(Regex("[\\\\/:*?\"<>|]"),"_").take(80)+".txt","text/plain","$title\n$url\n\n$text")})
     }}
     fun printPage(){
         val web=a.current?.web

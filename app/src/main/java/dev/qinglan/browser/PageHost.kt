@@ -13,6 +13,8 @@ class PageHost(private val a:BrowserActivity){
     private var dialog:Dialog?=null
     private var backRegistered=false
     private var scroll:ScrollView?=null
+    private var dialogDark:Boolean?=null
+    val visible get()=stack.isNotEmpty()
     private fun remember(){stack.lastOrNull()?.scrollY=scroll?.scrollY?:0}
     fun show(title:String,build:(LinearLayout)->Unit){remember();stack.add(Route(title,build));render()}
     fun back(){if(stack.isNotEmpty())stack.removeAt(stack.lastIndex);if(stack.isEmpty())close()else render()}
@@ -20,12 +22,14 @@ class PageHost(private val a:BrowserActivity){
     fun refresh(){if(stack.isNotEmpty()){remember();render()}}
     private fun render(){
         val route=stack.lastOrNull()?:return;val u=a.ui;a.dismissTabs()
+        if(dialogDark!=null&&dialogDark!=u.dark){dialog?.dismiss();dialog=null;backRegistered=false};dialogDark=u.dark
         val d=dialog?:object:Dialog(a,if(u.dark)R.style.AppThemeDark else R.style.AppTheme){
             // API 33+ registers OnBackInvokedDispatcher below; this path is Android 8-12.
             @android.annotation.SuppressLint("GestureBackNavigation") override fun onBackPressed(){back()}
         }.also{dialog=it;it.setOnCancelListener{close()}}
         val root=u.column().apply{setBackgroundColor(u.bg)};val bar=u.row().apply{setBackgroundColor(u.panel)}
         bar.addView(u.icon("back",if(stack.size>1)"返回上一级"else"返回网页"){back()});bar.addView(u.title(route.title).apply{maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END},LinearLayout.LayoutParams(0,-2,1f))
+        if(stack.size>1)bar.addView(u.icon("close","返回网页"){close()})
         root.addView(bar,LinearLayout.LayoutParams(-1,u.dp(56)))
         val col=u.column(16);route.build(col);val pageScroll=ScrollView(a).apply{addView(col)};scroll=pageScroll;root.addView(pageScroll,LinearLayout.LayoutParams(-1,0,1f))
         d.setContentView(root);d.window?.apply{setBackgroundDrawableResource(android.R.color.transparent);setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)}

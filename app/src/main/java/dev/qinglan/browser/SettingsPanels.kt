@@ -15,41 +15,52 @@ class SettingsPanels(private val p:BrowserPanels) {
         "palette"->Palette.names[p.prefs.getString("palette","green")].orEmpty()
         else->value(s)?.let{s.display(it)}?:s.description
     }
-    fun show(){p.pages.show("设置"){col->
-        val search=u.edit("搜索设置，例如：字号、Cookie、菜单")
+    fun show(){var query="";p.pages.show("设置"){col->
+        val search=u.edit("搜索设置，例如：字号、Cookie、菜单",query)
         col.addView(search)
         val results=u.column();col.addView(results)
         fun render(query:String){results.removeAllViews()
-            if(query.isBlank())SettingCatalog.groups.forEach{group->results.addView(u.item(group,SettingCatalog.entries.filter{it.group==group}.take(3).joinToString(" · "){it.title}){group(group)})}
+            if(query.isBlank()){
+                results.addView(u.item("已修改设置","查看与默认值不同的设置，逐项恢复"){modified()})
+                SettingCatalog.groups.forEach{group->results.addView(u.item(group,SettingCatalog.entries.filter{it.group==group}.take(3).joinToString(" · "){it.title}){group(group)})}}
             else {val found=SettingCatalog.search(query);if(found.isEmpty())results.addView(u.label("没有找到设置，试试其他关键词",14f,u.muted))
                 found.forEach{s->results.addView(u.item(s.title,"${s.group} · ${summary(s)}"){open(s.id)})}}
         }
-        search.onChange(::render);render("")
+        search.onChange{query=it;render(it)};render(query)
     }}
-    fun group(name:String){p.pages.show(name){col->SettingCatalog.entries.filter{it.group==name}.forEach{s->col.addView(u.item(s.title,summary(s)){open(s.id)})}}}
+    fun group(name:String){p.pages.show(name){col->SettingCatalog.entries.filter{it.group==name}.forEach{s->col.addView(u.item(s.title,if(s.default!=null)"${summary(s)} · ${s.description}"else s.description){open(s.id)})}}}
+    private fun modified(){p.pages.show("已修改设置"){col->
+        val changed=SettingCatalog.entries.filter{it.default!=null&&value(it)!=it.default}
+        if(changed.isEmpty())col.addView(u.label("全局设置均为默认值"))
+        changed.forEach{s->col.addView(u.item(s.title,"当前：${summary(s)} · 默认：${s.display(s.default!!)}"){open(s.id)})}
+        col.addView(u.item("网站例外","单独查看各网站覆盖项"){sites()});col.addView(u.item("菜单定制","菜单排序与显隐可在此恢复默认"){p.menuEditor()})
+    }}
     fun open(id:String){val s=SettingCatalog.find(id)?:return
         when(id){
             "palette"->p.appearancePanels.palette();"menuLayout"->p.menuEditor()
             "textZoom"->zoom(null);"siteOverrides"->sites();"search"->p.searchEngine(true)
             "filter"->p.filter.show();"scripts"->p.scripts.show();"speech"->p.reading()
             "reader"->{p.pages.close();p.reader.show()};"print"->{p.pages.close();p.reader.printPage()}
+            "readingList"->p.reader.saved()
             "backup"->p.vault.backup();"passwords"->p.vault.passwords();"cookies"->p.cookies()
             "clear"->p.clearData();"about"->p.about()
             "defaultBrowser"->runCatching{a.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))}.onFailure{a.toast("请到系统设置选择默认浏览器")}
             else->p.pages.show(s.title){col->
                 col.addView(u.label(s.description,14f,u.muted))
+                col.addView(u.label("默认：${if(id=="bottomAddress")"顶部"else s.display(s.default!!)}",12f,u.muted))
                 if(id=="bottomAddress")col.addView(u.label(if(value(s)==true)"网页内容\n────────────\n地址栏\n后退　主页　标签　菜单" else "地址栏\n────────────\n网页内容\n后退　主页　标签　菜单",16f).apply{gravity=Gravity.CENTER;background=u.round(u.soft)})
                 val choices=if(s.default is Boolean)listOf(false,true)else s.values
                 choices.forEach{v->val title=if(id=="bottomAddress")if(v==true)"底部"else"顶部" else s.display(v)
-                    col.addView(u.item((if(value(s)==v)"✓ "else"")+title){set(s,v);p.pages.refresh()})}
+                    col.addView(RadioButton(a).apply{text=title;setTextColor(u.text);isChecked=value(s)==v;minHeight=u.dp(52);setOnClickListener{set(s,v);p.pages.refresh()}})}
                 col.addView(u.button("恢复此项默认"){p.prefs.edit().remove(s.id).apply();apply(s.id);p.pages.refresh()})
             }
         }
     }
     private fun set(s:SettingSpec,v:Any){val e=p.prefs.edit();when(v){is Boolean->e.putBoolean(s.id,v);is Int->e.putInt(s.id,v);is String->e.putString(s.id,v)};e.apply();apply(s.id)}
     private fun apply(id:String){
-        if(id in listOf("theme","bottomAddress"))a.retheme()
+        if(id in listOf("theme","bottomAddress","toolbarAction","homeColumns","homeTitle"))a.retheme()
         if(id=="autoHideAddress")a.showAddress()
+        if(id=="activeWebViews")a.trimTabs()
         a.tabs.forEach{t->t.web?.let{a.configure(it,t.url)}}
     }
     fun zoom(url:String?){p.pages.show(if(url==null)"网页字号"else"此网站字号"){col->
@@ -76,5 +87,5 @@ class SettingsPanels(private val p:BrowserPanels) {
             detail.addView(u.button("恢复此网站默认"){p.store.resetSite("https://$host");apply("site");p.pages.back();p.pages.refresh();a.toast("已恢复默认，刷新网页后完全生效")})
         }})}
     }}
-    fun siteTitle(key:String)=when(key){"adblock"->"广告过滤";"dark"->"网页深色";"textZoom"->"网页字号";else->SettingCatalog.find(key)?.title?:key}
+    fun siteTitle(key:String)=when(key){"adblock"->"广告过滤";"dark"->"网页深色";"textZoom"->"网页字号";"camera"->"允许询问摄像头";"microphone"->"允许询问麦克风";"location"->"允许询问位置";else->SettingCatalog.find(key)?.title?:key}
 }
