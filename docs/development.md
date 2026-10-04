@@ -33,7 +33,7 @@ python -m unittest discover -s tools/tests -v
 ./gradlew :app:testDebugUnitTest :app:lintDebug
 ```
 
-JVM 测试覆盖 Cookie 校验、备份加密、收藏整理、搜索引擎、二维码及脚本匹配。发布工具测试覆盖版本标签校验和校验文件生成。
+JVM 测试覆盖 Cookie 校验、备份加密、收藏整理、搜索引擎、二维码、脚本匹配、广告规则语法及订阅配置。发布工具测试覆盖版本标签校验和校验文件生成。
 
 需要设备的 WebView 检查可通过 instrumentation 运行：
 
@@ -43,6 +43,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 adb shell am instrument -w dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
 adb shell am instrument -w -e revision4 scripts dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+adb shell am instrument -w -e filtering true dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
 ```
 
 建议使用模拟器或专用测试设备。Debug 包与正式包可能签名不同，不能直接互相覆盖。

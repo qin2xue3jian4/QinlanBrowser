@@ -21,7 +21,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URLEncoder
 
-data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home",var searchOverride:String?=null)
+data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home",var searchOverride:String?=null,val filterSession:FilterSession=FilterSession())
 
 class BrowserActivity:Activity() {
     lateinit var store:BrowserStore
@@ -30,6 +30,7 @@ class BrowserActivity:Activity() {
     lateinit var icons:SiteIcons
     lateinit var speech:PageSpeech
     lateinit var scripts:UserScripts
+    lateinit var filtering:AdFiltering
     lateinit var root:LinearLayout
     lateinit var content:FrameLayout
     lateinit var address:EditText
@@ -62,7 +63,9 @@ class BrowserActivity:Activity() {
         ui=Ui(this,isDark());setTheme(if(ui.dark)R.style.AppThemeDark else R.style.AppTheme)
         super.onCreate(savedInstanceState)
         icons=SiteIcons(this);speech=PageSpeech(this);scripts=UserScripts(this)
+        filtering=AdFiltering(this)
         panels=BrowserPanels(this)
+        filtering.subscriptions.update(automatic=true)
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         CookieManager.getInstance().setAcceptCookie(true)
         buildChrome()
@@ -176,6 +179,8 @@ class BrowserActivity:Activity() {
     @android.annotation.SuppressLint("ClickableViewAccessibility") // WebView handles clicks; this observer never consumes touch events.
     private fun createWeb(tab:BrowserTab):WebView=SearchWebView(this){query->open(searchUrl(query),true)}.apply {
         scripts.attach(this)
+        tab.filterSession.start(tab.url)
+        filtering.attach(this,tab.filterSession)
         var gestureY=0f
         // Use finger movement rather than layout-generated scroll events: changing toolbar
         // height can itself move scrollY, which otherwise immediately reverses the hide.
@@ -212,14 +217,16 @@ class BrowserActivity:Activity() {
             }else false
         }
         webViewClient=object:WebViewClient(){
+            override fun shouldInterceptRequest(view:WebView,request:WebResourceRequest):WebResourceResponse? = filtering.intercept(tab.filterSession,request)
             override fun shouldOverrideUrlLoading(view:WebView,request:WebResourceRequest):Boolean {
                 val url=request.url.toString()
                 if(isHttp(url)){if(request.isForMainFrame){tab.url=url;configure(view,url)};return false}
                 if(request.isForMainFrame)openExternal(url);return true
             }
-            override fun onPageStarted(view:WebView,url:String,favicon:Bitmap?){if(tab.url=="about:home"&&url=="about:blank")return;tab.url=url;if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.VISIBLE}}
+            override fun onPageStarted(view:WebView,url:String,favicon:Bitmap?){if(tab.url=="about:home"&&url=="about:blank")return;tab.url=url;tab.filterSession.start(url);if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.VISIBLE}}
             override fun onPageFinished(view:WebView,url:String){
                 scripts.finished(view)
+                filtering.finished(view,tab.filterSession)
                 if(tab.url=="about:home")return;tab.url=url;tab.committedUrl=url;tab.title=view.title?.takeIf{it.isNotBlank()}?:Uri.parse(url).host?:"网页"
                 if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.GONE};store.visit(tab.title,url);CookieManager.getInstance().flush();persistSession()
             }
@@ -313,7 +320,7 @@ class BrowserActivity:Activity() {
     fun persistSession(){val a=JSONArray();tabs.forEach{a.put(JSONObject().put("url",it.url).put("title",it.title))};prefs.edit().putString("tabs",a.toString()).putInt("selected",selected).apply()}
     override fun onPause(){super.onPause();speech.pause();current?.web?.onPause();persistSession();CookieManager.getInstance().flush()}
     override fun onResume(){super.onResume();current?.web?.onResume()}
-    override fun onDestroy(){panels.pages.close();speech.close();uploadCallback?.onReceiveValue(null);tabs.forEach{t->(t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()};super.onDestroy()}
+    override fun onDestroy(){panels.pages.close();speech.close();filtering.subscriptions.close();uploadCallback?.onReceiveValue(null);tabs.forEach{t->(t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()};super.onDestroy()}
     fun toast(message:String){Toast.makeText(this,message,Toast.LENGTH_SHORT).show()}
     fun copy(label:String,text:String){(getSystemService(CLIPBOARD_SERVICE)as ClipboardManager).setPrimaryClip(ClipData.newPlainText(label,text));toast("已复制")}
 

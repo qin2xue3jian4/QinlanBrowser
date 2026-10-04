@@ -64,6 +64,7 @@ class IconView @JvmOverloads constructor(context:Context,private val name:String
         fun line(vararg pts:Float){path.reset();path.moveTo(pts[0],pts[1]);for(i in 2 until pts.size step 2)path.lineTo(pts[i],pts[i+1]);canvas.drawPath(path,p)}
         fun rect(l:Float,t:Float,r:Float,b:Float)=canvas.drawRoundRect(l,t,r,b,2f,2f,p)
         when(name){
+            "shield"->{line(12f,2f,21f,6f,20f,15f,12f,22f,4f,15f,3f,6f,12f,2f);line(8f,12f,11f,15f,17f,9f)}
             "back"->line(15f,5f,8f,12f,15f,19f)
             "forward"->line(9f,5f,16f,12f,9f,19f)
             "home"->{line(3f,11f,12f,3f,21f,11f);line(6f,10f,6f,21f,10f,21f,10f,15f,14f,15f,14f,21f,18f,21f,18f,10f)}

@@ -38,7 +38,7 @@ class VaultPanels(private val p:BrowserPanels){
                 val oldVault=if("passwords" in selected)vault.read()else null
                 if("home" in selected){store.home.clear();store.home.addAll(snap.home!!)};if("bookmarks" in selected){store.bookmarks.clear();store.bookmarks.addAll(snap.bookmarks!!)};store.save()
                 if(oldVault!=null){val merged=linkedMapOf<Pair<String,String>,SavedPassword>();(oldVault+snap.passwords!!).forEach{merged[it.origin to it.username]=it};vault.write(merged.values.toList())}
-                if("settings" in selected){val edit=p.prefs.edit();p.prefs.all.keys.filter(BackupCodec::allowed).forEach(edit::remove);snap.settings!!.forEach{(k,v)->when(v){is String->edit.putString(k,v);is Boolean->edit.putBoolean(k,v);is Int->edit.putInt(k,v)}};edit.apply()}
+                if("settings" in selected){val edit=p.prefs.edit();p.prefs.all.keys.filter(BackupCodec::allowed).forEach(edit::remove);snap.settings!!.forEach{(k,v)->when(v){is String->edit.putString(k,v);is Boolean->edit.putBoolean(k,v);is Int->edit.putInt(k,v)}};edit.apply();a.filtering.subscriptions.rebuild()}
             }.onSuccess{a.retheme();pages.back();a.toast("已恢复所选项目")}.onFailure{store.home.clear();store.home.addAll(oldHome);store.bookmarks.clear();store.bookmarks.addAll(oldBookmarks);runCatching{store.save()};fail(it)}}})
         }
     }

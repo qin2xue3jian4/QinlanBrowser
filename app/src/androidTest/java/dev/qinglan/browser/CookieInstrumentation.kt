@@ -14,10 +14,12 @@ import java.util.concurrent.TimeUnit
 class CookieInstrumentation:Instrumentation(){
     private var importAuthorizedFile=false
     private var revision4=""
+    private var filtering=false
     private var features=false
     private var cleanupFeatures=false
-    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
+    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);filtering=arguments?.getString("filtering")=="true";revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
     override fun onStart(){
+        if(filtering){FilterChecks.run(this);return}
         if(revision4.isNotEmpty()){when(revision4){"seed"->RevisionChecks.seed(this);"cleanup"->RevisionChecks.cleanup(this);else->RevisionChecks.run(this)};return}
         if(cleanupFeatures){FeatureChecks.cleanup(this);return}
         if(features){FeatureChecks.run(this);return}

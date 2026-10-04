@@ -31,3 +31,7 @@ Cookie 导出文件包含明文登录凭据。用户脚本能够读取和修改�
 ## 反馈
 
 欢迎通过 [Issues](https://github.com/qin2xue3jian4/AndroidBrowser/issues) 提交问题或建议。网页兼容问题请附上网址、Android 版本、WebView 版本和复现步骤；不要上传 Cookie、密码或含有这些数据的备份。
+
+## 广告过滤
+
+支持请求拦截、页面元素隐藏、站点开关和手动屏蔽。默认提供 EasyList 与 EasyList China 订阅，首次使用下载规则，后续在使用应用时更新。规则不随 APK 打包，更新失败继续使用本机缓存。支持范围和操作方法见[广告过滤指南](docs/filtering.md)。
