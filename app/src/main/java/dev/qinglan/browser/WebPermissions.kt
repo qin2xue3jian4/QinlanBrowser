@@ -35,6 +35,7 @@ class WebPermissions(private val a:BrowserActivity){
                 val needed=next.system.filter{a.checkSelfPermission(it)!=PackageManager.PERMISSION_GRANTED}
                 if(needed.isEmpty())finish(true)else{runtimeActive=true;a.requestPermissions(needed.toTypedArray(),105)}
             }.setOnCancelListener{finish(false)}.show()
+        if(a.isIncognito)dialog?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
     }
     fun result(){runtimeActive=false;val next=pending?:return;finish(next.system.all{a.checkSelfPermission(it)==PackageManager.PERMISSION_GRANTED})}
     private fun finish(yes:Boolean){val next=pending?:return;pending=null;dialog?.dismiss();dialog=null;next.answer(yes&&allowed(next.tab,next.origin))}

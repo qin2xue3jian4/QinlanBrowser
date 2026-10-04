@@ -8,7 +8,7 @@ class AddressSuggestions(private val a:BrowserActivity){
     fun dismiss(){popup?.dismiss();popup=null}
     fun update(query:String){
         if(!a.address.hasFocus()||!a.prefs.getBoolean("localSuggestions",true)){dismiss();return}
-        val found=AddressInput.suggestions(query,a.store.bookmarks,if(a.prefs.getBoolean("recordHistory",true))a.store.history else emptyList())
+        val found=AddressInput.suggestions(query,a.store.bookmarks,if(!a.isIncognito&&a.prefs.getBoolean("recordHistory",true))a.store.history else emptyList())
         if(found.isEmpty()){dismiss();return}
         val col=a.ui.column(4)
         found.forEach{item->col.addView(a.ui.item(item.title.take(80),"${item.source} · ${item.url.take(100)}"){dismiss();a.open(item.url)})}

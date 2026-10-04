@@ -63,6 +63,7 @@ class ReaderPanels(private val p:BrowserPanels) {
             fun tools(){
                 if(!col.isAttachedToWindow||sheet?.isShowing==true)return
                 val panel=u.column(16);panel.addView(u.title("阅读工具"))
+                if(a.isIncognito)panel.addView(u.label("保存离线和导出的文件会保留，退出无痕不会删除。",13f,u.muted))
                 val controls=u.row();val sizeLabel=u.label("${size}号",12f)
                 fun change(delta:Int){size=(size+delta).coerceIn(14,32);p.prefs.edit().putInt("readerSize",size).apply();body.textSize=size.toFloat();sizeLabel.text="${size}号"}
                 controls.addView(u.button("A−"){change(-2)},LinearLayout.LayoutParams(0,-2,1f));controls.addView(sizeLabel)

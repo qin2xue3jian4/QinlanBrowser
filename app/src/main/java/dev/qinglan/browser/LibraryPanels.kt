@@ -17,6 +17,7 @@ class LibraryPanels(private val p:BrowserPanels){
         r.addView(col,LinearLayout.LayoutParams(0,u.dp(76),1f));r.layoutParams=LinearLayout.LayoutParams(-1,u.dp(76));return r
     }
     fun collect(title:String,url:String,bookmark:Boolean=true,home:Boolean=false){if(!a.isHttp(url)){a.toast("请先打开网页");return};pages.show("收藏网页"){col->val name=u.edit("名称",title.ifBlank{url});col.addView(name)
+        if(a.isIncognito)col.addView(u.label("主动保存的书签和主页项目会保留，退出无痕不会删除。",13f,u.muted))
         val b=CheckBox(a).apply{text="保存到书签";isChecked=bookmark;setTextColor(u.text)};col.addView(b);val folders=store.bookmarks.filter{it.folder};val bp=Spinner(a).apply{adapter=ArrayAdapter(a,android.R.layout.simple_spinner_dropdown_item,listOf("书签根目录")+folders.map{it.title})};col.addView(bp)
         val h=CheckBox(a).apply{text="保存到主页";isChecked=home;setTextColor(u.text)};col.addView(h);val homes=store.home.filter{it.folder};val hp=Spinner(a).apply{adapter=ArrayAdapter(a,android.R.layout.simple_spinner_dropdown_item,listOf("主页根目录")+homes.map{it.title})};col.addView(hp)
         col.addView(u.button("保存",true){if(!b.isChecked&&!h.isChecked){a.toast("请至少选择一个位置");return@button};val label=name.text.toString().trim().ifBlank{url}.take(1000)

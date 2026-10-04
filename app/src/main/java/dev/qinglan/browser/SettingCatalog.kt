@@ -64,12 +64,13 @@ object SettingCatalog {
     val sections=linkedMapOf(
         "外观" to listOf(Section("主题与网页文字",listOf("theme","palette","textZoom")),Section("地址栏",listOf("bottomAddress","toolbarAction","autoHideAddress")),Section("主页与菜单",listOf("homeColumns","homeTitle","menuLayout","menuColumns"))),
         "浏览与搜索" to listOf(Section("搜索",listOf("search","localSuggestions")),Section("链接与标签",listOf("collectionOpen","externalNewTab","restore","activeWebViews"))),
-        "网站与隐私" to listOf(Section("网站例外",listOf("siteOverrides")),Section("内容与显示",listOf("js","desktop","noImages","webDark","autoplay")),Section("隐私与跳转",listOf("thirdParty","recordHistory","externalApps")),Section("网站权限询问",listOf("cameraPrompt","microphonePrompt","locationPrompt"))),
+        "网站与隐私" to listOf(Section("网站例外",listOf("siteOverrides")),Section("内容与显示",listOf("js","desktop","noImages","webDark","autoplay")),Section("隐私与跳转",listOf("incognito","thirdParty","recordHistory","externalApps")),Section("网站权限询问",listOf("cameraPrompt","microphonePrompt","locationPrompt"))),
         "工具" to listOf(Section("标签整理",listOf("tabSearch","undo","closeOtherTabs")),Section("阅读与朗读",listOf("reader","readerSize","readerSpacing","readerKeepAwake","speech","speechRate")),Section("网页处理",listOf("filter","scripts","resourceSniffing","downloadWifiOnly","print","tools"))),
         "数据管理" to listOf(Section("保存的数据",listOf("readingList","passwords","cookies")),Section("备份与清理",listOf("backup","clear"))),
         "关于" to listOf(Section("",listOf("defaultBrowser","help","about")))
     )
     private val extra=listOf(
+        SettingSpec("incognito","无痕模式","网站与隐私","独立 Cookie 与网站存储，不记录历史；退出时清理无痕网站数据。",keywords="隐私 匿名 私密"),
         SettingSpec("tabSearch","搜索标签","工具","按标题或网址查找已打开的标签。"),
         SettingSpec("undo","撤销关闭标签","工具","恢复最近关闭的标签；最多 10 条，保留 10 分钟，重启后清空。"),
         SettingSpec("closeOtherTabs","关闭其他标签","工具","确认后只保留当前标签，未提交的表单无法恢复。"),

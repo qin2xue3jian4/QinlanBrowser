@@ -47,6 +47,7 @@ class Ui(val context:Context,val dark:Boolean) {
         background=round(soft,12);setPadding(dp(12),dp(10),dp(12),dp(10));minHeight=dp(48)
         inputType=android.text.InputType.TYPE_CLASS_TEXT or if(multiline)android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE else 0
         if(multiline){minLines=4;maxLines=10;gravity=Gravity.TOP}else setSingleLine(true)
+        if((context as? BrowserActivity)?.isIncognito==true){imeOptions=imeOptions or android.view.inputmethod.EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;importantForAutofill=View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS}
         layoutParams=LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=dp(10)}
     }
     fun rule()=View(context).apply{setBackgroundColor(soft);layoutParams=LinearLayout.LayoutParams(-1,dp(1))}

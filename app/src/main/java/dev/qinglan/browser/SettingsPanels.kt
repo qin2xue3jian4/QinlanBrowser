@@ -45,6 +45,7 @@ class SettingsPanels(private val p:BrowserPanels) {
             "filter"->p.filter.show();"scripts"->p.scripts.show();"speech"->p.reading()
             "reader"->{p.pages.close();p.reader.show()};"print"->{p.pages.close();p.reader.printPage()}
             "readingList"->p.reader.saved()
+            "incognito"->a.privateMode()
             "tabSearch"->p.searchTabs();"undo"->{p.pages.close();a.undoCloseTab()};"closeOtherTabs"->p.closeOtherTabs();"tools"->p.menuPanels.allTools()
             "backup"->p.vault.backup();"passwords"->p.vault.passwords();"cookies"->p.cookies()
             "clear"->p.clearData();"about"->p.about();"help"->p.help()

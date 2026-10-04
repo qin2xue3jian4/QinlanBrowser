@@ -91,3 +91,11 @@ adb shell am instrument -w -e maturity core dev.qinglan.browser.test/dev.qinglan
 下载异常检查需要先运行本机 8877 fixture 和 ADB reverse，再执行 `-e maturity download`。它向 `/fail` 提交合成下载，最长等待 90 秒，允许厂商用 ERROR_UNKNOWN 代替 HTTP 状态码，并保留一个合成失败记录用于界面重试检查。检查后通过下载页删除该记录；不要把厂商超时/未知错误当作浏览器识别出的 HTTP 404。
 
 WebView 权限实现参考 Android 官方 `PermissionRequest`、`GeolocationPermissions.Callback`；仅明确允许视频/音频资源子集，系统权限完成后再次校验当前标签与 HTTPS origin。离线文章索引采用 AtomicFile，正文文件先写入，再原子替换索引，最后删除旧快照；读写在单线程工作队列完成。
+
+## 无痕回归
+
+安装 Debug 与 AndroidTest APK 后运行 `adb shell am instrument -w -e incognito core dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation`。测试在保留域名 `qinglan-private.example.test` 加载本地合成页面，检查 Cookie、localStorage、IndexedDB、CacheStorage 的隔离/清理，普通标签恢复、后台标签配置继承、历史/会话不落盘和截图保护；不需要 fixture 服务器，不读取真实网站 Cookie。
+
+异常恢复分两步：运行 `-e incognito seed`，收到 READY 后在 30 秒内 `adb shell am force-stop dev.qinglan.browser`，再运行 `-e incognito recover`。种子步骤故意不走正常生命周期清理，恢复步骤验证启动清除旧配置且未恢复无痕标签。
+
+`PrivateSession` 要求 AndroidX WebKit `MULTI_PROFILE` 与 `DELETE_BROWSING_DATA`。新 WebView 的第一次调用必须是 `WebViewCompat.setProfile`；销毁会话所有 WebView 后调用 `WebStorageCompat.deleteBrowsingData(profile.webStorage)`。已加载的 profile 在当前进程可能无法删除，因此会话名称从不复用，下次启动删除旧配置。默认 profile 不参加无痕清理。没有新增依赖或服务端。

@@ -24,11 +24,11 @@ class BrowserPanels(val a:BrowserActivity){
     val reader=ReaderPanels(this)
     val settingsUi=SettingsPanels(this)
     val menuPanels=MenuPanels(this)
-    fun dialog(view:View,bottom:Boolean=true):Dialog {val scroll=ScrollView(a).apply{addView(view)};val d=Dialog(a);d.setContentView(scroll);d.window?.setBackgroundDrawable(u.round(u.panel,24));d.show();d.window?.apply{setGravity(if(bottom)Gravity.BOTTOM else Gravity.CENTER);setLayout(a.resources.displayMetrics.widthPixels-u.dp(20),-2)};return d}
+    fun dialog(view:View,bottom:Boolean=true):Dialog {val scroll=ScrollView(a).apply{addView(view)};val d=Dialog(a);if(a.isIncognito)d.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE);d.setContentView(scroll);d.window?.setBackgroundDrawable(u.round(u.panel,24));d.show();d.window?.apply{setGravity(if(bottom)Gravity.BOTTOM else Gravity.CENTER);setLayout(a.resources.displayMetrics.widthPixels-u.dp(20),-2)};return d}
     fun info(title:String,message:String){pages.show(title){it.addView(u.label(message))}}
     fun confirm(title:String,message:String,run:()->Unit){pages.show(title){col->col.addView(u.label(message));col.addView(u.button("确认",true){pages.back();run()});col.addView(u.button("取消"){pages.back()})}}
     fun choose(title:String,options:List<String>,selected:Int=-1,run:(Int)->Unit){pages.show(title){col->options.forEachIndexed{i,s->col.addView(u.item((if(i==selected)"✓ "else"")+s){pages.back();run(i)})}}}
-    fun cookies()=cookie.show()
+    fun cookies(){if(a.isIncognito)a.toast("无痕 Cookie 随会话隔离，退出时清理")else cookie.show()}
     fun menu()=menuPanels.show()
     fun menuEditor()=menuPanels.editor()
     fun tabs(){if(a.dismissTabs())return;renderTabs()}
@@ -44,7 +44,7 @@ class BrowserPanels(val a:BrowserActivity){
             found.forEach{tab->results.addView(u.item(tab.title,tab.url){pages.close();a.switchTab(a.tabs.indexOf(tab))})}}
         input.onChange{query=it;render(it)};render(query)
     }}
-    fun site(){val url=a.currentUrl;pages.show("网站设置"){col->
+    fun site(){if(a.isIncognito){pages.show("无痕网站信息"){col->col.addView(u.label(a.currentUrl,14f));col.addView(u.label("无痕会话不与普通浏览共享登录；网站规则继承普通设置，无痕中不保存新的站点设置。"));col.addView(u.button("退出无痕模式"){a.privateMode()})};return};val url=a.currentUrl;pages.show("网站设置"){col->
         col.addView(u.item("搜索引擎 · ${searches.name(a.current?.searchOverride?:prefs.getString("search",SearchEngines.default)!!)}",if(a.current?.searchOverride!=null)"仅当前标签页"else"使用默认搜索引擎"){searchEngine()})
         if(a.isHttp(url)){
             col.addView(u.label(Uri.parse(url).host.orEmpty(),18f))
@@ -74,7 +74,7 @@ class BrowserPanels(val a:BrowserActivity){
             "下载一直没有进度" to "下载由系统下载器处理。检查网络、可用存储空间，以及是否开启仅 Wi-Fi 下载。部分系统会先等待或重试；系统未返回失败前清岚不能判断原因。可取消任务后重试，或复制来源链接交给其他下载工具。带登录的链接可能会过期。",
             "网站无法使用相机、麦克风或位置" to "只支持前台 HTTPS 同源网站的逐次请求。检查网站设置是否允许询问，再检查系统是否授予清岚对应权限。跨源嵌入页面和未知权限类型会被拒绝；位置只使用大致位置。",
             "离线文章与备份" to "阅读模式保存的是纯文字正文，最多 100 篇 / 20 MB，不包含图片。离线文章保存在本机，卸载清岚会删除；重要文章可导出 TXT。设置备份不包含离线文章、Cookie、历史、下载和标签。",
-            "关闭历史是否等于无痕" to "不是。关闭历史记录只停止新增浏览历史，Cookie、缓存、当前标签与下载仍会保留。清岚尚未提供独立无痕存储。"
+            "关闭历史是否等于无痕" to "不是。关闭历史记录只停止新增浏览历史，Cookie、缓存、当前标签与下载仍会保留。如需隔离登录和网站数据，请从菜单进入无痕模式；退出时清理该会话，主动保存的文件和书签仍会保留。"
         ).forEach{(title,body)->col.addView(u.item(title){info(title,body)})}
         col.addView(u.item("系统应用权限"){runCatching{a.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:${a.packageName}")))}.onFailure{a.toast("请打开系统应用设置")}})
         col.addView(u.button("复制诊断信息"){a.copy("清岚诊断","清岚 ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\nAndroid ${Build.VERSION.RELEASE} / API ${Build.VERSION.SDK_INT}\nWebView ${WebView.getCurrentWebViewPackage()?.versionName?:"未知"}\n广告过滤：${prefs.getBoolean("adblockEnabled",true)}\n用户脚本：请在反馈时说明是否启用\n请补充问题现象和复现步骤。")})

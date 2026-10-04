@@ -35,6 +35,7 @@ class PageHost(private val a:BrowserActivity){
         root.addView(bar,LinearLayout.LayoutParams(-1,u.dp(56)))
         val col=u.column(16);route.build(col);val pageScroll=ScrollView(a).apply{addView(col)};scroll=pageScroll;root.addView(pageScroll,LinearLayout.LayoutParams(-1,0,1f))
         d.setContentView(root);d.window?.apply{setBackgroundDrawableResource(android.R.color.transparent);setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)}
+        if(a.isIncognito)d.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         if(!d.isShowing)d.show()
         pageScroll.post{pageScroll.scrollTo(0,route.scrollY)}
         d.window?.apply{
