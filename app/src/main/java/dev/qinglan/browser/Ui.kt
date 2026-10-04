@@ -12,12 +12,13 @@ import android.view.View
 import android.widget.*
 
 class Ui(val context:Context,val dark:Boolean) {
+    private val palette=context.getSharedPreferences("preferences",Context.MODE_PRIVATE).getString("palette","green")
     val bg=Color.parseColor(if(dark)"#151A19" else "#F8FAF9")
     val panel=Color.parseColor(if(dark)"#202724" else "#FFFFFF")
     val text=Color.parseColor(if(dark)"#E5EEE9" else "#243B33")
     val muted=Color.parseColor(if(dark)"#A4B7AE" else "#718179")
-    val soft=Color.parseColor(if(dark)"#29342E" else "#EDF3EF")
-    val accent=Color.parseColor(if(dark)"#A3D6C5" else "#286658")
+    val soft=Color.parseColor(when(palette){"blue"->if(dark)"#263346"else"#EAF1FB";"purple"->if(dark)"#342C44"else"#F1ECF8";"amber"->if(dark)"#3F3325"else"#FAF0E0";else->if(dark)"#29342E" else "#EDF3EF"})
+    val accent=Color.parseColor(when(palette){"blue"->if(dark)"#A8C8F4"else"#285B98";"purple"->if(dark)"#CFB9F0"else"#70489A";"amber"->if(dark)"#E9C387"else"#855C20";else->if(dark)"#A3D6C5" else "#286658"})
     fun dp(n:Int)=(n*context.resources.displayMetrics.density+.5f).toInt()
     fun round(color:Int,radius:Int=16)=GradientDrawable().apply{setColor(color);cornerRadius=dp(radius).toFloat()}
     fun column(padding:Int=0)=LinearLayout(context).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(padding),dp(padding),dp(padding),dp(padding))}

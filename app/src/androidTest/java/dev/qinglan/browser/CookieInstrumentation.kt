@@ -13,8 +13,10 @@ import java.util.concurrent.TimeUnit
 /** Uses synthetic cookies in a reserved .test domain. Never reads real-site cookies. */
 class CookieInstrumentation:Instrumentation(){
     private var importAuthorizedFile=false
-    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
+    private var features=false
+    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
     override fun onStart(){
+        if(features){FeatureChecks.run(this);return}
         if(importAuthorizedFile){importUserFile();return}
         val result=Bundle()
         try{

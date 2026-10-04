@@ -27,6 +27,8 @@ class BrowserActivity:Activity() {
     lateinit var store:BrowserStore
     lateinit var ui:Ui
     lateinit var panels:BrowserPanels
+    lateinit var icons:SiteIcons
+    lateinit var speech:PageSpeech
     lateinit var root:LinearLayout
     lateinit var content:FrameLayout
     lateinit var address:EditText
@@ -57,6 +59,7 @@ class BrowserActivity:Activity() {
         store=BrowserStore(this)
         ui=Ui(this,isDark());setTheme(if(ui.dark)R.style.AppThemeDark else R.style.AppTheme)
         super.onCreate(savedInstanceState)
+        icons=SiteIcons(this);speech=PageSpeech(this)
         panels=BrowserPanels(this)
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         CookieManager.getInstance().setAcceptCookie(true)
@@ -67,12 +70,18 @@ class BrowserActivity:Activity() {
         }
         if(tabs.isEmpty())tabs.add(BrowserTab())
         switchTab(selected)
-        if(intent.action==Intent.ACTION_VIEW)intent.dataString?.takeIf(::isHttp)?.let { open(it,true) }
+        handleIntent(intent)
         if(Build.VERSION.SDK_INT>=33)onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT){goBack()}
     }
     fun isDark():Boolean=when(store.prefs.getString("theme","system")){"dark"->true;"light"->false;else->resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK==Configuration.UI_MODE_NIGHT_YES}
     override fun onConfigurationChanged(newConfig:Configuration){super.onConfigurationChanged(newConfig);if(isDark()!=ui.dark)retheme()}
-    override fun onNewIntent(intent:Intent){super.onNewIntent(intent);setIntent(intent);intent.dataString?.takeIf(::isHttp)?.let{open(it,true)}}
+    override fun onNewIntent(intent:Intent){super.onNewIntent(intent);setIntent(intent);handleIntent(intent)}
+    private fun handleIntent(intent:Intent){
+        if(intent.action in listOf(Intent.ACTION_WEB_SEARCH,Intent.ACTION_PROCESS_TEXT,Intent.ACTION_SEARCH)){
+            val query=(intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()?:intent.getStringExtra(android.app.SearchManager.QUERY)).orEmpty().take(4096)
+            if(query.isNotBlank()){panels.pages.close();open(searchUrl(query),true)}
+        }else if(intent.action==Intent.ACTION_VIEW)intent.dataString?.takeIf(::isHttp)?.let{open(it,true)}
+    }
     fun buildChrome() {
         root=ui.column();root.setBackgroundColor(ui.bg)
         top=ui.row().apply{setPadding(ui.dp(8),ui.dp(5),ui.dp(8),ui.dp(5));setBackgroundColor(ui.panel)}
@@ -103,7 +112,7 @@ class BrowserActivity:Activity() {
         root.addView(bottom);setContentView(root);content.requestFocus()
         if(Build.VERSION.SDK_INT>=30){
             window.setDecorFitsSystemWindows(false)
-            root.setOnApplyWindowInsetsListener{view,insets->val bars=insets.getInsets(WindowInsets.Type.systemBars());val ime=insets.getInsets(WindowInsets.Type.ime());view.setPadding(bars.left,if(fullScreen)0 else bars.top,bars.right,maxOf(if(fullScreen)0 else bars.bottom,ime.bottom));insets}
+            root.setOnApplyWindowInsetsListener{view,insets->val bars=insets.getInsets(WindowInsets.Type.systemBars());val ime=insets.getInsets(WindowInsets.Type.ime());view.setPadding(if(fullScreen)0 else bars.left,if(fullScreen)0 else bars.top,if(fullScreen)0 else bars.right,maxOf(if(fullScreen)0 else bars.bottom,ime.bottom));WindowInsets.CONSUMED}
             window.insetsController?.setSystemBarsAppearance(if(ui.dark)0 else WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
         }else{root.fitsSystemWindows=true;window.decorView.systemUiVisibility=if(ui.dark)0 else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR}
         window.statusBarColor=ui.panel;window.navigationBarColor=ui.panel
@@ -163,7 +172,7 @@ class BrowserActivity:Activity() {
         web.setBackgroundColor(ui.bg)
     }
     @android.annotation.SuppressLint("ClickableViewAccessibility") // WebView handles clicks; this observer never consumes touch events.
-    private fun createWeb(tab:BrowserTab):WebView=WebView(this).apply {
+    private fun createWeb(tab:BrowserTab):WebView=SearchWebView(this){query->open(searchUrl(query),true)}.apply {
         var gestureY=0f
         // Use finger movement rather than layout-generated scroll events: changing toolbar
         // height can itself move scrollY, which otherwise immediately reverses the hide.
@@ -187,8 +196,16 @@ class BrowserActivity:Activity() {
         setOnLongClickListener {
             val h=hitTestResult;val u=h.extra
             if(!u.isNullOrBlank()&&h.type in listOf(WebView.HitTestResult.SRC_ANCHOR_TYPE,WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE,WebView.HitTestResult.IMAGE_TYPE)){
-                val options=if(h.type==WebView.HitTestResult.IMAGE_TYPE)arrayOf("查看图片","保存图片","复制链接")else arrayOf("在新标签页打开","添加到书签","复制链接")
-                AlertDialog.Builder(this@BrowserActivity).setTitle(u.take(120)).setItems(options){_,i->when(i){0->open(u,true);1->if(h.type==WebView.HitTestResult.IMAGE_TYPE)requestDownload(u,settings.userAgentString,"","")else{store.bookmarks.add(Visit(u,u));store.save();toast("已添加书签")};2->copy("链接",u)}}.show();true
+                val isImage=h.type==WebView.HitTestResult.IMAGE_TYPE
+                val handler=Handler(Looper.getMainLooper()){message->val link=if(isImage)u else message.data.getString("url")?:u;val text=message.data.getString("title").orEmpty()
+                    panels.pages.show(if(isImage)"图片操作"else"链接操作"){col->
+                        col.addView(ui.label(link.take(200),12f,ui.muted))
+                        col.addView(ui.button("在新标签页打开"){panels.pages.close();open(link,true)})
+                        col.addView(ui.button(if(isImage)"保存图片"else"添加到书签"){if(isImage)requestDownload(link,settings.userAgentString,"","")else panels.library.collect(text.ifBlank{link},link)})
+                        col.addView(ui.button("复制链接"){copy("链接",link);panels.pages.back()})
+                        col.addView(ui.button("复制文本"){if(text.isNotBlank()){copy("链接文本",text);panels.pages.back()}else toast("此链接没有可复制的文本")})
+                        col.addView(ui.button("添加到主页"){panels.library.collect(text.ifBlank{link},link,false,true)})
+                    };true};requestFocusNodeHref(handler.obtainMessage());true
             }else false
         }
         webViewClient=object:WebViewClient(){
@@ -207,6 +224,7 @@ class BrowserActivity:Activity() {
             override fun onRenderProcessGone(view:WebView,detail:RenderProcessGoneDetail):Boolean{(view.parent as? android.view.ViewGroup)?.removeView(view);view.destroy();tab.web=null;tab.saved=null;if(tab==current){toast("网页进程已退出，重新加载中");attach(tab)};return true}
         }
         webChromeClient=object:WebChromeClient(){
+            override fun onReceivedIcon(view:WebView,icon:Bitmap){icons.save(view.url?:tab.url,icon)}
             override fun onProgressChanged(view:WebView,value:Int){if(tab==current){this@BrowserActivity.progress.progress=value;this@BrowserActivity.progress.visibility=if(value==100)View.GONE else View.VISIBLE}}
             override fun onReceivedTitle(view:WebView,title:String?){if(tab.url!="about:home")tab.title=title?:tab.title}
             override fun onCreateWindow(view:WebView,isDialog:Boolean,isUserGesture:Boolean,resultMsg:Message):Boolean{
@@ -245,6 +263,8 @@ class BrowserActivity:Activity() {
     fun reload(){if(currentUrl=="about:home")renderHome()else current?.web?.let{configure(it,currentUrl);it.reload()}}
     private fun syncAddress(){if(!address.hasFocus())address.setText(if(isHttp(currentUrl))currentUrl.removePrefix("https://").removePrefix("http://").trimEnd('/')else "")}
     fun setFullscreen(enabled:Boolean){fullScreen=enabled;top.visibility=if(enabled)View.GONE else View.VISIBLE;bottom.visibility=if(enabled)View.GONE else View.VISIBLE
+        if(Build.VERSION.SDK_INT>=28)window.attributes=window.attributes.apply{layoutInDisplayCutoutMode=if(enabled){if(Build.VERSION.SDK_INT>=30)WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES}else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT}
+        window.statusBarColor=if(enabled)android.graphics.Color.TRANSPARENT else ui.panel
         if(Build.VERSION.SDK_INT>=30){window.insetsController?.apply{systemBarsBehavior=WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE;if(enabled)hide(WindowInsets.Type.systemBars())else show(WindowInsets.Type.systemBars())};root.requestApplyInsets()}
         else window.decorView.systemUiVisibility=if(enabled)View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY else if(ui.dark)0 else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
         if(enabled)toast("按系统返回键退出全屏")
@@ -280,16 +300,16 @@ class BrowserActivity:Activity() {
     fun writeDocument(name:String,mime:String,text:String){documentWrite=text;startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mime).putExtra(Intent.EXTRA_TITLE,name),102)}
     override fun onActivityResult(requestCode:Int,resultCode:Int,data:Intent?){super.onActivityResult(requestCode,resultCode,data)
         when(requestCode){
-            101->{val callback=documentRead;documentRead=null;if(resultCode==RESULT_OK)data?.data?.let{uri->try{val bytes=contentResolver.openInputStream(uri)?.use{input->val out=java.io.ByteArrayOutputStream();val buffer=ByteArray(8192);while(true){val n=input.read(buffer);if(n<0)break;require(out.size()+n<=1_048_576){"文件超过 1 MB"};out.write(buffer,0,n)};out.toByteArray()}?:throw Exception("读取失败");callback?.invoke(bytes.toString(Charsets.UTF_8))}catch(e:Exception){toast(e.message?:"读取失败")}}}
+            101->{val callback=documentRead;documentRead=null;if(resultCode==RESULT_OK)data?.data?.let{uri->try{val bytes=contentResolver.openInputStream(uri)?.use{input->val out=java.io.ByteArrayOutputStream();val buffer=ByteArray(8192);while(true){val n=input.read(buffer);if(n<0)break;require(out.size()+n<=2_097_152){"文件超过 2 MB"};out.write(buffer,0,n)};out.toByteArray()}?:throw Exception("读取失败");callback?.invoke(bytes.toString(Charsets.UTF_8))}catch(e:Exception){toast(e.message?:"读取失败")}}}
             102->{val text=documentWrite;documentWrite=null;if(resultCode==RESULT_OK&&text!=null)data?.data?.let{uri->try{contentResolver.openOutputStream(uri,"wt")?.use{it.write(text.toByteArray())}?:throw Exception("无法写入");toast("已导出")}catch(e:Exception){toast("导出失败")}}}
             103->{val result=if(resultCode==RESULT_OK){data?.clipData?.let{c->Array(c.itemCount){c.getItemAt(it).uri}}?:data?.data?.let{arrayOf(it)}}else null;uploadCallback?.onReceiveValue(result);uploadCallback=null}
             104->{if(resultCode==RESULT_OK)data?.getStringExtra("url")?.takeIf(::isHttp)?.let{open(it)}}
         }
     }
     fun persistSession(){val a=JSONArray();tabs.forEach{a.put(JSONObject().put("url",it.url).put("title",it.title))};prefs.edit().putString("tabs",a.toString()).putInt("selected",selected).apply()}
-    override fun onPause(){super.onPause();current?.web?.onPause();persistSession();CookieManager.getInstance().flush()}
+    override fun onPause(){super.onPause();speech.pause();current?.web?.onPause();persistSession();CookieManager.getInstance().flush()}
     override fun onResume(){super.onResume();current?.web?.onResume()}
-    override fun onDestroy(){uploadCallback?.onReceiveValue(null);tabs.forEach{t->(t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()};super.onDestroy()}
+    override fun onDestroy(){panels.pages.close();speech.close();uploadCallback?.onReceiveValue(null);tabs.forEach{t->(t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()};super.onDestroy()}
     fun toast(message:String){Toast.makeText(this,message,Toast.LENGTH_SHORT).show()}
     fun copy(label:String,text:String){(getSystemService(CLIPBOARD_SERVICE)as ClipboardManager).setPrimaryClip(ClipData.newPlainText(label,text));toast("已复制")}
 
@@ -307,7 +327,7 @@ class BrowserActivity:Activity() {
             if(item.folder){val mini=GridLayout(this).apply{columnCount=2;setPadding(ui.dp(6),ui.dp(6),ui.dp(6),ui.dp(6))};val children=store.home.filter{it.parent==item.id}.take(4)
                 if(children.isEmpty())badge.addView(IconView(this,"folder",ui.accent),FrameLayout.LayoutParams(-1,-1))
                 else{children.forEach{child->mini.addView(ui.label(child.title.take(1),11f,ui.accent).apply{gravity=Gravity.CENTER},GridLayout.LayoutParams().apply{width=ui.dp(20);height=ui.dp(20)})};badge.addView(mini)}
-            }else badge.addView(ui.label(item.title.take(1).uppercase(),24f,ui.accent).apply{gravity=Gravity.CENTER},FrameLayout.LayoutParams(-1,-1))
+            }else badge.addView(icons.view(ui,item.title,item.url,48),FrameLayout.LayoutParams(-1,-1))
             tile.addView(badge,LinearLayout.LayoutParams(ui.dp(54),ui.dp(54)));tile.addView(ui.label(item.title,12f).apply{maxLines=2;gravity=Gravity.CENTER;ellipsize=android.text.TextUtils.TruncateAt.END})
             tile.setOnClickListener{if(item.folder)showFolder(item.id)else open(item.url)};tile.setOnLongClickListener{folderDialog?.dismiss();homeItemActions(item);true}
             grid.addView(tile,GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED),GridLayout.spec(GridLayout.UNDEFINED,1f)).apply{width=0;height=ui.dp(104)})

@@ -10,7 +10,9 @@ import java.util.UUID
 data class HomeItem(val id: String = UUID.randomUUID().toString(), var title: String, var url: String = "", var parent: String = "", val folder: Boolean = false) {
     fun json() = JSONObject().put("id", id).put("title", title).put("url", url).put("parent", parent).put("folder", folder)
 }
-data class Visit(val title: String, val url: String, val time: Long = System.currentTimeMillis())
+data class Visit(val title: String, val url: String, val time: Long = System.currentTimeMillis(),val id:String=UUID.randomUUID().toString(),val parent:String="",val folder:Boolean=false) {
+    fun json()=JSONObject().put("title",title).put("url",url).put("time",time).put("id",id).put("parent",parent).put("folder",folder)
+}
 
 class BrowserStore(context: Context) {
     val prefs = context.getSharedPreferences("preferences", Context.MODE_PRIVATE)
@@ -22,14 +24,14 @@ class BrowserStore(context: Context) {
         val data = runCatching { JSONObject(dataFile.openRead().bufferedReader().use { it.readText() }) }.getOrNull()
         if (data != null) {
             data.optJSONArray("home")?.let { a -> for (i in 0 until a.length()) { val o=a.getJSONObject(i);home.add(HomeItem(o.getString("id"),o.getString("title"),o.optString("url"),o.optString("parent"),o.optBoolean("folder"))) } }
-            fun visits(key: String, list: MutableList<Visit>) { data.optJSONArray(key)?.let { a -> for(i in 0 until a.length()) { val o=a.getJSONObject(i);list.add(Visit(o.optString("title"),o.getString("url"),o.optLong("time"))) } } }
+            fun visits(key: String, list: MutableList<Visit>) { data.optJSONArray(key)?.let { a -> for(i in 0 until a.length()) { val o=a.getJSONObject(i);list.add(Visit(o.optString("title"),o.getString("url"),o.optLong("time"),o.optString("id").ifBlank{UUID.randomUUID().toString()},o.optString("parent"),o.optBoolean("folder"))) } } }
             visits("bookmarks",bookmarks);visits("history",history)
         } else {
             home.add(HomeItem(title="ChatGPT",url="https://chatgpt.com/"))
         }
     }
     @Synchronized fun save() {
-        fun jsonVisits(list: List<Visit>) = JSONArray().apply { list.forEach { put(JSONObject().put("title",it.title).put("url",it.url).put("time",it.time)) } }
+        fun jsonVisits(list: List<Visit>) = JSONArray().apply { list.forEach { put(it.json()) } }
         val data=JSONObject().put("home",JSONArray().apply { home.forEach { put(it.json()) } }).put("bookmarks",jsonVisits(bookmarks)).put("history",jsonVisits(history.take(1500)))
         val out=dataFile.startWrite()
         try { out.write(data.toString().toByteArray());dataFile.finishWrite(out) } catch(e:Exception) { dataFile.failWrite(out);throw e }
@@ -43,6 +45,7 @@ class BrowserStore(context: Context) {
     fun setSiteBool(url:String,key:String,value:Boolean) { prefs.edit().putBoolean("site.${siteKey(url)}.$key",value).apply() }
     fun bookmarkHtml():String {
         fun esc(s:String)=s.replace("&","&amp;").replace("\"","&quot;").replace("<","&lt;").replace(">","&gt;")
-        return "<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\">\n<TITLE>Bookmarks</TITLE>\n<DL><p>\n"+bookmarks.joinToString("\n") { "<DT><A HREF=\"${esc(it.url)}\">${esc(it.title)}</A>" }+"\n</DL><p>"
+        fun entries(parent:String):String=bookmarks.filter{it.parent==parent}.joinToString("\n"){if(it.folder)"<DT><H3>${esc(it.title)}</H3><DL><p>\n"+bookmarks.filter{v->v.parent==it.id&&!v.folder}.joinToString("\n"){v->"<DT><A HREF=\"${esc(v.url)}\">${esc(v.title)}</A>"}+"\n</DL><p>"else "<DT><A HREF=\"${esc(it.url)}\">${esc(it.title)}</A>"}
+        return "<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\">\n<TITLE>Bookmarks</TITLE>\n<DL><p>\n"+entries("")+"\n</DL><p>"
     }
 }
