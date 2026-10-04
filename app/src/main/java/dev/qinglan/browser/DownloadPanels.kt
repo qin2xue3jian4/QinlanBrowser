@@ -25,7 +25,7 @@ class DownloadPanels(private val p:BrowserPanels){
     private fun state(e:Entry)=when(e.status){
         DownloadManager.STATUS_SUCCESSFUL->"已完成"
         DownloadManager.STATUS_FAILED->"失败："+when(e.reason){
-            DownloadManager.ERROR_INSUFFICIENT_SPACE->"存储空间不足";DownloadManager.ERROR_FILE_ALREADY_EXISTS->"同名文件已存在";DownloadManager.ERROR_DEVICE_NOT_FOUND->"存储设备不可用";DownloadManager.ERROR_CANNOT_RESUME->"无法续传";DownloadManager.ERROR_HTTP_DATA_ERROR->"网络传输错误";in 400..599->"HTTP ${e.reason}";else->"系统错误 ${e.reason}"}
+            DownloadManager.ERROR_INSUFFICIENT_SPACE->"存储空间不足";DownloadManager.ERROR_FILE_ALREADY_EXISTS->"同名文件已存在";DownloadManager.ERROR_DEVICE_NOT_FOUND->"存储设备不可用";DownloadManager.ERROR_CANNOT_RESUME->"无法续传";DownloadManager.ERROR_HTTP_DATA_ERROR->"网络传输错误";DownloadManager.ERROR_UNKNOWN->"系统未提供具体原因";in 400..599->"HTTP ${e.reason}";else->"系统错误 ${e.reason}"}
         DownloadManager.STATUS_PAUSED->when(e.reason){DownloadManager.PAUSED_WAITING_FOR_NETWORK->"等待网络";DownloadManager.PAUSED_QUEUED_FOR_WIFI->"等待 Wi-Fi";DownloadManager.PAUSED_WAITING_TO_RETRY->"等待系统重试";else->"已暂停"}
         DownloadManager.STATUS_PENDING->"等待下载"
         else->"下载中"}
@@ -56,6 +56,7 @@ class DownloadPanels(private val p:BrowserPanels){
             col.addView(u.button("分享文件"){file(e,true)})
         }else if(e.status==DownloadManager.STATUS_FAILED){col.addView(u.button("重新下载"){a.requestDownload(e.url,p.prefs.getString("download.$id.ua",null)?:WebSettings.getDefaultUserAgent(a),"",e.mime,p.prefs.getString("download.$id.referer","").orEmpty(),suggestedName=e.title)})}
         col.addView(u.button("复制来源链接"){a.copy("下载来源",e.url)})
+        if(e.status==DownloadManager.STATUS_FAILED||e.status==DownloadManager.STATUS_PAUSED)col.addView(u.item("下载排错帮助","检查网络、仅 Wi-Fi 限制、可用空间和链接是否过期"){p.help()})
         col.addView(u.button("仅移除清岚记录"){AlertDialog.Builder(a).setTitle("移除记录？").setMessage("文件会保留，进行中的系统下载会继续。").setNegativeButton("取消",null).setPositiveButton("移除"){_,_->forget(id);p.pages.back()}.show()})
         col.addView(u.button(if(e.status==DownloadManager.STATUS_SUCCESSFUL)"删除文件及记录"else"取消下载并删除文件"){AlertDialog.Builder(a).setTitle("删除下载？").setMessage("系统下载任务及其文件将被删除，无法撤销。").setNegativeButton("取消",null).setPositiveButton("删除"){_,_->runCatching{manager.remove(id);forget(id);p.pages.back()}.onFailure{a.toast("系统未能删除此下载")}}.show()})
         col.addView(u.button("刷新详情"){p.pages.refresh()})

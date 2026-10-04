@@ -68,6 +68,19 @@ class BrowserPanels(val a:BrowserActivity){
         }
     }}
     fun settings()=settingsUi.show()
+    fun help(){pages.show("帮助与排错"){col->
+        listOf(
+            "网页打不开或反复出错" to "检查网址、网络、设备日期时间，然后重新加载。遇到证书错误时清岚会停止连接，不提供跳过验证。可在系统应用商店更新 Android System WebView。网页进程退出后需要手动重试，避免重复崩溃。",
+            "网页白屏、登录或按钮失效" to "先在网站设置中检查 JavaScript 和第三方 Cookie，尝试恢复此网站默认并刷新。广告过滤可能误拦截，可仅对此网站关闭后比较。用户脚本也可能影响页面，可逐个停用排查。",
+            "下载一直没有进度" to "下载由系统下载器处理。检查网络、可用存储空间，以及是否开启仅 Wi-Fi 下载。部分系统会先等待或重试；系统未返回失败前清岚不能判断原因。可取消任务后重试，或复制来源链接交给其他下载工具。带登录的链接可能会过期。",
+            "网站无法使用相机、麦克风或位置" to "只支持前台 HTTPS 同源网站的逐次请求。检查网站设置是否允许询问，再检查系统是否授予清岚对应权限。跨源嵌入页面和未知权限类型会被拒绝；位置只使用大致位置。",
+            "离线文章与备份" to "阅读模式保存的是纯文字正文，最多 100 篇 / 20 MB，不包含图片。离线文章保存在本机，卸载清岚会删除；重要文章可导出 TXT。设置备份不包含离线文章、Cookie、历史、下载和标签。",
+            "关闭历史是否等于无痕" to "不是。关闭历史记录只停止新增浏览历史，Cookie、缓存、当前标签与下载仍会保留。清岚尚未提供独立无痕存储。"
+        ).forEach{(title,body)->col.addView(u.item(title){info(title,body)})}
+        col.addView(u.item("系统应用权限"){runCatching{a.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:${a.packageName}")))}.onFailure{a.toast("请打开系统应用设置")}})
+        col.addView(u.button("复制诊断信息"){a.copy("清岚诊断","清岚 ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\nAndroid ${Build.VERSION.RELEASE} / API ${Build.VERSION.SDK_INT}\nWebView ${WebView.getCurrentWebViewPackage()?.versionName?:"未知"}\n广告过滤：${prefs.getBoolean("adblockEnabled",true)}\n用户脚本：请在反馈时说明是否启用\n请补充问题现象和复现步骤。")})
+        col.addView(u.label("诊断信息不包含网址、Cookie、密码或历史。复制后由你决定是否分享。",12f,u.muted))
+    }}
     fun about(){pages.show("关于项目"){col->col.addView(u.item("正文提取开源许可","Mozilla Readability 0.6.0 · Apache 2.0"){info("Mozilla Readability",a.assets.open("reader/NOTICE.txt").bufferedReader().use{it.readText()}+"\n\n"+a.assets.open("reader/LICENSE.md").bufferedReader().use{it.readText()})});col.addView(u.label("清岚 ${BuildConfig.VERSION_NAME}\nAndroid ${Build.VERSION.RELEASE}\nWebView ${WebView.getCurrentWebViewPackage()?.versionName?:"未知"}\n\n使用系统 WebView，数据保存在本机。"));col.addView(u.item("过滤规则与公共后缀表许可"){filter.information()});col.addView(u.item("MPL 2.0 许可证"){info("MPL 2.0",a.assets.open("MPL-2.0.txt").bufferedReader().use{it.readText()})});col.addView(u.item("开源许可","ZXing · Apache License 2.0"){info("ZXing 开源许可",a.assets.open("zxing-LICENSE.txt").bufferedReader().use{it.readText()})})}}
     fun searchEngine(permanent:Boolean=false)=searches.show(permanent)
     fun clearData(){pages.show("清理浏览数据"){col->val labels=listOf("历史记录和最近关闭","网页缓存","所有网站 Cookie（退出登录）","网站本地存储");val boxes=labels.map{CheckBox(a).apply{text=it;setTextColor(u.text)}.also(col::addView)};col.addView(u.button("清理所选数据"){val checks=boxes.map{it.isChecked};if(checks.none{it})return@button;confirm("确认清理",labels.filterIndexed{i,_->checks[i]}.joinToString("\n")){if(checks[0])a.clearHistoryData();if(checks[1]){val existing=a.tabs.firstNotNullOfOrNull{it.web};if(existing!=null)existing.clearCache(true)else WebView(a).apply{clearCache(true);destroy()}};if(checks[2])CookieManager.getInstance().removeAllCookies{CookieManager.getInstance().flush()};if(checks[3])WebStorage.getInstance().deleteAllData();a.toast("已清理")}})}}

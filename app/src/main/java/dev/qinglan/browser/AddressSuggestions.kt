@@ -13,10 +13,11 @@ class AddressSuggestions(private val a:BrowserActivity){
         val col=a.ui.column(4)
         found.forEach{item->col.addView(a.ui.item(item.title.take(80),"${item.source} · ${item.url.take(100)}"){dismiss();a.open(item.url)})}
         val scroll=ScrollView(a).apply{addView(col);setBackgroundColor(a.ui.panel)}
+        val height=a.ui.dp(minOf(190,found.size*78))
         val existing=popup
-        if(existing!=null){(existing.contentView as ScrollView).apply{removeAllViews();scroll.removeView(col);addView(col)};return}
+        if(existing!=null){(existing.contentView as ScrollView).apply{removeAllViews();scroll.removeView(col);addView(col)};existing.update(a.address,a.address.width,height);return}
         if(!a.address.isAttachedToWindow||a.address.width==0)return
-        popup=PopupWindow(scroll,a.address.width,a.ui.dp(190),false).apply{
+        popup=PopupWindow(scroll,a.address.width,height,false).apply{
             elevation=a.ui.dp(6).toFloat();isOutsideTouchable=true;setBackgroundDrawable(a.ui.round(a.ui.panel));inputMethodMode=PopupWindow.INPUT_METHOD_NEEDED
             setOnDismissListener{if(popup===this)popup=null};showAsDropDown(a.address)
         }

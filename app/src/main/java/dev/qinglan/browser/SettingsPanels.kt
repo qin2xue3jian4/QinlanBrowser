@@ -43,8 +43,11 @@ class SettingsPanels(private val p:BrowserPanels) {
             "reader"->{p.pages.close();p.reader.show()};"print"->{p.pages.close();p.reader.printPage()}
             "readingList"->p.reader.saved()
             "backup"->p.vault.backup();"passwords"->p.vault.passwords();"cookies"->p.cookies()
-            "clear"->p.clearData();"about"->p.about()
-            "defaultBrowser"->runCatching{a.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))}.onFailure{a.toast("请到系统设置选择默认浏览器")}
+            "clear"->p.clearData();"about"->p.about();"help"->p.help()
+            "defaultBrowser"->runCatching{
+                if(android.os.Build.VERSION.SDK_INT>=29){val roles=a.getSystemService(android.app.role.RoleManager::class.java);if(roles.isRoleHeld(android.app.role.RoleManager.ROLE_BROWSER))a.toast("清岚已经是默认浏览器")else if(roles.isRoleAvailable(android.app.role.RoleManager.ROLE_BROWSER))a.startActivityForResult(roles.createRequestRoleIntent(android.app.role.RoleManager.ROLE_BROWSER),106)else a.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))}
+                else a.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+            }.onFailure{a.toast("请到系统设置选择默认浏览器")}
             else->p.pages.show(s.title){col->
                 col.addView(u.label(s.description,14f,u.muted))
                 col.addView(u.label("默认：${if(id=="bottomAddress")"顶部"else s.display(s.default!!)}",12f,u.muted))

@@ -42,7 +42,7 @@ class Ui(val context:Context,val dark:Boolean) {
         background=context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackgroundBorderless)).let{a->try{a.getDrawable(0)}finally{a.recycle()}}
         layoutParams=LinearLayout.LayoutParams(dp(48),dp(48));setOnClickListener{action()}
     }
-    fun edit(hint:String,value:String="",multiline:Boolean=false)=EditText(context).apply {
+    fun edit(hint:String,value:String="",multiline:Boolean=false,field:EditText=EditText(context))=field.apply {
         this.hint=hint;setText(value);textSize=16f;setTextColor(this@Ui.text);setHintTextColor(muted)
         background=round(soft,12);setPadding(dp(12),dp(10),dp(12),dp(10));minHeight=dp(48)
         inputType=android.text.InputType.TYPE_CLASS_TEXT or if(multiline)android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE else 0

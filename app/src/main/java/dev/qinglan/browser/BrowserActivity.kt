@@ -99,7 +99,7 @@ class BrowserActivity:Activity() {
         top=ui.row().apply{setPadding(ui.dp(8),ui.dp(5),ui.dp(8),ui.dp(5));setBackgroundColor(ui.panel)}
         val addressBox=ui.row().apply{background=ui.round(ui.soft,15)}
         addressBox.addView(ui.icon("site","网站设置"){panels.site()})
-        address=ui.edit("搜索或输入网址").apply{
+        address=ui.edit("搜索或输入网址",field=AddressField(this)).apply{
             setPadding(0,0,0,0);background=null;imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_GO
             inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI
             imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_GO or android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI
@@ -183,7 +183,7 @@ class BrowserActivity:Activity() {
         val next=if(activeId!=id)tabs.indexOfFirst{it.id==activeId}else tabs.indexOfFirst{it.id==t.openerId}
         switchTab(if(next>=0)next else i.coerceAtMost(tabs.lastIndex));showCloseUndo()
     }
-    fun closeOtherTabs(){val keep=current?:return;val closing=tabs.withIndex().filter{it.value!==keep}
+    fun closeOtherTabs(){val keep=current?:return;emptyReplacementId=null;val closing=tabs.withIndex().filter{it.value!==keep}
         closing.forEach{(index,t)->if(isHttp(t.url)||t.url=="about:home")closedTabs.push(ClosedTab(t.url,t.title,index,t.openerId,t.searchOverride));(t.web?.parent as? ViewGroup)?.removeView(t.web);t.web?.destroy()}
         tabs.removeAll{it!==keep};selected=0;switchTab(0);if(closing.isNotEmpty())showCloseUndo()
     }

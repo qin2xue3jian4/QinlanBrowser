@@ -22,7 +22,7 @@ class ReaderPanels(private val p:BrowserPanels) {
         fun render(){work({archive.list()}){items->if(!rows.isAttachedToWindow)return@work;rows.removeAllViews()
             val found=items.filter{it.title.contains(query,true)||it.url.contains(query,true)}
             if(found.isEmpty())rows.addView(u.label(if(items.isEmpty())"暂无离线文章，打开文章后选择阅读模式保存。"else"没有匹配的文章"))
-            found.forEach{item->val row=u.row();row.addView(u.item(item.title,"${android.net.Uri.parse(item.url).host.orEmpty()} · ${android.text.format.Formatter.formatFileSize(a,item.bytes.toLong())}"){work({archive.text(item)}){text->this@ReaderPanels.render(item.title,text,item.url,false,true)}},LinearLayout.LayoutParams(0,-2,1f));row.addView(u.icon("close","移除 ${item.title.take(40)}"){p.confirm("移除离线文章？",item.title){work({archive.delete(item)}){p.pages.refresh()}}});rows.addView(row)}
+            found.forEach{item->val row=u.row();row.addView(u.item(item.title,"${android.net.Uri.parse(item.url).host.orEmpty()} · ${android.text.format.Formatter.formatFileSize(a,item.bytes.toLong())}"){work({archive.text(item)}){text->if(row.isAttachedToWindow)this@ReaderPanels.render(item.title,text,item.url,false,true)}},LinearLayout.LayoutParams(0,-2,1f));row.addView(u.icon("close","移除 ${item.title.take(40)}"){p.confirm("移除离线文章？",item.title){work({archive.delete(item)}){if(rows.isAttachedToWindow)p.pages.refresh()}}});rows.addView(row)}
         }}
         input.onChange{query=it;render()};rows.post{render()}
     }}

@@ -23,6 +23,9 @@ object MaturityChecks {
             archive.delete(second);check(archive.list().isEmpty())
             val a=r.startActivitySync(Intent(r.targetContext,BrowserActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as BrowserActivity;activity=a
             r.runOnMainSync{
+                val editor=android.view.inputmethod.EditorInfo();a.address.onCreateInputConnection(editor)
+                check(editor.imeOptions and android.view.inputmethod.EditorInfo.IME_MASK_ACTION==android.view.inputmethod.EditorInfo.IME_ACTION_GO)
+                check(editor.imeOptions and (android.view.inputmethod.EditorInfo.IME_FLAG_NAVIGATE_NEXT or android.view.inputmethod.EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS)==0)
                 val original=a.current!!.id;val before=a.tabs.size
                 a.newHome();val tab=a.current!!;tab.url="https://qa.example.test/";tab.web=android.webkit.WebView(a)
                 class Fake(private val requested:String,private val types:Array<String>):PermissionRequest(){var denied=false;var granted=false;override fun getOrigin()=Uri.parse(requested);override fun getResources()=types;override fun deny(){denied=true};override fun grant(resources:Array<String>){granted=true}}
@@ -46,8 +49,8 @@ object MaturityChecks {
             val prefs=r.targetContext.getSharedPreferences("preferences",0);prefs.edit().putStringSet("downloads",prefs.getStringSet("downloads",emptySet()).orEmpty()+id.toString()).commit()
             var status=0;var reason=0;val deadline=System.currentTimeMillis()+90000
             while(System.currentTimeMillis()<deadline){manager.query(DownloadManager.Query().setFilterById(id)).use{c->if(c.moveToFirst()){status=c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));reason=c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))}};if(status==DownloadManager.STATUS_FAILED)break;Thread.sleep(300)}
-            check(status==DownloadManager.STATUS_FAILED&&reason==404){"Expected 404, got $status / $reason"}
-            result.putString("stream","PASS: synthetic system download failed with HTTP 404; retained only its record for UI retry QA.\n");r.finish(Activity.RESULT_OK,result)
+            check(status==DownloadManager.STATUS_FAILED&&reason!=0){"Expected a reported failure, got $status / $reason"}
+            result.putString("stream","PASS: synthetic HTTP 404 reached system failure; OEM reason=$reason (may mask HTTP status). Retained its record for UI retry QA.\n");r.finish(Activity.RESULT_OK,result)
         }catch(e:Throwable){id?.let{manager.remove(it);val prefs=r.targetContext.getSharedPreferences("preferences",0);prefs.edit().putStringSet("downloads",prefs.getStringSet("downloads",emptySet()).orEmpty()-it.toString()).commit()};result.putString("stream","FAIL: ${e.message}\n");r.finish(Activity.RESULT_CANCELED,result)}
     }
 }

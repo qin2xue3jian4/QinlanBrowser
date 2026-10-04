@@ -57,6 +57,7 @@ object SettingCatalog {
         SettingSpec("cookies","Cookie 管理","数据管理","查看和管理网站 Cookie；导出可能包含登录凭据。",keywords="导入 导出 登录"),
         SettingSpec("clear","清理浏览数据","数据管理","自行选择历史、缓存、Cookie 和网站存储。",keywords="删除 隐私 缓存"),
         SettingSpec("defaultBrowser","默认浏览器","关于","前往系统设置选择默认浏览器。"),
+        SettingSpec("help","帮助与排错","关于","常见问题、权限设置和不含浏览数据的诊断信息。",keywords="下载失败 白屏 网页异常 反馈"),
         SettingSpec("about","关于项目","关于","版本、系统 WebView、开源许可。",keywords="版本 内核 许可")
     )
     val groups=entries.map{it.group}.distinct()
