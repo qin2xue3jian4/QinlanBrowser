@@ -6,7 +6,7 @@ import org.json.JSONObject
 /** Explicit allowlist: never serializes sessions, history, downloads, or site storage. */
 object BackupCodec {
     data class Snapshot(val home:List<HomeItem>?,val bookmarks:List<Visit>?,val settings:Map<String,Any>?,val passwords:List<SavedPassword>?=null)
-    private val boolKeys=setOf("bottomAddress","restore","thirdParty","noImages","autoHideAddress","adblockEnabled","adblockAutoUpdate")
+    private val boolKeys=setOf("bottomAddress","restore","thirdParty","noImages","autoHideAddress","adblockEnabled","adblockAutoUpdate","resourceSniffing")
     fun allowed(key:String)=key in boolKeys||key in setOf("theme","search","textZoom","palette","menuColumns","customColor","customSearches","filterRules","filterSubscriptions")||Regex("site\\.[a-zA-Z0-9.:-]{1,253}\\.(desktop|js|thirdParty|dark|noImages|adblock)").matches(key)
     private fun validUrl(s:String)=s.length<=8192&&runCatching{val u=java.net.URI(s);u.scheme in listOf("http","https")&&!u.host.isNullOrBlank()&&u.userInfo==null}.getOrDefault(false)
     private fun settings(raw:JSONObject):Map<String,Any> {

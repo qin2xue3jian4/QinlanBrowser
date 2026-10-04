@@ -20,6 +20,7 @@ class BrowserPanels(val a:BrowserActivity){
     val appearancePanels=AppearancePanels(this)
     val scripts=ScriptPanels(this)
     val filter=FilterPanels(this)
+    val resources=ResourcePanels(this)
     fun dialog(view:View,bottom:Boolean=true):Dialog {val scroll=ScrollView(a).apply{addView(view)};val d=Dialog(a);d.setContentView(scroll);d.window?.setBackgroundDrawable(u.round(u.panel,24));d.show();d.window?.apply{setGravity(if(bottom)Gravity.BOTTOM else Gravity.CENTER);setLayout(a.resources.displayMetrics.widthPixels-u.dp(20),-2)};return d}
     fun info(title:String,message:String){pages.show(title){it.addView(u.label(message))}}
     fun confirm(title:String,message:String,run:()->Unit){pages.show(title){col->col.addView(u.label(message));col.addView(u.button("确认",true){pages.back();run()});col.addView(u.button("取消"){pages.back()})}}
@@ -36,7 +37,7 @@ class BrowserPanels(val a:BrowserActivity){
         entry("refresh","刷新"){a.reload()};entry("search","页面查找"){a.showFind()};entry("fullscreen","全屏"){a.setFullscreen(true)}
         entry("bookmark","收藏网页"){if(a.isHttp(a.currentUrl))library.collect(a.current?.title.orEmpty(),a.currentUrl)else a.addHomeChoice()}
         entry("site","网站设置"){site()};entry("settings","设置"){settings()};entry("globe","分享链接"){if(a.isHttp(a.currentUrl))a.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT,a.currentUrl),"分享链接"))}
-        entry("shield","广告过滤"){filter.show()}
+        entry("shield","广告过滤"){filter.show()};entry("media","网页资源"){resources.show()}
         entry("speaker",if(a.speech.speaking)"朗读控制"else"朗读本页"){reading()}
         repeat((columns-grid.childCount%columns)%columns){grid.addView(View(a),GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED),GridLayout.spec(GridLayout.UNDEFINED,1f)).apply{width=0;height=1})};col.addView(grid);a.showTabs(col,"menu")
     }

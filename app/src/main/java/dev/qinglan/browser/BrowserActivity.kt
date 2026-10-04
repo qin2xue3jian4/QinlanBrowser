@@ -21,7 +21,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URLEncoder
 
-data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home",var searchOverride:String?=null,val filterSession:FilterSession=FilterSession())
+data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home",var searchOverride:String?=null,val filterSession:FilterSession=FilterSession(),val resources:ResourceSession=ResourceSession())
 
 class BrowserActivity:Activity() {
     lateinit var store:BrowserStore
@@ -31,6 +31,7 @@ class BrowserActivity:Activity() {
     lateinit var speech:PageSpeech
     lateinit var scripts:UserScripts
     lateinit var filtering:AdFiltering
+    lateinit var sniffer:ResourceSniffer
     lateinit var root:LinearLayout
     lateinit var content:FrameLayout
     lateinit var address:EditText
@@ -63,7 +64,7 @@ class BrowserActivity:Activity() {
         ui=Ui(this,isDark());setTheme(if(ui.dark)R.style.AppThemeDark else R.style.AppTheme)
         super.onCreate(savedInstanceState)
         icons=SiteIcons(this);speech=PageSpeech(this);scripts=UserScripts(this)
-        filtering=AdFiltering(this)
+        filtering=AdFiltering(this);sniffer=ResourceSniffer(this)
         panels=BrowserPanels(this)
         filtering.subscriptions.update(automatic=true)
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
@@ -145,7 +146,7 @@ class BrowserActivity:Activity() {
         val t=current?:return;t.url=url;folderOpen="";if(t.web==null){t.saved=null;attach(t)}else{configure(t.web!!,url);content.removeAllViews();(t.web!!.parent as? android.view.ViewGroup)?.removeView(t.web);content.addView(t.web,FrameLayout.LayoutParams(-1,-1));t.web!!.loadUrl(url)}
         syncAddress();persistSession()
     }
-    fun goHome(){dismissTabs();showAddress();val t=current?:return;t.web?.stopLoading();t.url="about:home";t.committedUrl="about:home";t.title="主页";folderOpen="";closeFind();renderHome();syncAddress();persistSession()}
+    fun goHome(){dismissTabs();showAddress();val t=current?:return;t.web?.stopLoading();t.url="about:home";t.committedUrl="about:home";t.title="主页";t.resources.start("about:home","");t.filterSession.start("about:home");folderOpen="";closeFind();renderHome();syncAddress();persistSession()}
     fun switchTab(index:Int){
         if(index !in tabs.indices)return;dismissTabs();showAddress();closeFind();current?.web?.onPause();selected=index;val t=tabs[index];t.used=System.currentTimeMillis()
         if(t.url=="about:home")renderHome()else attach(t)
@@ -180,6 +181,8 @@ class BrowserActivity:Activity() {
     private fun createWeb(tab:BrowserTab):WebView=SearchWebView(this){query->open(searchUrl(query),true)}.apply {
         scripts.attach(this)
         tab.filterSession.start(tab.url)
+        tab.resources.start(tab.url,settings.userAgentString)
+        sniffer.attach(this,tab.resources)
         filtering.attach(this,tab.filterSession)
         var gestureY=0f
         // Use finger movement rather than layout-generated scroll events: changing toolbar
@@ -217,16 +220,21 @@ class BrowserActivity:Activity() {
             }else false
         }
         webViewClient=object:WebViewClient(){
-            override fun shouldInterceptRequest(view:WebView,request:WebResourceRequest):WebResourceResponse? = filtering.intercept(tab.filterSession,request)
+            override fun shouldInterceptRequest(view:WebView,request:WebResourceRequest):WebResourceResponse? {
+                val blocked=filtering.intercept(tab.filterSession,request)
+                if(blocked==null)sniffer.observe(tab.resources,request)
+                return blocked
+            }
             override fun shouldOverrideUrlLoading(view:WebView,request:WebResourceRequest):Boolean {
                 val url=request.url.toString()
                 if(isHttp(url)){if(request.isForMainFrame){tab.url=url;configure(view,url)};return false}
                 if(request.isForMainFrame)openExternal(url);return true
             }
-            override fun onPageStarted(view:WebView,url:String,favicon:Bitmap?){if(tab.url=="about:home"&&url=="about:blank")return;tab.url=url;tab.filterSession.start(url);if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.VISIBLE}}
+            override fun onPageStarted(view:WebView,url:String,favicon:Bitmap?){if(tab.url=="about:home"&&url=="about:blank")return;tab.url=url;tab.filterSession.start(url);tab.resources.start(url,view.settings.userAgentString);if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.VISIBLE}}
             override fun onPageFinished(view:WebView,url:String){
                 scripts.finished(view)
                 filtering.finished(view,tab.filterSession)
+                sniffer.scan(view,tab.resources)
                 if(tab.url=="about:home")return;tab.url=url;tab.committedUrl=url;tab.title=view.title?.takeIf{it.isNotBlank()}?:Uri.parse(url).host?:"网页"
                 if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.GONE};store.visit(tab.title,url);CookieManager.getInstance().flush();persistSession()
             }
@@ -291,8 +299,8 @@ class BrowserActivity:Activity() {
         val external=runCatching{if(url.startsWith("intent:"))Intent.parseUri(url,Intent.URI_INTENT_SCHEME).apply{component=null;selector=null;addCategory(Intent.CATEGORY_BROWSABLE)}else Intent(Intent.ACTION_VIEW,Uri.parse(url))}.getOrNull()?:return
         AlertDialog.Builder(this).setTitle("打开外部应用？").setMessage(Uri.parse(url).scheme?:"外部链接").setNegativeButton("取消",null).setPositiveButton("打开"){_,_->try{startActivity(external)}catch(e:Exception){external.getStringExtra("browser_fallback_url")?.takeIf(::isHttp)?.let{open(it)}?:toast("未找到对应应用")}}.show()
     }
-    fun requestDownload(url:String,ua:String,disposition:String,mime:String){
-        if(!isHttp(url)){toast("首版支持 HTTP/HTTPS 下载，暂不支持 Blob 下载");return}
+    fun requestDownload(url:String,ua:String,disposition:String,mime:String,referer:String=currentUrl){
+        if(!isHttp(url)){toast("支持 HTTP/HTTPS 下载，Blob 地址不能直接下载");return}
         val guessed=URLUtil.guessFileName(url,disposition,mime).replace(Regex("[\\\\/:*?\"<>|]"),"_")
         val name=ui.edit("文件名",guessed)
         AlertDialog.Builder(this).setTitle("下载文件").setView(name).setNegativeButton("取消",null).setPositiveButton("下载"){_,_->
@@ -301,7 +309,7 @@ class BrowserActivity:Activity() {
                 val req=DownloadManager.Request(Uri.parse(url)).setTitle(fileName).setDescription(Uri.parse(url).host).setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED).setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,fileName)
                 if(mime.isNotBlank())req.setMimeType(mime);req.addRequestHeader("User-Agent",ua)
                 CookieManager.getInstance().getCookie(url)?.let{req.addRequestHeader("Cookie",it)}
-                if(isHttp(currentUrl))req.addRequestHeader("Referer",currentUrl)
+                if(isHttp(referer))req.addRequestHeader("Referer",referer)
                 val id=(getSystemService(DOWNLOAD_SERVICE)as DownloadManager).enqueue(req)
                 val ids=prefs.getStringSet("downloads",emptySet())!!.toMutableSet();ids.add(id.toString());prefs.edit().putStringSet("downloads",ids).apply();toast("已开始下载")
             }catch(e:Exception){toast("下载失败：${e.message}")}

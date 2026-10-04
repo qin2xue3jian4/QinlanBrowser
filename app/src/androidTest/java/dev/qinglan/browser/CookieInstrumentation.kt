@@ -15,10 +15,14 @@ class CookieInstrumentation:Instrumentation(){
     private var importAuthorizedFile=false
     private var revision4=""
     private var filtering=false
+    private var resources=false
+    private var cleanupResources=false
     private var features=false
     private var cleanupFeatures=false
-    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);filtering=arguments?.getString("filtering")=="true";revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
+    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);cleanupResources=arguments?.getString("cleanupResources")=="true";resources=arguments?.getString("resources")=="true";filtering=arguments?.getString("filtering")=="true";revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
     override fun onStart(){
+        if(cleanupResources){ResourceChecks.cleanup(this);return}
+        if(resources){ResourceChecks.run(this);return}
         if(filtering){FilterChecks.run(this);return}
         if(revision4.isNotEmpty()){when(revision4){"seed"->RevisionChecks.seed(this);"cleanup"->RevisionChecks.cleanup(this);else->RevisionChecks.run(this)};return}
         if(cleanupFeatures){FeatureChecks.cleanup(this);return}
