@@ -35,6 +35,16 @@ python -m unittest discover -s tools/tests -v
 
 JVM 测试覆盖 Cookie 校验、备份加密、收藏整理、搜索引擎、二维码、脚本匹配、广告规则语法、订阅配置、媒体分类及标签页资源隔离。发布工具测试覆盖版本标签校验和校验文件生成。
 
+0.6 新增设置搜索/备份类型、菜单损坏恢复和限时标签撤销测试。`ImprovementChecks` 在真实 WebView 检查正文首尾保留、排除导航与表单、原 DOM 不变、网站字号继承和父标签/撤销行为：
+
+```sh
+adb shell am instrument -w -e improvements true dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+```
+
+部分系统会阻止测试进程从后台启动 Activity；此时可在另一终端执行 `adb shell am start -n dev.qinglan.browser/.BrowserActivity`，无需关闭系统安全检查。测试使用合成文章和临时主页标签。
+
+`python tools/improvement_fixture.py` 加 `adb reverse tcp:8877 tcp:8877` 提供长文章、后台链接、小文件与慢速下载页面。测试后仅清理对应的测试标签和下载，并移除该端口转发。阅读提取库固定为 Mozilla Readability 0.6.0，源文件 SHA-256 和许可证位于 `assets/reader/`；展示使用原生文字，不把提取出的 HTML 作为可信页面执行。
+
 需要设备的 WebView 检查可通过 instrumentation 运行：
 
 ```sh
