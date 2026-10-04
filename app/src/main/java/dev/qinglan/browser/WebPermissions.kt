@@ -19,17 +19,17 @@ class WebPermissions(private val a:BrowserActivity){
         val kinds=request.resources.map{when(it){PermissionRequest.RESOURCE_VIDEO_CAPTURE->"camera";PermissionRequest.RESOURCE_AUDIO_CAPTURE->"microphone";else->"unknown"}}
         if(kinds.isEmpty()||kinds.any{it=="unknown"||!enabled(request.origin.toString(),it)}){request.deny();return}
         val system=kinds.map{if(it=="camera")Manifest.permission.CAMERA else Manifest.permission.RECORD_AUDIO}.distinct().toTypedArray()
-        ask(Pending(request,tab,request.origin.toString(),system){yes->if(yes)request.grant(request.resources.filter{it==PermissionRequest.RESOURCE_VIDEO_CAPTURE||it==PermissionRequest.RESOURCE_AUDIO_CAPTURE}.toTypedArray())else request.deny()},kinds.joinToString("、"){if(it=="camera")"摄像头"else"麦克风"})
+        ask(Pending(request,tab,request.origin.toString(),system){yes->if(yes)request.grant(request.resources.filter{it==PermissionRequest.RESOURCE_VIDEO_CAPTURE||it==PermissionRequest.RESOURCE_AUDIO_CAPTURE}.toTypedArray())else request.deny()},kinds.joinToString("、"){if(it=="camera")tr("摄像头")else tr("麦克风")})
     }
     fun location(tab:BrowserTab,origin:String,callback:GeolocationPermissions.Callback){
         if(!enabled(origin,"location")){callback.invoke(origin,false,false);return}
-        ask(Pending(callback,tab,origin,arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION)){yes->callback.invoke(origin,yes,false)},"大致位置")
+        ask(Pending(callback,tab,origin,arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION)){yes->callback.invoke(origin,yes,false)},tr("大致位置"))
     }
     private fun ask(value:Pending,label:String){
         if(pending!=null||runtimeActive||!allowed(value.tab,value.origin)||!a.hasWindowFocus()||a.panels.pages.visible){value.answer(false);return}
         pending=value
-        dialog=AlertDialog.Builder(a).setTitle("允许网站使用$label？").setMessage("${value.origin}\n\n仅允许此次请求。也可在网站设置中阻止它再次询问。")
-            .setNegativeButton("拒绝"){_,_->finish(false)}.setPositiveButton("允许此次"){_,_->
+        dialog=AlertDialog.Builder(a).setTitle(tr("允许网站使用%1\$s？", label)).setMessage(tr("%1\$s\n\n仅允许此次请求。也可在网站设置中阻止它再次询问。", value.origin))
+            .setNegativeButton(tr("拒绝")){_,_->finish(false)}.setPositiveButton(tr("允许此次")){_,_->
                 val next=pending?:return@setPositiveButton
                 if(!allowed(next.tab,next.origin)){finish(false);return@setPositiveButton}
                 val needed=next.system.filter{a.checkSelfPermission(it)!=PackageManager.PERMISSION_GRANTED}

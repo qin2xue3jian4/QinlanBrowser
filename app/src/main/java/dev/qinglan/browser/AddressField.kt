@@ -12,7 +12,7 @@ class AddressField(context:Context):EditText(context) {
         outAttrs.imeOptions=(outAttrs.imeOptions and
             (EditorInfo.IME_MASK_ACTION or EditorInfo.IME_FLAG_NAVIGATE_NEXT or EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS).inv()) or EditorInfo.IME_ACTION_GO
         outAttrs.actionId=EditorInfo.IME_ACTION_GO
-        outAttrs.actionLabel="前往"
+        outAttrs.actionLabel=tr("前往")
         return connection
     }
 }

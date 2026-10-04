@@ -1,0 +1,971 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="text_0001" formatted="false">"Exit private browsing to manage saved accounts"</string>
+    <string name="text_0002" formatted="false">"Switch website account"</string>
+    <string name="text_0003" formatted="false">"Current: %1$s"</string>
+    <string name="text_0004" formatted="false">"Only this tab will switch and reload. Unsaved input will be lost; other tabs stay unchanged. Login redirects and links opened from this tab use the same account space."</string>
+    <string name="text_0005" formatted="false">"Default space · Existing login"</string>
+    <string name="text_0006" formatted="false">"In use"</string>
+    <string name="text_0007" formatted="false">"Switch and reload"</string>
+    <string name="text_0008" formatted="false">"Add account"</string>
+    <string name="text_0009" formatted="false">"Name default account"</string>
+    <string name="text_0010" formatted="false">"Give this website\'s existing login a name"</string>
+    <string name="text_0011" formatted="false">"Manage saved accounts"</string>
+    <string name="text_0012" formatted="false">"Rename, open in a new tab, or delete"</string>
+    <string name="text_0013" formatted="false">"Could not switch account"</string>
+    <string name="text_0014" formatted="false">"Website accounts"</string>
+    <string name="text_0015" formatted="false">"Save separate logins for your websites. Sign in once in each new space; cookies and site storage are retained. Closing a tab does not delete its account."</string>
+    <string name="text_0016" formatted="false">"Account names are labels you choose. Bookmarks, history, passwords and browsing settings are shared. Account spaces are not private browsing and are not included in backups."</string>
+    <string name="text_0017" formatted="false">"This WebView does not support account isolation. Update Android System WebView."</string>
+    <string name="text_0018" formatted="false">"No accounts yet. Open a website, then choose Website accounts in Site settings beside the address bar."</string>
+    <string name="text_0019" formatted="false">"Default space · Edit name"</string>
+    <string name="text_0020" formatted="false">"Manage account space"</string>
+    <string name="text_0021" formatted="false">"Add an account for this website"</string>
+    <string name="text_0022" formatted="false">"Account name"</string>
+    <string name="text_0023" formatted="false">"Only changes the name for this website, not cookies or login data. Set it back to “Default account” to remove the custom name."</string>
+    <string name="text_0024" formatted="false">"Save"</string>
+    <string name="text_0025" formatted="false">"Could not save name"</string>
+    <string name="text_0026" formatted="false">"Add website account"</string>
+    <string name="text_0027" formatted="false">"Rename account"</string>
+    <string name="text_0028" formatted="false">"Account name, e.g. Work or Personal"</string>
+    <string name="text_0029" formatted="false">"Create an empty login space and reopen the website\'s home page in this tab. Your original login stays unchanged. Sign in with another account."</string>
+    <string name="text_0030" formatted="false">"Only changes the name, not the login."</string>
+    <string name="text_0031" formatted="false">"Create and switch"</string>
+    <string name="text_0032" formatted="false">"Could not save account"</string>
+    <string name="text_0033" formatted="false">"Manage account"</string>
+    <string name="text_0034" formatted="false">"Open in new tab"</string>
+    <string name="text_0035" formatted="false">"Could not open account"</string>
+    <string name="text_0036" formatted="false">"Rename"</string>
+    <string name="text_0037" formatted="false">"Delete account space"</string>
+    <string name="text_0038" formatted="false">"Delete %1$s?"</string>
+    <string name="text_0039" formatted="false">"Closes all tabs using this account and permanently removes cookies, cache and local storage for every website in this space. Other accounts, bookmarks, history and downloaded files are kept."</string>
+    <string name="text_0040" formatted="false">"Could not delete account"</string>
+    <string name="text_0041" formatted="false">"Default account"</string>
+    <string name="text_0042" formatted="false">"Removed account"</string>
+    <string name="text_0043" formatted="false">"An account with this name already exists for this website"</string>
+    <string name="text_0044" formatted="false">"Account space has been removed"</string>
+    <string name="text_0045" formatted="false">"Update Android System WebView to use multiple accounts"</string>
+    <string name="text_0046" formatted="false">"Could not read account list; the original file was not overwritten"</string>
+    <string name="text_0047" formatted="false">"Up to %1$s separate accounts are supported. Remove an unused account first."</string>
+    <string name="text_0048" formatted="false">"Go"</string>
+    <string name="text_0049" formatted="false">"Enter a URL or search term"</string>
+    <string name="text_0050" formatted="false">"Input is too long"</string>
+    <string name="text_0051" formatted="false">"The address bar only supports HTTP and HTTPS URLs"</string>
+    <string name="text_0052" formatted="false">"URLs cannot contain whitespace"</string>
+    <string name="text_0053" formatted="false">"Invalid URL. Check the address."</string>
+    <string name="text_0054" formatted="false">"Bookmarks"</string>
+    <string name="text_0055" formatted="false">"History"</string>
+    <string name="text_0056" formatted="false">"Open a web page first"</string>
+    <string name="text_0057" formatted="false">"This feature needs JavaScript and a recent Android System WebView"</string>
+    <string name="text_0058" formatted="false">"Color scheme"</string>
+    <string name="text_0059" formatted="false">"Custom color"</string>
+    <string name="text_0060" formatted="false">"Theme color preview"</string>
+    <string name="text_0061" formatted="false">"Red"</string>
+    <string name="text_0062" formatted="false">"Green"</string>
+    <string name="text_0063" formatted="false">"Blue"</string>
+    <string name="text_0064" formatted="false">"Backgrounds use lighter or darker shades of this color; text contrast is adjusted automatically."</string>
+    <string name="text_0065" formatted="false">"Use this color"</string>
+    <string name="text_0066" formatted="false">"Enter # followed by six hexadecimal digits"</string>
+    <string name="text_0067" formatted="false">"Too many settings"</string>
+    <string name="text_0068" formatted="false">"Invalid setting: %1$s"</string>
+    <string name="text_0069" formatted="false">"Backup exceeds 1 MB. Export categories separately."</string>
+    <string name="text_0070" formatted="false">"Backup exceeds 1 MB"</string>
+    <string name="text_0071" formatted="false">"Not a supported Qinglan backup file"</string>
+    <string name="text_0072" formatted="false">"Too many home page items"</string>
+    <string name="text_0073" formatted="false">"Invalid home page item"</string>
+    <string name="text_0074" formatted="false">"Invalid home page URL or folder"</string>
+    <string name="text_0075" formatted="false">"Duplicate home page ID"</string>
+    <string name="text_0076" formatted="false">"Home page contains an invalid folder reference"</string>
+    <string name="text_0077" formatted="false">"Too many bookmarks"</string>
+    <string name="text_0078" formatted="false">"Invalid bookmark format or URL"</string>
+    <string name="text_0079" formatted="false">"Duplicate bookmark ID"</string>
+    <string name="text_0080" formatted="false">"Invalid bookmark folder reference"</string>
+    <string name="text_0081" formatted="false">"This file has no items to restore"</string>
+    <string name="text_0082" formatted="false">"Use at least 4 characters for the export passphrase"</string>
+    <string name="text_0083" formatted="false">"Encrypted file is too large"</string>
+    <string name="text_0084" formatted="false">"Unsupported encrypted file format"</string>
+    <string name="text_0085" formatted="false">"Invalid encrypted file format"</string>
+    <string name="text_0086" formatted="false">"Incorrect passphrase or damaged file"</string>
+    <string name="text_0087" formatted="false">"File exceeds 1 MB"</string>
+    <string name="text_0088" formatted="false">"Too many bookmarks"</string>
+    <string name="text_0089" formatted="false">"Home"</string>
+    <string name="text_0090" formatted="false">"Current account: %1$s. Tap to switch."</string>
+    <string name="text_0091" formatted="false">"Exit private browsing first"</string>
+    <string name="text_0092" formatted="false">"Account removed or unsupported by this WebView"</string>
+    <string name="text_0093" formatted="false">"Account removed"</string>
+    <string name="text_0094" formatted="false">"Update Android System WebView"</string>
+    <string name="text_0095" formatted="false">"You can open up to 50 tabs"</string>
+    <string name="text_0096" formatted="false">"Account space deleted"</string>
+    <string name="text_0097" formatted="false">"Account removed. Remaining data will be cleared on next launch."</string>
+    <string name="text_0098" formatted="false">"Exit private browsing?"</string>
+    <string name="text_0099" formatted="false">"Close all private tabs, clear their site data and return to regular tabs. Files and bookmarks you saved will be kept."</string>
+    <string name="text_0100" formatted="false">"Cancel"</string>
+    <string name="text_0101" formatted="false">"Exit and clear"</string>
+    <string name="text_0102" formatted="false">"This WebView does not support private session isolation. Update Android System WebView."</string>
+    <string name="text_0103" formatted="false">"Private site data cleared"</string>
+    <string name="text_0104" formatted="false">"Private data cleanup is incomplete. It will retry on next launch."</string>
+    <string name="text_0105" formatted="false">"Web page"</string>
+    <string name="text_0106" formatted="false">"Site settings"</string>
+    <string name="text_0107" formatted="false">"Search or enter URL"</string>
+    <string name="text_0108" formatted="false">"Reload page"</string>
+    <string name="text_0109" formatted="false">"Private browsing · Tap to exit"</string>
+    <string name="text_0110" formatted="false">"Search privately or enter URL"</string>
+    <string name="text_0111" formatted="false">"Back"</string>
+    <string name="text_0112" formatted="false">"Forward"</string>
+    <string name="text_0113" formatted="false">"Tabs"</string>
+    <string name="text_0114" formatted="false">"Menu"</string>
+    <string name="text_0115" formatted="false">"Only HTTP and HTTPS pages are supported"</string>
+    <string name="text_0116" formatted="false">"Up to 50 tabs"</string>
+    <string name="text_0117" formatted="false">"Opened in background"</string>
+    <string name="text_0118" formatted="false">"Closed private tabs are not saved for recovery"</string>
+    <string name="text_0119" formatted="false">"Close a tab first"</string>
+    <string name="text_0120" formatted="false">"No tabs to reopen"</string>
+    <string name="text_0121" formatted="false">"This tab\'s account was removed or is unsupported. It was not opened in the default account."</string>
+    <string name="text_0122" formatted="false">"Image actions"</string>
+    <string name="text_0123" formatted="false">"Link actions"</string>
+    <string name="text_0124" formatted="false">"Open in new tab"</string>
+    <string name="text_0125" formatted="false">"Open in background"</string>
+    <string name="text_0126" formatted="false">"Save image"</string>
+    <string name="text_0127" formatted="false">"Add bookmark"</string>
+    <string name="text_0128" formatted="false">"Copy link"</string>
+    <string name="text_0129" formatted="false">"Link"</string>
+    <string name="text_0130" formatted="false">"Copy text"</string>
+    <string name="text_0131" formatted="false">"Link text"</string>
+    <string name="text_0132" formatted="false">"Add to home"</string>
+    <string name="text_0133" formatted="false">"Certificate verification failed; the connection was stopped. Check the URL and device date and time, or try again later."</string>
+    <string name="text_0134" formatted="false">"Some page resources were blocked due to certificate errors"</string>
+    <string name="text_0135" formatted="false">"Website not found. Check the URL or network connection."</string>
+    <string name="text_0136" formatted="false">"Connection failed or timed out. Check your network and retry."</string>
+    <string name="text_0137" formatted="false">"Could not load page: %1$s"</string>
+    <string name="text_0138" formatted="false">"The page process has stopped. Reload to recover; unsaved form input may be lost."</string>
+    <string name="text_0139" formatted="false">"New page"</string>
+    <string name="text_0140" formatted="false">"Could not open file picker"</string>
+    <string name="text_0141" formatted="false">"Could not open this page"</string>
+    <string name="text_0142" formatted="false">"Reload"</string>
+    <string name="text_0143" formatted="false">"Edit URL"</string>
+    <string name="text_0144" formatted="false">"Go home"</string>
+    <string name="text_0145" formatted="false">"Clear address"</string>
+    <string name="text_0146" formatted="false">"Scan QR code"</string>
+    <string name="text_0147" formatted="false">"Stop loading"</string>
+    <string name="text_0148" formatted="false">"Use the system Back button to exit full screen"</string>
+    <string name="text_0149" formatted="false">"Find in page"</string>
+    <string name="text_0150" formatted="false">"Previous match"</string>
+    <string name="text_0151" formatted="false">"Next match"</string>
+    <string name="text_0152" formatted="false">"Close find"</string>
+    <string name="text_0153" formatted="false">"Blocked this page from opening another app"</string>
+    <string name="text_0154" formatted="false">"Open another app?"</string>
+    <string name="text_0155" formatted="false">"External link"</string>
+    <string name="text_0156" formatted="false">"Open"</string>
+    <string name="text_0157" formatted="false">"No matching app found"</string>
+    <string name="text_0158" formatted="false">"HTTP/HTTPS downloads are supported. Blob URLs cannot be downloaded directly."</string>
+    <string name="text_0159" formatted="false">"Start private downloads again from the original page. Old private logins are not restored."</string>
+    <string name="text_0160" formatted="false">"The download\'s account was removed or is unavailable. Start the download again from the website."</string>
+    <string name="text_0161" formatted="false">"File name"</string>
+    <string name="text_0162" formatted="false">"Source: %1$s\nType: %2$s\nSize: %3$s"</string>
+    <string name="text_0163" formatted="false">"Unknown"</string>
+    <string name="text_0164" formatted="false">"Unknown until downloaded"</string>
+    <string name="text_0165" formatted="false">"Download account: %1$s"</string>
+    <string name="text_0166" formatted="false">"Downloaded files and system download records are kept after you exit private browsing."</string>
+    <string name="text_0167" formatted="false">"Download file"</string>
+    <string name="text_0168" formatted="false">"Download"</string>
+    <string name="text_0169" formatted="false">"Download started"</string>
+    <string name="text_0170" formatted="false">"Download failed: %1$s"</string>
+    <string name="text_0171" formatted="false">"File exceeds 2 MB"</string>
+    <string name="text_0172" formatted="false">"Could not read file"</string>
+    <string name="text_0173" formatted="false">"Could not write file"</string>
+    <string name="text_0174" formatted="false">"Exported"</string>
+    <string name="text_0175" formatted="false">"Export failed"</string>
+    <string name="text_0176" formatted="false">"Copied"</string>
+    <string name="text_0177" formatted="false">"Private browsing"</string>
+    <string name="text_0178" formatted="false">"This session\'s cookies and site storage are separate from regular browsing. History, tabs and recently closed tabs are not saved."</string>
+    <string name="text_0179" formatted="false">"Site data is cleared when you close the last private tab or exit private browsing. Leaving the app does not end the session. Downloads, bookmarks, offline articles and exports are kept."</string>
+    <string name="text_0180" formatted="false">"Private browsing does not hide your IP or prevent websites, network providers or signed-in accounts from identifying you. User scripts do not run in private browsing."</string>
+    <string name="text_0181" formatted="false">"Start private search"</string>
+    <string name="text_0182" formatted="false">"Exit private browsing"</string>
+    <string name="text_0183" formatted="false">"Qinglan"</string>
+    <string name="text_0184" formatted="false">"Folder: %1$s"</string>
+    <string name="text_0185" formatted="false">"Add website or folder"</string>
+    <string name="text_0186" formatted="false">"Add"</string>
+    <string name="text_0187" formatted="false">"Close folder"</string>
+    <string name="text_0188" formatted="false">"Drag here to move to home"</string>
+    <string name="text_0189" formatted="false">"Drag to the center of a folder to move into it, or to either side to reorder"</string>
+    <string name="text_0190" formatted="false">"Website"</string>
+    <string name="text_0191" formatted="false">"Folder"</string>
+    <string name="text_0192" formatted="false">"Edit home folder"</string>
+    <string name="text_0193" formatted="false">"Edit home website"</string>
+    <string name="text_0194" formatted="false">"Saved"</string>
+    <string name="text_0195" formatted="false">"Edit"</string>
+    <string name="text_0196" formatted="false">"Delete"</string>
+    <string name="text_0197" formatted="false">"Websites in this folder will be moved to home."</string>
+    <string name="text_0198" formatted="false">"Remove this website from home."</string>
+    <string name="text_0199" formatted="false">"Confirm"</string>
+    <string name="text_0200" formatted="false">"Private cookies are isolated for this session and cleared on exit"</string>
+    <string name="text_0201" formatted="false">"Close %1$s"</string>
+    <string name="text_0202" formatted="false">"＋ New tab"</string>
+    <string name="text_0203" formatted="false">"No other tabs"</string>
+    <string name="text_0204" formatted="false">"Close %1$s other tabs?"</string>
+    <string name="text_0205" formatted="false">"The current page will be kept. Undo cannot recover unsaved form input."</string>
+    <string name="text_0206" formatted="false">"Search tabs"</string>
+    <string name="text_0207" formatted="false">"Search title or URL"</string>
+    <string name="text_0208" formatted="false">"No matching tabs"</string>
+    <string name="text_0209" formatted="false">"Private site information"</string>
+    <string name="text_0210" formatted="false">"Private browsing has separate logins but inherits regular site settings. New site settings are not saved in private browsing."</string>
+    <string name="text_0211" formatted="false">"Website account · %1$s"</string>
+    <string name="text_0212" formatted="false">"Switch only this tab; other websites and tabs stay unchanged"</string>
+    <string name="text_0213" formatted="false">"Search engine · %1$s"</string>
+    <string name="text_0214" formatted="false">"This tab only"</string>
+    <string name="text_0215" formatted="false">"Use default search engine"</string>
+    <string name="text_0216" formatted="false">"The page did not load successfully. Connection status cannot be verified."</string>
+    <string name="text_0217" formatted="false">"HTTPS connection. Encryption does not mean the site\'s content is trustworthy."</string>
+    <string name="text_0218" formatted="false">"This HTTP connection is not encrypted. Do not enter sensitive information."</string>
+    <string name="text_0219" formatted="false">"Cookie manager"</string>
+    <string name="text_0220" formatted="false">"Passwords for this site"</string>
+    <string name="text_0221" formatted="false">"Save and fill manually"</string>
+    <string name="text_0222" formatted="false">"Custom settings for this site"</string>
+    <string name="text_0223" formatted="false">"Use default"</string>
+    <string name="text_0224" formatted="false">"On"</string>
+    <string name="text_0225" formatted="false">"Off"</string>
+    <string name="text_0226" formatted="false">"Use default (%1$s)"</string>
+    <string name="text_0227" formatted="false">"On for this site"</string>
+    <string name="text_0228" formatted="false">"Off for this site"</string>
+    <string name="text_0229" formatted="false">"Ad filtering"</string>
+    <string name="text_0230" formatted="false">"Request desktop site"</string>
+    <string name="text_0231" formatted="false">"Third-party cookies"</string>
+    <string name="text_0232" formatted="false">"Media autoplay"</string>
+    <string name="text_0233" formatted="false">"Allow camera requests"</string>
+    <string name="text_0234" formatted="false">"Allow microphone requests"</string>
+    <string name="text_0235" formatted="false">"Allow approximate location requests"</string>
+    <string name="text_0236" formatted="false">"Dark web pages"</string>
+    <string name="text_0237" formatted="false">"No images"</string>
+    <string name="text_0238" formatted="false">"Page text size"</string>
+    <string name="text_0239" formatted="false">"This site"</string>
+    <string name="text_0240" formatted="false">"Apply and reload"</string>
+    <string name="text_0241" formatted="false">"Reset this site"</string>
+    <string name="text_0242" formatted="false">"Reload the page to fully apply changes. Resetting settings does not delete login data."</string>
+    <string name="text_0243" formatted="false">"Help and troubleshooting"</string>
+    <string name="text_0244" formatted="false">"Page will not open or keeps failing"</string>
+    <string name="text_0245" formatted="false">"Check the URL, network, device date and time, then reload. Qinglan stops connections with certificate errors and does not allow bypassing verification. Update Android System WebView in your app store. Retry manually after a page process exits to avoid repeated crashes."</string>
+    <string name="text_0246" formatted="false">"Blank page, failed login or unresponsive buttons"</string>
+    <string name="text_0247" formatted="false">"Check JavaScript and third-party cookies in Site settings. Try resetting this site and reloading. Ad filtering can block needed resources; disable it for this site to compare. Disable user scripts one at a time if they affect the page."</string>
+    <string name="text_0248" formatted="false">"Download has no progress"</string>
+    <string name="text_0249" formatted="false">"Downloads use the system download service. Check the network, storage space and Wi-Fi-only setting. The system may wait or retry; Qinglan cannot determine the cause until failure is reported. Cancel and retry, or copy the source link to another downloader. Signed-in links may expire."</string>
+    <string name="text_0250" formatted="false">"Website cannot use camera, microphone or location"</string>
+    <string name="text_0251" formatted="false">"Only foreground HTTPS same-origin pages can request access, with confirmation each time. Check that Site settings allow requests and Android grants Qinglan the permission. Cross-origin frames and unknown permissions are denied; only approximate location is used."</string>
+    <string name="text_0252" formatted="false">"Offline articles and backups"</string>
+    <string name="text_0253" formatted="false">"Reading mode saves plain text, up to 100 articles / 20 MB, without images. Articles stay on this device and are deleted when Qinglan is uninstalled. Export important articles as TXT. Settings backups exclude offline articles, cookies, history, downloads and tabs."</string>
+    <string name="text_0254" formatted="false">"Is disabling history the same as private browsing?"</string>
+    <string name="text_0255" formatted="false">"No. It only stops recording new history; cookies, cache, tabs and downloads remain. Use Private browsing from the menu to isolate logins and site data. Exiting clears that session, but files and bookmarks you saved are kept."</string>
+    <string name="text_0256" formatted="false">"System app permissions"</string>
+    <string name="text_0257" formatted="false">"Open the system app settings"</string>
+    <string name="text_0258" formatted="false">"Copy diagnostics"</string>
+    <string name="text_0259" formatted="false">"Qinglan diagnostics"</string>
+    <string name="text_0260" formatted="false">"Qinglan %1$s (%2$s)\nAndroid %3$s / API %4$s\nWebView %5$s\nAd filtering: %6$s\nUser scripts: please state whether enabled\nDescribe the issue and steps to reproduce."</string>
+    <string name="text_0261" formatted="false">"Diagnostics do not contain URLs, cookies, passwords or history. You decide whether to share them after copying."</string>
+    <string name="text_0262" formatted="false">"About"</string>
+    <string name="text_0263" formatted="false">"Article extraction license"</string>
+    <string name="text_0264" formatted="false">"Qinglan %1$s\nAndroid %2$s\nWebView %3$s\n\nUses Android System WebView. Data is stored on this device."</string>
+    <string name="text_0265" formatted="false">"Filter rules and public suffix list licenses"</string>
+    <string name="text_0266" formatted="false">"MPL 2.0 license"</string>
+    <string name="text_0267" formatted="false">"Open-source licenses"</string>
+    <string name="text_0268" formatted="false">"ZXing license"</string>
+    <string name="text_0269" formatted="false">"Clear browsing data"</string>
+    <string name="text_0270" formatted="false">"History is shared. The cache, cookies and site storage below belong to the default account only. Remove separate account spaces in Website accounts."</string>
+    <string name="text_0271" formatted="false">"History and recently closed tabs"</string>
+    <string name="text_0272" formatted="false">"Default account page cache"</string>
+    <string name="text_0273" formatted="false">"Cookies for all sites in the default account (signs you out)"</string>
+    <string name="text_0274" formatted="false">"Default account local site storage"</string>
+    <string name="text_0275" formatted="false">"Clear selected data"</string>
+    <string name="text_0276" formatted="false">"Confirm clearing"</string>
+    <string name="text_0277" formatted="false">"Cleared"</string>
+    <string name="text_0278" formatted="false">"Read page aloud"</string>
+    <string name="text_0279" formatted="false">"Reading aloud"</string>
+    <string name="text_0280" formatted="false">"Paused"</string>
+    <string name="text_0281" formatted="false">"Read this page\'s text with the system speech engine"</string>
+    <string name="text_0282" formatted="false">"Stopped"</string>
+    <string name="text_0283" formatted="false">"Start / Restart"</string>
+    <string name="text_0284" formatted="false">"Pause"</string>
+    <string name="text_0285" formatted="false">"Resume"</string>
+    <string name="text_0286" formatted="false">"Stop"</string>
+    <string name="text_0287" formatted="false">"Pauses when you leave the app. Reads up to the first 80,000 characters."</string>
+    <string name="text_0288" formatted="false">"System speech settings"</string>
+    <string name="text_0289" formatted="false">"System speech settings are unavailable"</string>
+    <string name="text_0290" formatted="false">"Open the target website first"</string>
+    <string name="text_0291" formatted="false">"Import up to 1,000 cookies at a time"</string>
+    <string name="text_0292" formatted="false">"Partitioned cookies are not supported yet"</string>
+    <string name="text_0293" formatted="false">"Invalid name"</string>
+    <string name="text_0294" formatted="false">"Value contains a forbidden separator"</string>
+    <string name="text_0295" formatted="false">"Invalid domain"</string>
+    <string name="text_0296" formatted="false">"Domain does not belong to this website"</string>
+    <string name="text_0297" formatted="false">"Invalid path"</string>
+    <string name="text_0298" formatted="false">"Unsupported SameSite value"</string>
+    <string name="text_0299" formatted="false">"SameSite=None requires Secure"</string>
+    <string name="text_0300" formatted="false">"Cookie expired or expiry is invalid"</string>
+    <string name="text_0301" formatted="false">"__Secure- requires Secure"</string>
+    <string name="text_0302" formatted="false">"__Host- requires Secure, the root path and hostOnly"</string>
+    <string name="text_0303" formatted="false">"Cookie exceeds 4,096 bytes"</string>
+    <string name="text_0304" formatted="false">"Item %1$s: duplicate; the last entry is kept"</string>
+    <string name="text_0305" formatted="false">"Item %1$s: %2$s"</string>
+    <string name="text_0306" formatted="false">"Invalid format"</string>
+    <string name="text_0307" formatted="false">"Invalid cookie"</string>
+    <string name="text_0308" formatted="false">"Partitioned cookies are not exported yet"</string>
+    <string name="text_0309" formatted="false">"Missing domain"</string>
+    <string name="text_0310" formatted="false">"Could not preserve expiry"</string>
+    <string name="text_0311" formatted="false">"Only cookies readable at this URL are shown. Visit other paths and subdomains separately."</string>
+    <string name="text_0312" formatted="false">"%1$s cookies; %2$s could not be read"</string>
+    <string name="text_0313" formatted="false">"Import cookies"</string>
+    <string name="text_0314" formatted="false">"Export JSON"</string>
+    <string name="text_0315" formatted="false">"Update Android System WebView before exporting"</string>
+    <string name="text_0316" formatted="false">"Export cookies"</string>
+    <string name="text_0317" formatted="false">"This file contains login credentials in plain text. Exports %1$s readable cookies and skips %2$s. Keep it secure."</string>
+    <string name="text_0318" formatted="false">"Add cookie"</string>
+    <string name="text_0319" formatted="false">"Paste Cookie-Editor JSON"</string>
+    <string name="text_0320" formatted="false">"Check and preview"</string>
+    <string name="text_0321" formatted="false">"Choose JSON file"</string>
+    <string name="text_0322" formatted="false">"Could not import"</string>
+    <string name="text_0323" formatted="false">"Import preview"</string>
+    <string name="text_0324" formatted="false">"%1$s cookies to import; %2$s notices\n"</string>
+    <string name="text_0325" formatted="false">"Import valid entries"</string>
+    <string name="text_0326" formatted="false">"Import complete"</string>
+    <string name="text_0327" formatted="false">"%1$s accepted; %2$s rejected. Reload the website to check your login."</string>
+    <string name="text_0328" formatted="false">"Edit cookie"</string>
+    <string name="text_0329" formatted="false">"Name"</string>
+    <string name="text_0330" formatted="false">"Value"</string>
+    <string name="text_0331" formatted="false">"Domain"</string>
+    <string name="text_0332" formatted="false">"Path"</string>
+    <string name="text_0333" formatted="false">"Preserves SameSite, expiry and hostOnly attributes."</string>
+    <string name="text_0334" formatted="false">"Could not save"</string>
+    <string name="text_0335" formatted="false">"The browser rejected this cookie"</string>
+    <string name="text_0336" formatted="false">"Delete this cookie"</string>
+    <string name="text_0337" formatted="false">"Delete cookie"</string>
+    <string name="text_0338" formatted="false">"Deleting this cookie may sign you out of the website."</string>
+    <string name="text_0339" formatted="false">"Could not delete"</string>
+    <string name="text_0340" formatted="false">"System download record is unavailable"</string>
+    <string name="text_0341" formatted="false">"Size unknown"</string>
+    <string name="text_0342" formatted="false">"Completed"</string>
+    <string name="text_0343" formatted="false">"Failed: "</string>
+    <string name="text_0344" formatted="false">"Not enough storage space"</string>
+    <string name="text_0345" formatted="false">"A file with this name already exists"</string>
+    <string name="text_0346" formatted="false">"Storage device unavailable"</string>
+    <string name="text_0347" formatted="false">"Cannot resume download"</string>
+    <string name="text_0348" formatted="false">"Network transfer error"</string>
+    <string name="text_0349" formatted="false">"The system did not provide a specific reason"</string>
+    <string name="text_0350" formatted="false">"System error %1$s"</string>
+    <string name="text_0351" formatted="false">"Waiting for network"</string>
+    <string name="text_0352" formatted="false">"Waiting for Wi-Fi"</string>
+    <string name="text_0353" formatted="false">"Waiting for system retry"</string>
+    <string name="text_0354" formatted="false">"Waiting to download"</string>
+    <string name="text_0355" formatted="false">"Downloading"</string>
+    <string name="text_0356" formatted="false">"Downloads continue through the system service. Tap a record for details."</string>
+    <string name="text_0357" formatted="false">"Search downloads"</string>
+    <string name="text_0358" formatted="false">"All"</string>
+    <string name="text_0359" formatted="false">"In progress"</string>
+    <string name="text_0360" formatted="false">"Failed"</string>
+    <string name="text_0361" formatted="false">"No matching downloads"</string>
+    <string name="text_0362" formatted="false">"Refresh list"</string>
+    <string name="text_0363" formatted="false">"Download details"</string>
+    <string name="text_0364" formatted="false">"This system download record no longer exists"</string>
+    <string name="text_0365" formatted="false">"Source: %1$s\nType: %2$s"</string>
+    <string name="text_0366" formatted="false">"Open file"</string>
+    <string name="text_0367" formatted="false">"Share file"</string>
+    <string name="text_0368" formatted="false">"Download again"</string>
+    <string name="text_0369" formatted="false">"Copy source link"</string>
+    <string name="text_0370" formatted="false">"Download source"</string>
+    <string name="text_0371" formatted="false">"Download troubleshooting"</string>
+    <string name="text_0372" formatted="false">"Check the network, Wi-Fi restriction, free space and link expiry"</string>
+    <string name="text_0373" formatted="false">"Remove Qinglan record only"</string>
+    <string name="text_0374" formatted="false">"Remove record?"</string>
+    <string name="text_0375" formatted="false">"The file is kept. Any ongoing system download will continue."</string>
+    <string name="text_0376" formatted="false">"Remove"</string>
+    <string name="text_0377" formatted="false">"Delete file and record"</string>
+    <string name="text_0378" formatted="false">"Cancel download and delete file"</string>
+    <string name="text_0379" formatted="false">"Delete download?"</string>
+    <string name="text_0380" formatted="false">"The system download task and its file will be permanently deleted."</string>
+    <string name="text_0381" formatted="false">"The system could not delete this download"</string>
+    <string name="text_0382" formatted="false">"Refresh details"</string>
+    <string name="text_0383" formatted="false">"File removed or no app available to open it"</string>
+    <string name="text_0384" formatted="false">"Qinglan item"</string>
+    <string name="text_0385" formatted="false">"Enable ad filtering"</string>
+    <string name="text_0386" formatted="false">"Filter this site · %1$s"</string>
+    <string name="text_0387" formatted="false">"Page blocking log"</string>
+    <string name="text_0388" formatted="false">"Blocked %1$s requests"</string>
+    <string name="text_0389" formatted="false">"Block an element"</string>
+    <string name="text_0390" formatted="false">"Select an area on the page and confirm to save a rule for this site"</string>
+    <string name="text_0391" formatted="false">"Filter subscriptions"</string>
+    <string name="text_0392" formatted="false">"EasyList, EasyList China and custom subscriptions"</string>
+    <string name="text_0393" formatted="false">"Custom rules"</string>
+    <string name="text_0394" formatted="false">"Edit, delete or import your own rules"</string>
+    <string name="text_0395" formatted="false">"Rule sources and supported syntax"</string>
+    <string name="text_0396" formatted="false">"Apply and reload page"</string>
+    <string name="text_0397" formatted="false">"Reload to apply changes to switches, rules and subscriptions. Blocking logs are kept only for this page session."</string>
+    <string name="text_0398" formatted="false">"Auto-update while using the app (every 4 days)"</string>
+    <string name="text_0399" formatted="false">"Not downloaded yet"</string>
+    <string name="text_0400" formatted="false">"Updating…"</string>
+    <string name="text_0401" formatted="false">"Update now"</string>
+    <string name="text_0402" formatted="false">"Rules updated. Reload the page."</string>
+    <string name="text_0403" formatted="false">"Refresh status"</string>
+    <string name="text_0404" formatted="false">"Add subscription"</string>
+    <string name="text_0405" formatted="false">"Subscription name"</string>
+    <string name="text_0406" formatted="false">"HTTPS rule URL"</string>
+    <string name="text_0407" formatted="false">"Rules must be downloaded before first use. Updates contact only subscription servers, without browsing history or site cookies. Up to 8 MB per subscription."</string>
+    <string name="text_0408" formatted="false">"Subscription details"</string>
+    <string name="text_0409" formatted="false">"Enable this subscription"</string>
+    <string name="text_0410" formatted="false">"Delete subscription"</string>
+    <string name="text_0411" formatted="false">"One rule per line. Remove rules created by the element picker to restore hidden elements."</string>
+    <string name="text_0412" formatted="false">"Example: example.com##.ad-banner"</string>
+    <string name="text_0413" formatted="false">"Save rules"</string>
+    <string name="text_0414" formatted="false">"Import rule text"</string>
+    <string name="text_0415" formatted="false">"Custom rules are limited to 64K characters"</string>
+    <string name="text_0416" formatted="false">"Export rule text"</string>
+    <string name="text_0417" formatted="false">"Rules saved. Reload the page."</string>
+    <string name="text_0418" formatted="false">"Could not save"</string>
+    <string name="text_0419" formatted="false">"Block this element"</string>
+    <string name="text_0420" formatted="false">"Only for %1$s\n\n%2$s\n\nRemove this rule from Custom rules and reload to restore the element."</string>
+    <string name="text_0421" formatted="false">"%1$s requests on this page; showing the last 100."</string>
+    <string name="text_0422" formatted="false">"View full URL and rule"</string>
+    <string name="text_0423" formatted="false">"Blocking details"</string>
+    <string name="text_0424" formatted="false">"Matched rule:\n%1$s"</string>
+    <string name="text_0425" formatted="false">"Copy URL"</string>
+    <string name="text_0426" formatted="false">"Resource URL"</string>
+    <string name="text_0427" formatted="false">"Refresh log"</string>
+    <string name="text_0428" formatted="false">"Default subscriptions: EasyList, EasyList China\nAuthors: The EasyList authors\nProject: https://easylist.to/\nChinese rules: https://github.com/easylist/easylistchina\nLicense: GPL v3 or CC BY-SA 3.0 (or later), subject to each subscription\'s terms.\nhttps://easylist.to/pages/licence.html\n\nOnly subscription URLs are bundled, not third-party ad rules. Downloads retain source files and attribution.\n\nSupports common URL rules, wildcards, domain restrictions, third-party conditions, @@ exceptions, standard CSS hiding and hiding exceptions. Resource types are matched only when WebView provides a definite type.\n\nRules with unsupported options or advanced syntax are skipped, including script fixes, redirects, regular expressions and procedural element matching. Main documents are not blocked directly; Service Worker requests are not handled. This is not a complete uBO/ABP engine.\n\nThird-party domain checks use the Public Suffix List (Mozilla / community, MPL 2.0). https://publicsuffix.org/\nRules and settings can be backed up; downloaded caches and blocking logs are excluded."</string>
+    <string name="text_0429" formatted="false">"Reading local rules"</string>
+    <string name="text_0430" formatted="false">"%1$s supported · %2$s skipped"</string>
+    <string name="text_0431" formatted="false">"\nUpdated %1$s"</string>
+    <string name="text_0432" formatted="false">"Loaded %1$s rules · Skipped %2$s unsupported rules"</string>
+    <string name="text_0433" formatted="false">"Updating rules…"</string>
+    <string name="text_0434" formatted="false">"Update failed; previous rules kept"</string>
+    <string name="text_0435" formatted="false">" · %1$s subscriptions failed to update"</string>
+    <string name="text_0436" formatted="false">"Up to 8 subscriptions"</string>
+    <string name="text_0437" formatted="false">"Invalid subscription name or HTTPS URL"</string>
+    <string name="text_0438" formatted="false">"Duplicate subscription"</string>
+    <string name="text_0439" formatted="false">"All time"</string>
+    <string name="text_0440" formatted="false">"Last hour"</string>
+    <string name="text_0441" formatted="false">"Today"</string>
+    <string name="text_0442" formatted="false">"Last 7 days"</string>
+    <string name="text_0443" formatted="false">"Enter a name"</string>
+    <string name="text_0444" formatted="false">"Enter an HTTP/HTTPS URL"</string>
+    <string name="text_0445" formatted="false">"Nested folders are not supported"</string>
+    <string name="text_0446" formatted="false">"Folders must be in the root"</string>
+    <string name="text_0447" formatted="false">"Save page"</string>
+    <string name="text_0448" formatted="false">"Bookmarks and home items you save are kept after you exit private browsing."</string>
+    <string name="text_0449" formatted="false">"Save to bookmarks"</string>
+    <string name="text_0450" formatted="false">"Bookmarks root"</string>
+    <string name="text_0451" formatted="false">"Save to home"</string>
+    <string name="text_0452" formatted="false">"Home root"</string>
+    <string name="text_0453" formatted="false">"Choose at least one location"</string>
+    <string name="text_0454" formatted="false">"Saved to selected locations"</string>
+    <string name="text_0455" formatted="false">"Search name or URL"</string>
+    <string name="text_0456" formatted="false">"%1$s selected · %2$s"</string>
+    <string name="text_0457" formatted="false">"Hold the handle on the right to reorder"</string>
+    <string name="text_0458" formatted="false">"Clear the search to reorder"</string>
+    <string name="text_0459" formatted="false">"Long-press an item to edit, or use edit mode for bulk actions"</string>
+    <string name="text_0460" formatted="false">"No bookmarks yet"</string>
+    <string name="text_0461" formatted="false">"%1$s websites"</string>
+    <string name="text_0462" formatted="false">"Select %1$s"</string>
+    <string name="text_0463" formatted="false">"%1$s selected · Hold the handle on the right to reorder"</string>
+    <string name="text_0464" formatted="false">"Move %1$s"</string>
+    <string name="text_0465" formatted="false">"Hold the drag handle and move up or down"</string>
+    <string name="text_0466" formatted="false">"Narrow the results with search"</string>
+    <string name="text_0467" formatted="false">"Done"</string>
+    <string name="text_0468" formatted="false">"Edit mode"</string>
+    <string name="text_0469" formatted="false">"New folder"</string>
+    <string name="text_0470" formatted="false">"Select all"</string>
+    <string name="text_0471" formatted="false">"Move"</string>
+    <string name="text_0472" formatted="false">"Select bookmarks first"</string>
+    <string name="text_0473" formatted="false">"Move %1$s selected items"</string>
+    <string name="text_0474" formatted="false">"Delete %1$s items"</string>
+    <string name="text_0475" formatted="false">"Unselected websites in these folders will move to the root."</string>
+    <string name="text_0476" formatted="false">"Import HTML"</string>
+    <string name="text_0477" formatted="false">"Import bookmarks"</string>
+    <string name="text_0478" formatted="false">"Import %1$s websites and %2$s folders. Duplicate URLs are skipped."</string>
+    <string name="text_0479" formatted="false">"Export HTML"</string>
+    <string name="text_0480" formatted="false">"Save to home"</string>
+    <string name="text_0481" formatted="false">"Delete bookmark"</string>
+    <string name="text_0482" formatted="false">"Websites in this folder will move to the root."</string>
+    <string name="text_0483" formatted="false">"Edit folder"</string>
+    <string name="text_0484" formatted="false">"Edit bookmark"</string>
+    <string name="text_0485" formatted="false">"%1$s records · %2$s selected"</string>
+    <string name="text_0486" formatted="false">"Select record"</string>
+    <string name="text_0487" formatted="false">"No records in this period"</string>
+    <string name="text_0488" formatted="false">"Showing the first 250 records. Search to narrow results. Deleting by period is not limited to displayed records."</string>
+    <string name="text_0489" formatted="false">"Select / Deselect"</string>
+    <string name="text_0490" formatted="false">"Delete selected"</string>
+    <string name="text_0491" formatted="false">"Select records first"</string>
+    <string name="text_0492" formatted="false">"Delete selected records"</string>
+    <string name="text_0493" formatted="false">"Delete %1$s history records?"</string>
+    <string name="text_0494" formatted="false">"Delete by time period"</string>
+    <string name="text_0495" formatted="false">"Choose time period"</string>
+    <string name="text_0496" formatted="false">"Confirm deleting %1$s records"</string>
+    <string name="text_0497" formatted="false">"All records for %1$s, regardless of the search term."</string>
+    <string name="text_0498" formatted="false">"Find in page"</string>
+    <string name="text_0499" formatted="false">"Share link"</string>
+    <string name="text_0500" formatted="false">"Reload"</string>
+    <string name="text_0501" formatted="false">"Desktop site · On"</string>
+    <string name="text_0502" formatted="false">"Desktop site"</string>
+    <string name="text_0503" formatted="false">"Light mode"</string>
+    <string name="text_0504" formatted="false">"Dark mode"</string>
+    <string name="text_0505" formatted="false">"No images · On"</string>
+    <string name="text_0506" formatted="false">"Full screen"</string>
+    <string name="text_0507" formatted="false">"Page resources"</string>
+    <string name="text_0508" formatted="false">"Read aloud"</string>
+    <string name="text_0509" formatted="false">"Reading mode"</string>
+    <string name="text_0510" formatted="false">"Offline articles"</string>
+    <string name="text_0511" formatted="false">"Go to top"</string>
+    <string name="text_0512" formatted="false">"Go to bottom"</string>
+    <string name="text_0513" formatted="false">"Print / Save PDF"</string>
+    <string name="text_0514" formatted="false">"Reopen closed tab"</string>
+    <string name="text_0515" formatted="false">"Close other tabs"</string>
+    <string name="text_0516" formatted="false">"Website accounts"</string>
+    <string name="text_0517" formatted="false">"Exit private"</string>
+    <string name="text_0518" formatted="false">"Private browsing"</string>
+    <string name="text_0519" formatted="false">"More tools"</string>
+    <string name="text_0520" formatted="false">"Customize menu"</string>
+    <string name="text_0521" formatted="false">"Settings"</string>
+    <string name="text_0522" formatted="false">"All tools"</string>
+    <string name="text_0523" formatted="false">"Search tools"</string>
+    <string name="text_0524" formatted="false">"Reading and pages"</string>
+    <string name="text_0525" formatted="false">"Bookmarks and tabs"</string>
+    <string name="text_0526" formatted="false">"Sites and appearance"</string>
+    <string name="text_0527" formatted="false">"No matching tools"</string>
+    <string name="text_0528" formatted="false">"Check items to show them. Hold a handle to reorder, or use the arrows. Hidden features remain in More tools."</string>
+    <string name="text_0529" formatted="false">"Move %1$s up"</string>
+    <string name="text_0530" formatted="false">"Move %1$s down"</string>
+    <string name="text_0531" formatted="false">"Drag %1$s"</string>
+    <string name="text_0532" formatted="false">"Hold the handle to reorder"</string>
+    <string name="text_0533" formatted="false">"Reset menu"</string>
+    <string name="text_0534" formatted="false">"Go back"</string>
+    <string name="text_0535" formatted="false">"Return to page"</string>
+    <string name="text_0536" formatted="false">"No text to read aloud on this page"</string>
+    <string name="text_0537" formatted="false">"No system speech engine is available"</string>
+    <string name="text_0538" formatted="false">"Speech engine is starting. Try again shortly."</string>
+    <string name="text_0539" formatted="false">"Could not read aloud. Check the system speech engine and language data."</string>
+    <string name="text_0540" formatted="false">"This language cannot be read aloud. Check system speech settings."</string>
+    <string name="text_0541" formatted="false">"Jade"</string>
+    <string name="text_0542" formatted="false">"Ocean"</string>
+    <string name="text_0543" formatted="false">"Wisteria"</string>
+    <string name="text_0544" formatted="false">"Gold"</string>
+    <string name="text_0545" formatted="false">"Rose"</string>
+    <string name="text_0546" formatted="false">"Teal"</string>
+    <string name="text_0547" formatted="false">"Sunset"</string>
+    <string name="text_0548" formatted="false">"Graphite"</string>
+    <string name="text_0549" formatted="false">"Custom"</string>
+    <string name="text_0550" formatted="false">"Passwords are only supported for HTTPS sites"</string>
+    <string name="text_0551" formatted="false">"Invalid username or password"</string>
+    <string name="text_0552" formatted="false">"Too many passwords"</string>
+    <string name="text_0553" formatted="false">"Could not decrypt the local password vault. The original file was kept."</string>
+    <string name="text_0554" formatted="false">"Update Android System WebView to use private browsing"</string>
+    <string name="text_0555" formatted="false">"Point at a QR code. Recognized web addresses open automatically."</string>
+    <string name="text_0556" formatted="false">"Scan QR code from image"</string>
+    <string name="text_0557" formatted="false">"Camera permission is off. You can scan an image instead."</string>
+    <string name="text_0558" formatted="false">"No rear camera available"</string>
+    <string name="text_0559" formatted="false">"Could not open camera. Scan an image instead."</string>
+    <string name="text_0560" formatted="false">"The result is not a web address"</string>
+    <string name="text_0561" formatted="false">"Keep scanning"</string>
+    <string name="text_0562" formatted="false">"Scanning image…"</string>
+    <string name="text_0563" formatted="false">"Could not read image"</string>
+    <string name="text_0564" formatted="false">"No QR code found. Choose a clearer image or keep scanning."</string>
+    <string name="text_0565" formatted="false">"Article action failed"</string>
+    <string name="text_0566" formatted="false">"Save text from Reading mode to read offline. Up to 100 articles / 20 MB. Images are excluded; articles are not in settings backups."</string>
+    <string name="text_0567" formatted="false">"Search saved articles"</string>
+    <string name="text_0568" formatted="false">"No offline articles yet. Open an article and save it from Reading mode."</string>
+    <string name="text_0569" formatted="false">"No matching articles"</string>
+    <string name="text_0570" formatted="false">"Remove %1$s"</string>
+    <string name="text_0571" formatted="false">"Remove offline article?"</string>
+    <string name="text_0572" formatted="false">"Open an article first"</string>
+    <string name="text_0573" formatted="false">"Extracting article"</string>
+    <string name="text_0574" formatted="false">"Not enough article text found. Read the original page instead."</string>
+    <string name="text_0575" formatted="false">"Offline reading"</string>
+    <string name="text_0576" formatted="false">"Reading tools"</string>
+    <string name="text_0577" formatted="false">" · Tap the text for tools"</string>
+    <string name="text_0578" formatted="false">"Offline articles and exported files are kept after you exit private browsing."</string>
+    <string name="text_0579" formatted="false">"%1$s sp"</string>
+    <string name="text_0580" formatted="false">"Read aloud"</string>
+    <string name="text_0581" formatted="false">"Speed"</string>
+    <string name="text_0582" formatted="false">"Reading speed"</string>
+    <string name="text_0583" formatted="false">"Applies the next time you start or resume reading"</string>
+    <string name="text_0584" formatted="false">"Open original page"</string>
+    <string name="text_0585" formatted="false">"Save offline"</string>
+    <string name="text_0586" formatted="false">"Saved. Find it in Offline articles."</string>
+    <string name="text_0587" formatted="false">"Export TXT"</string>
+    <string name="text_0588" formatted="false">"Extraction may omit images, tables or content on other pages."</string>
+    <string name="text_0589" formatted="false">" This article exceeds 200,000 characters. Only the first 200,000 are shown."</string>
+    <string name="text_0590" formatted="false">"Qinglan page"</string>
+    <string name="text_0591" formatted="false">"System printing is unavailable"</string>
+    <string name="text_0592" formatted="false">"Invalid offline article index"</string>
+    <string name="text_0593" formatted="false">"Invalid article ID"</string>
+    <string name="text_0594" formatted="false">"Article file is too large"</string>
+    <string name="text_0595" formatted="false">"Article is empty or exceeds 200,000 characters"</string>
+    <string name="text_0596" formatted="false">"Offline limit: 100 articles / 20 MB. Remove some articles first."</string>
+    <string name="text_0597" formatted="false">"Media"</string>
+    <string name="text_0598" formatted="false">"Video"</string>
+    <string name="text_0599" formatted="false">"Audio"</string>
+    <string name="text_0600" formatted="false">"Images"</string>
+    <string name="text_0601" formatted="false">"Playlists"</string>
+    <string name="text_0602" formatted="false">"Segments"</string>
+    <string name="text_0603" formatted="false">"Collect page resources"</string>
+    <string name="text_0604" formatted="false">"Category · %1$s"</string>
+    <string name="text_0605" formatted="false">"Showing %1$s · %2$s on this page (up to 300)"</string>
+    <string name="text_0606" formatted="false">"Resource category"</string>
+    <string name="text_0607" formatted="false">"Scan again"</string>
+    <string name="text_0608" formatted="false">"Clear list"</string>
+    <string name="text_0609" formatted="false">"No resources in this category yet. Play media or scroll the page, then scan again. Images have a separate category."</string>
+    <string name="text_0610" formatted="false">"Resource detection and downloads"</string>
+    <string name="text_0611" formatted="false">"Resources are held in memory per tab and reset on navigation or reload. They are not included in backups. Turning collection off does not affect normal browsing; reload to fully enable or disable page observation.\n\nFinding a URL does not guarantee a successful download. HTTP(S) resources can use the system downloader with the current cookies for that URL, browser user agent and source page at discovery.\n\nHLS / DASH are playlists. Copy them or use an external downloader that supports them. Downloading a playlist does not merge segments. External apps receive only the URL and resource type, not cookies.\n\nBlob URLs exist within the page and cannot be sent directly to a downloader. Look for related playlists or HTTP resources. Sniffing cannot decrypt DRM media.\n\nDetection uses request URLs, page elements, loading records and response types, without reading response bodies. Not all cross-origin frames, Service Workers, redirects or encrypted players can be detected."</string>
+    <string name="text_0612" formatted="false">"Source: %1$s"</string>
+    <string name="text_0613" formatted="false">"\nType: %1$s"</string>
+    <string name="text_0614" formatted="false">"This is a page-local Blob URL and cannot be downloaded directly. Look for its HTTP resource or playlist in the list."</string>
+    <string name="text_0615" formatted="false">"This is a playlist. A full video needs its segments downloaded and merged. The action below saves only the playlist."</string>
+    <string name="text_0616" formatted="false">"This is one media segment, usually not a complete video or audio file."</string>
+    <string name="text_0617" formatted="false">"Download playlist (no video)"</string>
+    <string name="text_0618" formatted="false">"Download this segment"</string>
+    <string name="text_0619" formatted="false">"Download resource"</string>
+    <string name="text_0620" formatted="false">"Open with another app"</string>
+    <string name="text_0621" formatted="false">"Choose player or downloader"</string>
+    <string name="text_0622" formatted="false">"No external app available"</string>
+    <string name="text_0623" formatted="false">"Copy resource URL"</string>
+    <string name="text_0624" formatted="false">"Page element"</string>
+    <string name="text_0625" formatted="false">"Page API"</string>
+    <string name="text_0626" formatted="false">"Loading record"</string>
+    <string name="text_0627" formatted="false">"Saved. Applies on the next page load."</string>
+    <string name="text_0628" formatted="false">"Could not save script"</string>
+    <string name="text_0629" formatted="false">"User scripts"</string>
+    <string name="text_0630" formatted="false">"Basic support: runs only in the main page, with URL matching, run timing and GM_addStyle. Scripts can read and modify matching pages. Install only trusted scripts."</string>
+    <string name="text_0631" formatted="false">"This WebView cannot inject at document start. document-start scripts cannot be enabled; other scripts run after the page loads."</string>
+    <string name="text_0632" formatted="false">"Import .user.js file"</string>
+    <string name="text_0633" formatted="false">"Paste script"</string>
+    <string name="text_0634" formatted="false">"Paste user script"</string>
+    <string name="text_0635" formatted="false">"Check script"</string>
+    <string name="text_0636" formatted="false">"Could not read script: %1$s"</string>
+    <string name="text_0637" formatted="false">"No scripts installed"</string>
+    <string name="text_0638" formatted="false">"View · %1$s"</string>
+    <string name="text_0639" formatted="false">"Reload page to apply scripts"</string>
+    <string name="text_0640" formatted="false">"Supported features"</string>
+    <string name="text_0641" formatted="false">"Does not support the full Tampermonkey API"</string>
+    <string name="text_0642" formatted="false">"Script support"</string>
+    <string name="text_0643" formatted="false">"Supports @match, @include wildcards, @exclude, @exclude-match, @run-at (start/end/idle), GM_addStyle / GM.addStyle, GM_log, GM_info and unsafeWindow.\n\nRuns only in the main page, not in iframes. Scripts share the page\'s JavaScript environment, without a separate extension sandbox.\n\nAdvanced APIs such as @require, @resource, GM_xmlhttpRequest and GM_setValue are not supported; scripts declaring these requirements are rejected. There are no automatic updates or dependency downloads.\n\nExport scripts individually as .user.js. They are not included in browser settings backups."</string>
+    <string name="text_0644" formatted="false">"Incompatible script"</string>
+    <string name="text_0645" formatted="false">"Install user script"</string>
+    <string name="text_0646" formatted="false">"Version: %1$s\nRun at: %2$s\nMatches:\n"</string>
+    <string name="text_0647" formatted="false">"Not specified"</string>
+    <string name="text_0648" formatted="false">"Scripts are off after installation. Enable them in the script list."</string>
+    <string name="text_0649" formatted="false">"Install"</string>
+    <string name="text_0650" formatted="false">"A script with this name exists. Delete the old version first."</string>
+    <string name="text_0651" formatted="false">"Installed; off by default"</string>
+    <string name="text_0652" formatted="false">"Could not install"</string>
+    <string name="text_0653" formatted="false">"Script details"</string>
+    <string name="text_0654" formatted="false">"View source"</string>
+    <string name="text_0655" formatted="false">"Script source"</string>
+    <string name="text_0656" formatted="false">"Export .user.js"</string>
+    <string name="text_0657" formatted="false">"Delete script"</string>
+    <string name="text_0658" formatted="false">"Bing"</string>
+    <string name="text_0659" formatted="false">"Baidu"</string>
+    <string name="text_0660" formatted="false">"Sogou"</string>
+    <string name="text_0661" formatted="false">"360 Search"</string>
+    <string name="text_0662" formatted="false">"Up to 50 custom search engines"</string>
+    <string name="text_0663" formatted="false">"Invalid search engine format"</string>
+    <string name="text_0664" formatted="false">"Duplicate search engine ID"</string>
+    <string name="text_0665" formatted="false">"Duplicate search engine name"</string>
+    <string name="text_0666" formatted="false">"Search engine"</string>
+    <string name="text_0667" formatted="false">"Previous custom engine"</string>
+    <string name="text_0668" formatted="false">"Set as default search engine"</string>
+    <string name="text_0669" formatted="false">"Apply"</string>
+    <string name="text_0670" formatted="false">"Use default for this tab"</string>
+    <string name="text_0671" formatted="false">"Manage custom search engines"</string>
+    <string name="text_0672" formatted="false">"Save and name multiple search engines"</string>
+    <string name="text_0673" formatted="false">"Custom search engines"</string>
+    <string name="text_0674" formatted="false">"Add search engine"</string>
+    <string name="text_0675" formatted="false">"Save previous custom engine"</string>
+    <string name="text_0676" formatted="false">"Delete %1$s"</string>
+    <string name="text_0677" formatted="false">"Delete search engine"</string>
+    <string name="text_0678" formatted="false">"; tabs using it will return to the default search engine."</string>
+    <string name="text_0679" formatted="false">"Edit search engine"</string>
+    <string name="text_0680" formatted="false">"URL template; %s represents the search term"</string>
+    <string name="text_0681" formatted="false">"Example: https://example.com/search?q=%s"</string>
+    <string name="text_0682" formatted="false">"Enter a unique name (up to 40 characters)"</string>
+    <string name="text_0683" formatted="false">"Use an HTTP/HTTPS URL containing %s"</string>
+    <string name="text_0684" formatted="false">"Up to 50 custom engines"</string>
+    <string name="text_0685" formatted="false">"Interface theme"</string>
+    <string name="text_0686" formatted="false">"Appearance"</string>
+    <string name="text_0687" formatted="false">"Changes the browser interface only. Dark web pages are controlled separately."</string>
+    <string name="text_0688" formatted="false">"Follow system"</string>
+    <string name="text_0689" formatted="false">"Light"</string>
+    <string name="text_0690" formatted="false">"Dark"</string>
+    <string name="text_0691" formatted="false">"night day"</string>
+    <string name="text_0692" formatted="false">"Choose a preset or custom color."</string>
+    <string name="text_0693" formatted="false">"color colour"</string>
+    <string name="text_0694" formatted="false">"Show your usual tools and drag to reorder. Settings always remains accessible."</string>
+    <string name="text_0695" formatted="false">"tools hide order"</string>
+    <string name="text_0696" formatted="false">"Menu columns"</string>
+    <string name="text_0697" formatted="false">"Fewer columns give labels and buttons more room."</string>
+    <string name="text_0698" formatted="false">"%1$s per row"</string>
+    <string name="text_0699" formatted="false">"Address bar position"</string>
+    <string name="text_0700" formatted="false">"The top is familiar; the bottom is easier to reach with one hand."</string>
+    <string name="text_0701" formatted="false">"top bottom one-handed"</string>
+    <string name="text_0702" formatted="false">"Hide address bar when scrolling"</string>
+    <string name="text_0703" formatted="false">"Hides while scrolling down; returns when scrolling up."</string>
+    <string name="text_0704" formatted="false">"full screen auto hide"</string>
+    <string name="text_0705" formatted="false">"Enlarges page text, not browser buttons. Individual sites can override it."</string>
+    <string name="text_0706" formatted="false">"zoom font size"</string>
+    <string name="text_0707" formatted="false">"Restore previous tabs"</string>
+    <string name="text_0708" formatted="false">"Browsing and search"</string>
+    <string name="text_0709" formatted="false">"Restores URLs and titles on launch, not necessarily forms or temporary signed-in pages."</string>
+    <string name="text_0710" formatted="false">"startup session"</string>
+    <string name="text_0711" formatted="false">"Local address suggestions"</string>
+    <string name="text_0712" formatted="false">"After two characters, matches local bookmarks and history. Typed text is not sent to a search service."</string>
+    <string name="text_0713" formatted="false">"suggestions autocomplete privacy"</string>
+    <string name="text_0714" formatted="false">"Open external links in a new tab"</string>
+    <string name="text_0715" formatted="false">"Links from other apps open in new tabs. When off, reuses the current tab."</string>
+    <string name="text_0716" formatted="false">"Open saved pages in"</string>
+    <string name="text_0717" formatted="false">"Default behavior for home shortcuts and bookmarks. Long-press links for other choices."</string>
+    <string name="text_0718" formatted="false">"Current tab"</string>
+    <string name="text_0719" formatted="false">"New tab and switch"</string>
+    <string name="text_0720" formatted="false">"Background tab"</string>
+    <string name="text_0721" formatted="false">"Active pages to keep"</string>
+    <string name="text_0722" formatted="false">"Fewer pages use less memory, but older tabs may reload when revisited. The total tab limit stays at 50."</string>
+    <string name="text_0723" formatted="false">"2 · Save memory"</string>
+    <string name="text_0724" formatted="false">"4 · Balanced"</string>
+    <string name="text_0725" formatted="false">"6"</string>
+    <string name="text_0726" formatted="false">"8 · Keep more pages"</string>
+    <string name="text_0727" formatted="false">"memory performance"</string>
+    <string name="text_0728" formatted="false">"Address bar action"</string>
+    <string name="text_0729" formatted="false">"Reload becomes Stop while loading and Clear while editing. QR scanning is always available in More tools."</string>
+    <string name="text_0730" formatted="false">"Reload / Stop"</string>
+    <string name="text_0731" formatted="false">"Home columns"</string>
+    <string name="text_0732" formatted="false">"Controls home shortcut density. Folders still use three columns."</string>
+    <string name="text_0733" formatted="false">"3 · Spacious"</string>
+    <string name="text_0734" formatted="false">"4 · Default"</string>
+    <string name="text_0735" formatted="false">"5 · Compact"</string>
+    <string name="text_0736" formatted="false">"Show home title"</string>
+    <string name="text_0737" formatted="false">"Turn off to reduce empty space above your shortcuts."</string>
+    <string name="text_0738" formatted="false">"Record browsing history"</string>
+    <string name="text_0739" formatted="false">"Sites and privacy"</string>
+    <string name="text_0740" formatted="false">"Stops adding history. Cookies, cache and tabs remain; this is not isolated private browsing."</string>
+    <string name="text_0741" formatted="false">"privacy private browsing"</string>
+    <string name="text_0742" formatted="false">"Allow websites to request camera"</string>
+    <string name="text_0743" formatted="false">"Only foreground HTTPS sites may ask, with your confirmation each time. When off, requests are denied."</string>
+    <string name="text_0744" formatted="false">"permissions camera video"</string>
+    <string name="text_0745" formatted="false">"Allow websites to request microphone"</string>
+    <string name="text_0746" formatted="false">"permissions recording voice"</string>
+    <string name="text_0747" formatted="false">"Allow websites to request location"</string>
+    <string name="text_0748" formatted="false">"Requests approximate system location only, with confirmation each time. No permanent site permission is saved."</string>
+    <string name="text_0749" formatted="false">"permissions location maps"</string>
+    <string name="text_0750" formatted="false">"Open external apps from pages"</string>
+    <string name="text_0751" formatted="false">"Only responds to clicks on the foreground page. Ask each time or block; apps never open automatically."</string>
+    <string name="text_0752" formatted="false">"Ask each time"</string>
+    <string name="text_0753" formatted="false">"Always block"</string>
+    <string name="text_0754" formatted="false">"redirect launch block"</string>
+    <string name="text_0755" formatted="false">"Allow media autoplay"</string>
+    <string name="text_0756" formatted="false">"Media needs a tap by default. Enabling may play sound or use data; sites can override this."</string>
+    <string name="text_0757" formatted="false">"Download over Wi-Fi only"</string>
+    <string name="text_0758" formatted="false">"Page tools"</string>
+    <string name="text_0759" formatted="false">"Affects new downloads only. The system waits when Wi-Fi is unavailable."</string>
+    <string name="text_0760" formatted="false">"data network download"</string>
+    <string name="text_0761" formatted="false">"Choose the default search service, or change it only for the current tab in Site settings."</string>
+    <string name="text_0762" formatted="false">"Baidu Bing Google custom search"</string>
+    <string name="text_0763" formatted="false">"Allow JavaScript by default"</string>
+    <string name="text_0764" formatted="false">"Turning off may break website logins, menus and videos."</string>
+    <string name="text_0765" formatted="false">"scripts"</string>
+    <string name="text_0766" formatted="false">"Allow third-party cookies by default"</string>
+    <string name="text_0767" formatted="false">"Turning off helps reduce cross-site identifiers. Some embedded logins need a site exception."</string>
+    <string name="text_0768" formatted="false">"privacy login cookies"</string>
+    <string name="text_0769" formatted="false">"Request desktop sites by default"</string>
+    <string name="text_0770" formatted="false">"Requests the desktop version; does not change Android System WebView."</string>
+    <string name="text_0771" formatted="false">"UA desktop site"</string>
+    <string name="text_0772" formatted="false">"Block images by default"</string>
+    <string name="text_0773" formatted="false">"Reduces image loading. Individual sites can override this."</string>
+    <string name="text_0774" formatted="false">"images data"</string>
+    <string name="text_0775" formatted="false">"Allow dark web pages"</string>
+    <string name="text_0776" formatted="false">"Lets the system darken pages in dark mode. Disable for individual sites if charts look wrong."</string>
+    <string name="text_0777" formatted="false">"night dark"</string>
+    <string name="text_0778" formatted="false">"Site exceptions"</string>
+    <string name="text_0779" formatted="false">"View sites with custom settings and reset them individually."</string>
+    <string name="text_0780" formatted="false">"site inherit override permissions"</string>
+    <string name="text_0781" formatted="false">"Subscriptions, site exceptions, blocking logs and element hiding."</string>
+    <string name="text_0782" formatted="false">"ads block hide"</string>
+    <string name="text_0783" formatted="false">"Find image and media URLs. Reload to fully apply changes."</string>
+    <string name="text_0784" formatted="false">"sniff video audio"</string>
+    <string name="text_0785" formatted="false">"Manage local scripts and matching sites. Import trusted scripts only."</string>
+    <string name="text_0786" formatted="false">"user.js Tampermonkey"</string>
+    <string name="text_0787" formatted="false">"Uses the system speech engine; pauses when you leave the app."</string>
+    <string name="text_0788" formatted="false">"audiobook voice TTS"</string>
+    <string name="text_0789" formatted="false">"Extracts articles locally as plain text, with text size, speech and export controls."</string>
+    <string name="text_0790" formatted="false">"article clean"</string>
+    <string name="text_0791" formatted="false">"Reading text size"</string>
+    <string name="text_0792" formatted="false">"Changes only the article text in Reading mode."</string>
+    <string name="text_0793" formatted="false">"reading font"</string>
+    <string name="text_0794" formatted="false">"Reading line spacing"</string>
+    <string name="text_0795" formatted="false">"Adjusts spacing between lines in plain-text articles."</string>
+    <string name="text_0796" formatted="false">"Compact"</string>
+    <string name="text_0797" formatted="false">"Comfortable"</string>
+    <string name="text_0798" formatted="false">"Spacious"</string>
+    <string name="text_0799" formatted="false">"Keep screen on while reading"</string>
+    <string name="text_0800" formatted="false">"Keeps the screen on only in Reading mode. System behavior resumes when you leave."</string>
+    <string name="text_0801" formatted="false">"Uses the system speech engine. Applies the next time you start or resume reading."</string>
+    <string name="text_0802" formatted="false">"0.75×"</string>
+    <string name="text_0803" formatted="false">"1×"</string>
+    <string name="text_0804" formatted="false">"1.25×"</string>
+    <string name="text_0805" formatted="false">"1.5×"</string>
+    <string name="text_0806" formatted="false">"1.75×"</string>
+    <string name="text_0807" formatted="false">"2×"</string>
+    <string name="text_0808" formatted="false">"Data management"</string>
+    <string name="text_0809" formatted="false">"Save plain-text articles from Reading mode, without images, to read offline."</string>
+    <string name="text_0810" formatted="false">"read later save local"</string>
+    <string name="text_0811" formatted="false">"Uses system printing, including Save as PDF."</string>
+    <string name="text_0812" formatted="false">"export page"</string>
+    <string name="text_0813" formatted="false">"Backup and restore"</string>
+    <string name="text_0814" formatted="false">"Files are saved where you choose. No Qinglan account or server is needed."</string>
+    <string name="text_0815" formatted="false">"import export bookmarks"</string>
+    <string name="text_0816" formatted="false">"Passwords"</string>
+    <string name="text_0817" formatted="false">"Encrypted on this device, with manual saving and filling. Export requires a passphrase."</string>
+    <string name="text_0818" formatted="false">"account login"</string>
+    <string name="text_0819" formatted="false">"View and manage site cookies. Exports may contain login credentials."</string>
+    <string name="text_0820" formatted="false">"import export login"</string>
+    <string name="text_0821" formatted="false">"Choose history, cache, cookies and site storage to clear."</string>
+    <string name="text_0822" formatted="false">"delete privacy cache"</string>
+    <string name="text_0823" formatted="false">"Default browser"</string>
+    <string name="text_0824" formatted="false">"About"</string>
+    <string name="text_0825" formatted="false">"Choose the default browser in system settings."</string>
+    <string name="text_0826" formatted="false">"Common issues, permission settings and diagnostics without browsing data."</string>
+    <string name="text_0827" formatted="false">"download failed blank page errors feedback"</string>
+    <string name="text_0828" formatted="false">"Version, Android System WebView and open-source licenses."</string>
+    <string name="text_0829" formatted="false">"version engine license"</string>
+    <string name="text_0830" formatted="false">"Theme and page text"</string>
+    <string name="text_0831" formatted="false">"Address bar"</string>
+    <string name="text_0832" formatted="false">"Home and menu"</string>
+    <string name="text_0833" formatted="false">"Search"</string>
+    <string name="text_0834" formatted="false">"Links and tabs"</string>
+    <string name="text_0835" formatted="false">"Content and display"</string>
+    <string name="text_0836" formatted="false">"Privacy and app links"</string>
+    <string name="text_0837" formatted="false">"Site permission requests"</string>
+    <string name="text_0838" formatted="false">"Tools"</string>
+    <string name="text_0839" formatted="false">"Tab management"</string>
+    <string name="text_0840" formatted="false">"Reading and speech"</string>
+    <string name="text_0841" formatted="false">"Page actions"</string>
+    <string name="text_0842" formatted="false">"Saved data"</string>
+    <string name="text_0843" formatted="false">"Backup and cleanup"</string>
+    <string name="text_0844" formatted="false">"Save separate website logins. Switch this tab without changing others."</string>
+    <string name="text_0845" formatted="false">"switch account login Cookie container work personal"</string>
+    <string name="text_0846" formatted="false">"Separate cookies and site storage, with no history. Site data is cleared on exit."</string>
+    <string name="text_0847" formatted="false">"privacy anonymous private"</string>
+    <string name="text_0848" formatted="false">"Find open tabs by title or URL."</string>
+    <string name="text_0849" formatted="false">"Reopen recently closed tabs: up to 10, kept for 10 minutes and cleared on restart."</string>
+    <string name="text_0850" formatted="false">"After confirmation, keeps only this tab. Unsaved forms cannot be recovered."</string>
+    <string name="text_0851" formatted="false">"All reading, page, bookmark and site actions."</string>
+    <string name="text_0852" formatted="false">"Bottom"</string>
+    <string name="text_0853" formatted="false">"Top"</string>
+    <string name="text_0854" formatted="false">"Search settings: text size, cookies, menu…"</string>
+    <string name="text_0855" formatted="false">"Modified settings"</string>
+    <string name="text_0856" formatted="false">"Review changes from defaults and reset individually"</string>
+    <string name="text_0857" formatted="false">"No settings found. Try other keywords."</string>
+    <string name="text_0858" formatted="false">"All global settings use their defaults"</string>
+    <string name="text_0859" formatted="false">"Current: %1$s · Default: %2$s"</string>
+    <string name="text_0860" formatted="false">"View individual site overrides"</string>
+    <string name="text_0861" formatted="false">"Reset menu order and visibility here"</string>
+    <string name="text_0862" formatted="false">"Qinglan is already your default browser"</string>
+    <string name="text_0863" formatted="false">"Choose the default browser in system settings"</string>
+    <string name="text_0864" formatted="false">"Default: %1$s"</string>
+    <string name="text_0865" formatted="false">"Page content\n────────────\nAddress bar\nBack　Home　Tabs　Menu"</string>
+    <string name="text_0866" formatted="false">"Address bar\n────────────\nPage content\nBack　Home　Tabs　Menu"</string>
+    <string name="text_0867" formatted="false">"Reset this setting"</string>
+    <string name="text_0868" formatted="false">"Text size for this site"</string>
+    <string name="text_0869" formatted="false">"Read clearly. Browse freely.\nThe quick brown fox jumps over the lazy dog."</string>
+    <string name="text_0870" formatted="false">"Page text size percentage"</string>
+    <string name="text_0871" formatted="false">"Applies to sites without a custom text size."</string>
+    <string name="text_0872" formatted="false">"Only %1$s; default text size is %2$s%."</string>
+    <string name="text_0873" formatted="false">"Apply text size"</string>
+    <string name="text_0874" formatted="false">"Reset to 100%"</string>
+    <string name="text_0875" formatted="false">"Use inherited default"</string>
+    <string name="text_0876" formatted="false">"Only sites with custom settings are listed. Resetting does not delete cookies or login data."</string>
+    <string name="text_0877" formatted="false">"All sites use default settings"</string>
+    <string name="text_0878" formatted="false">"View overrides or reset to defaults"</string>
+    <string name="text_0879" formatted="false">"Defaults restored. Reload the page to fully apply."</string>
+    <string name="text_0880" formatted="false">"Allow location requests"</string>
+    <string name="text_0881" formatted="false">"Open an HTTP or HTTPS website first"</string>
+    <string name="text_0882" formatted="false">"Use 1–24 characters for the name"</string>
+    <string name="text_0883" formatted="false">"Site icon"</string>
+    <string name="text_0884" formatted="false">"Script exceeds 256 KB"</string>
+    <string name="text_0885" formatted="false">"Missing UserScript header"</string>
+    <string name="text_0886" formatted="false">"Unclosed script header"</string>
+    <string name="text_0887" formatted="false">"Script needs @name"</string>
+    <string name="text_0888" formatted="false">"Script must declare @match or @include"</string>
+    <string name="text_0889" formatted="false">"@%1$s is not supported; script not installed"</string>
+    <string name="text_0890" formatted="false">"Grant %1$s is not supported; script not installed"</string>
+    <string name="text_0891" formatted="false">"Unsupported @run-at value"</string>
+    <string name="text_0892" formatted="false">"@include / @exclude only support URL wildcards"</string>
+    <string name="text_0893" formatted="false">"URL pattern is too long"</string>
+    <string name="text_0894" formatted="false">"Invalid @match: %1$s"</string>
+    <string name="text_0895" formatted="false">"Invalid match domain"</string>
+    <string name="text_0896" formatted="false">"Up to 50 scripts"</string>
+    <string name="text_0897" formatted="false">"Total script size exceeds 2 MB"</string>
+    <string name="text_0898" formatted="false">"Action failed"</string>
+    <string name="text_0899" formatted="false">"Action not completed"</string>
+    <string name="text_0900" formatted="false">"Passwords are encrypted on this device. Save and fill manually; login forms are never submitted automatically."</string>
+    <string name="text_0901" formatted="false">"Add password"</string>
+    <string name="text_0902" formatted="false">"Read the username and password entered on this page"</string>
+    <string name="text_0903" formatted="false">"Saved password"</string>
+    <string name="text_0904" formatted="false">"%1$s\n%2$s\nPassword: ••••••••"</string>
+    <string name="text_0905" formatted="false">"Fill current page"</string>
+    <string name="text_0906" formatted="false">"Delete password"</string>
+    <string name="text_0907" formatted="false">"Delete this account for %1$s?"</string>
+    <string name="text_0908" formatted="false">"Export encrypted passwords"</string>
+    <string name="text_0909" formatted="false">"Import encrypted password file"</string>
+    <string name="text_0910" formatted="false">"Save password"</string>
+    <string name="text_0911" formatted="false">"HTTPS URL"</string>
+    <string name="text_0912" formatted="false">"Username"</string>
+    <string name="text_0913" formatted="false">"Password"</string>
+    <string name="text_0914" formatted="false">"Password saved with encryption"</string>
+    <string name="text_0915" formatted="false">"Only HTTPS login pages are supported"</string>
+    <string name="text_0916" formatted="false">"No entered password found. You can add one manually."</string>
+    <string name="text_0917" formatted="false">"Can only fill the exact same HTTPS origin"</string>
+    <string name="text_0918" formatted="false">"Filled; login has not been submitted"</string>
+    <string name="text_0919" formatted="false">"No single fillable login form found"</string>
+    <string name="text_0920" formatted="false">"Choose bookmarks, home, settings and saved passwords. Cookies, history, download records and tab sessions are excluded."</string>
+    <string name="text_0921" formatted="false">"Bookmarks (with folders)"</string>
+    <string name="text_0922" formatted="false">"Home (with folders)"</string>
+    <string name="text_0923" formatted="false">"Browser and site settings"</string>
+    <string name="text_0924" formatted="false">"Saved passwords (encryption required)"</string>
+    <string name="text_0925" formatted="false">"Export selected items"</string>
+    <string name="text_0926" formatted="false">"Select at least one item"</string>
+    <string name="text_0927" formatted="false">"Choose backup to restore"</string>
+    <string name="text_0928" formatted="false">"Set export passphrase"</string>
+    <string name="text_0929" formatted="false">"This file contains sensitive passwords and will use AES-256-GCM encryption. Import requires the same passphrase, which cannot be recovered. Use at least 4 characters; a longer passphrase is recommended."</string>
+    <string name="text_0930" formatted="false">"Export passphrase"</string>
+    <string name="text_0931" formatted="false">"Repeat passphrase"</string>
+    <string name="text_0932" formatted="false">"Encrypt and save"</string>
+    <string name="text_0933" formatted="false">"Use at least 4 characters; both entries must match"</string>
+    <string name="text_0934" formatted="false">"Encrypting…"</string>
+    <string name="text_0935" formatted="false">"Decrypt backup"</string>
+    <string name="text_0936" formatted="false">"Passphrase used for export"</string>
+    <string name="text_0937" formatted="false">"Decrypt"</string>
+    <string name="text_0938" formatted="false">"Decrypting…"</string>
+    <string name="text_0939" formatted="false">"Passwords can only be restored from encrypted backups"</string>
+    <string name="text_0940" formatted="false">"Choose items to restore"</string>
+    <string name="text_0941" formatted="false">"Selected bookmark, home and settings categories are replaced. Passwords merge by site and username. Unselected categories are kept."</string>
+    <string name="text_0942" formatted="false">"%1$s bookmarks"</string>
+    <string name="text_0943" formatted="false">"%1$s home items"</string>
+    <string name="text_0944" formatted="false">"%1$s settings"</string>
+    <string name="text_0945" formatted="false">"%1$s passwords (encrypted on this device)"</string>
+    <string name="text_0946" formatted="false">"Restore selected items"</string>
+    <string name="text_0947" formatted="false">"Select items"</string>
+    <string name="text_0948" formatted="false">"Confirm restore"</string>
+    <string name="text_0949" formatted="false">"Restore %1$s categories of data?"</string>
+    <string name="text_0950" formatted="false">"Selected items restored"</string>
+    <string name="text_0951" formatted="false">"camera"</string>
+    <string name="text_0952" formatted="false">"microphone"</string>
+    <string name="text_0953" formatted="false">"approximate location"</string>
+    <string name="text_0954" formatted="false">"Allow this website to use %1$s?"</string>
+    <string name="text_0955" formatted="false">"%1$s\n\nAllows this request only. You can block further requests in Site settings."</string>
+    <string name="text_0956" formatted="false">"Deny"</string>
+    <string name="text_0957" formatted="false">"Allow once"</string>
+    <string name="text_0958" formatted="false">"HLS playlist"</string>
+    <string name="text_0959" formatted="false">"DASH playlist"</string>
+    <string name="text_0960" formatted="false">"Media segment"</string>
+    <string name="text_0961" formatted="false">"Blob media"</string>
+    <string name="text_0962" formatted="false">"Page request"</string>
+    <string name="language_title" formatted="false">"Language"</string>
+    <string name="language_description" formatted="false">"Follows your system by default. Changes only the browser interface, not web pages, bookmarks or account names."</string>
+    <string name="language_keywords" formatted="false">"language English Chinese simplified traditional"</string>
+    <string name="picker_tip" formatted="false">"Tap an element to block · Tap here to cancel"</string>
+    <string name="app_name" formatted="false">"Qinglan"</string>
+    <string name="text_search" formatted="false">"Qinglan search"</string>
+</resources>

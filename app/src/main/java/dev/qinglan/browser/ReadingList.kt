@@ -14,16 +14,16 @@ class ReadingList(context:Context,folder:String="reading") {
     private val index=AtomicFile(File(dir,"index.json"))
     @Synchronized fun list():List<SavedArticle>{
         if(!index.baseFile.exists()&&!File(dir,"index.json.bak").exists())return emptyList()
-        val arr=JSONArray(index.openRead().bufferedReader().use{it.readText()});require(arr.length()<=100){"离线文章索引异常"}
-        return List(arr.length()){i->val o=arr.getJSONObject(i);val id=o.getString("id");require(id.matches(Regex("[a-f0-9-]{36}"))){"文章编号无效"};SavedArticle(id,o.getString("title"),o.getString("url"),o.getLong("time"),o.getInt("bytes"))}
+        val arr=JSONArray(index.openRead().bufferedReader().use{it.readText()});require(arr.length()<=100){tr("离线文章索引异常")}
+        return List(arr.length()){i->val o=arr.getJSONObject(i);val id=o.getString("id");require(id.matches(Regex("[a-f0-9-]{36}"))){tr("文章编号无效")};SavedArticle(id,o.getString("title"),o.getString("url"),o.getLong("time"),o.getInt("bytes"))}
     }
     @Synchronized fun text(item:SavedArticle):String {
-        require(item.id.matches(Regex("[a-f0-9-]{36}")));val file=File(dir,"${item.id}.txt");require(file.length()<=800000){"文章文件过大"};return file.readText()
+        require(item.id.matches(Regex("[a-f0-9-]{36}")));val file=File(dir,"${item.id}.txt");require(file.length()<=800000){tr("文章文件过大")};return file.readText()
     }
     @Synchronized fun save(title:String,url:String,text:String):SavedArticle {
-        require(text.isNotBlank()&&text.length<=200000){"正文为空或超过 20 万字符"}
+        require(text.isNotBlank()&&text.length<=200000){tr("正文为空或超过 20 万字符")}
         val old=list();val previous=old.firstOrNull{it.url==url};val kept=old.filterNot{it.url==url};val bytes=text.toByteArray()
-        require(kept.size<100&&kept.sumOf{it.bytes.toLong()}+bytes.size<=20*1024*1024){"离线文章上限为 100 篇 / 20 MB，请先移除一些文章"}
+        require(kept.size<100&&kept.sumOf{it.bytes.toLong()}+bytes.size<=20*1024*1024){tr("离线文章上限为 100 篇 / 20 MB，请先移除一些文章")}
         val item=SavedArticle(UUID.randomUUID().toString(),title.take(300),url.take(8192),System.currentTimeMillis(),bytes.size)
         val file=File(dir,"${item.id}.txt");file.writeBytes(bytes)
         try{writeIndex(listOf(item)+kept)}catch(e:Exception){file.delete();throw e}

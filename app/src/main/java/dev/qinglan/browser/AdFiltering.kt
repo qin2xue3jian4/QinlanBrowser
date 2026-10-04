@@ -67,10 +67,10 @@ class AdFiltering(private val a: BrowserActivity) {
     }
     fun picker() {
         val web = a.current?.web
-        if (web == null || !a.isHttp(a.currentUrl)) { a.toast("请先打开网页"); return }
-        if (!web.settings.javaScriptEnabled || !WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) { a.toast("此功能需要 JavaScript 和较新的系统 WebView"); return }
+        if (web == null || !a.isHttp(a.currentUrl)) { a.toast(tr("请先打开网页")); return }
+        if (!web.settings.javaScriptEnabled || !WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) { a.toast(tr("此功能需要 JavaScript 和较新的系统 WebView")); return }
         a.panels.pages.close()
         pickerWeb = web
-        web.evaluateJavascript(a.assets.open("filter-picker.js").bufferedReader().use { it.readText() }, null)
+        web.evaluateJavascript(a.assets.open("filter-picker.js").bufferedReader().use { it.readText() }.replace("__QINGLAN_PICKER_TIP__",org.json.JSONObject.quote(tr("点选要屏蔽的元素 · 点此取消"))), null)
     }
 }

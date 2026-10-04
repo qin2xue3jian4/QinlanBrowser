@@ -16,7 +16,7 @@ object DragSupport {
         view.setOnTouchListener {v,e->
             when(e.actionMasked){
                 MotionEvent.ACTION_DOWN->{x=e.x;y=e.y;armed=!hold;dragging=false;moved=false;if(hold)v.postDelayed(arm,ViewConfiguration.getLongPressTimeout().toLong())else v.parent?.requestDisallowInterceptTouchEvent(true);true}
-                MotionEvent.ACTION_MOVE->{if(hypot(e.x-x,e.y-y)>slop){moved=true;if(armed&&!dragging){dragging=v.startDragAndDrop(ClipData.newPlainText("清岚项目",""),View.DragShadowBuilder(v),item,0);v.isPressed=false}else if(!armed)v.removeCallbacks(arm)};true}
+                MotionEvent.ACTION_MOVE->{if(hypot(e.x-x,e.y-y)>slop){moved=true;if(armed&&!dragging){dragging=v.startDragAndDrop(ClipData.newPlainText(tr("清岚项目"),""),View.DragShadowBuilder(v),item,0);v.isPressed=false}else if(!armed)v.removeCallbacks(arm)};true}
                 MotionEvent.ACTION_UP->{v.removeCallbacks(arm);v.isPressed=false;v.parent?.requestDisallowInterceptTouchEvent(false);if(!dragging){if(armed&&hold)released()else if(!moved)v.performClick()};armed=false;true}
                 MotionEvent.ACTION_CANCEL->{v.removeCallbacks(arm);v.isPressed=false;armed=false;true}
                 else->true

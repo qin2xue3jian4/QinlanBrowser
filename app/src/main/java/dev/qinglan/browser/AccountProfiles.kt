@@ -23,28 +23,29 @@ class AccountProfiles(context:Context) {
     companion object {private val loaded=mutableSetOf<String>()}
     fun all()=items.toList()
     fun find(id:String)=items.firstOrNull{it.id==id}
-    fun label(id:String,site:String="")=if(id.isEmpty())defaultNames.getString(site,"默认账号")!!else find(id)?.name?:"已移除的账号"
+    fun label(id:String,site:String="")=if(id.isEmpty())defaultNames.getString(site,tr("默认账号"))!!else find(id)?.name?:tr("已移除的账号")
+    fun hasDefaultName(site:String)=defaultNames.contains(site)
     fun namedSites()=defaultNames.all.keys.toList()
-    fun renameDefault(site:String,name:String){val value=AccountCodec.name(name);require(items.none{it.site==site&&it.name.equals(value,true)}){"此网站已有同名账号"};defaultNames.edit().apply{if(value=="默认账号")remove(site)else putString(site,value)}.apply()}
+    fun renameDefault(site:String,name:String){val value=AccountCodec.name(name);require(items.none{it.site==site&&it.name.equals(value,true)}){tr("此网站已有同名账号")};defaultNames.edit().apply{if(value==tr("默认账号"))remove(site)else putString(site,value)}.apply()}
     fun available(id:String)=id.isEmpty()||(find(id)!=null&&PrivateSession.supported())
     fun profile(id:String):Profile {
-        require(find(id)!=null){"账号空间已移除"};check(PrivateSession.supported()){"请更新系统 WebView 后使用多账号"}
+        require(find(id)!=null){tr("账号空间已移除")};check(PrivateSession.supported()){tr("请更新系统 WebView 后使用多账号")}
         return ProfileStore.getInstance().getOrCreateProfile(id).also{loaded.add(id)}
     }
     fun attach(web:WebView,id:String){if(id.isNotEmpty()){profile(id);WebViewCompat.setProfile(web,id)}}
     fun cookies(id:String):CookieManager=if(id.isEmpty())CookieManager.getInstance()else profile(id).cookieManager
     fun flush(){CookieManager.getInstance().flush();items.filter{it.id in loaded}.forEach{runCatching{cookies(it.id).flush()}}}
     private fun save(next:List<SiteAccount>){
-        check(readable){"账号列表读取失败，未覆盖原文件"}
+        check(readable){tr("账号列表读取失败，未覆盖原文件")}
         val out=file.startWrite()
         try{out.write(AccountCodec.encode(next).toByteArray());file.finishWrite(out);items=next}catch(e:Exception){file.failWrite(out);throw e}
     }
     fun create(name:String,url:String):SiteAccount {
-        check(PrivateSession.supported()){"请更新系统 WebView 后使用多账号"}
-        require(items.size<AccountCodec.LIMIT){"最多保存 ${AccountCodec.LIMIT} 个独立账号，请先移除不用的账号"}
+        check(PrivateSession.supported()){tr("请更新系统 WebView 后使用多账号")}
+        require(items.size<AccountCodec.LIMIT){tr("最多保存 %1\$s 个独立账号，请先移除不用的账号", AccountCodec.LIMIT)}
         val account=AccountCodec.create(name,url);unique(account);save(items+account);return account
     }
-    private fun unique(account:SiteAccount){require(!account.name.equals(label("",account.site),true)&&!account.name.equals("默认账号",true)&&items.none{it.id!=account.id&&it.site==account.site&&it.name.equals(account.name,true)}){"此网站已有同名账号"}}
+    private fun unique(account:SiteAccount){require(!account.name.equals(label("",account.site),true)&&!account.name.equals(tr("默认账号"),true)&&items.none{it.id!=account.id&&it.site==account.site&&it.name.equals(account.name,true)}){tr("此网站已有同名账号")}}
     fun rename(id:String,name:String){val account=requireNotNull(find(id)).copy(name=AccountCodec.name(name));unique(account);save(items.map{if(it.id==id)account else it})}
     /** Caller must destroy all views using this account before removal. */
     fun remove(id:String,done:(Boolean)->Unit){

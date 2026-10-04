@@ -29,9 +29,9 @@ class PageHost(private val a:BrowserActivity){
             @android.annotation.SuppressLint("GestureBackNavigation") override fun onBackPressed(){back()}
         }.also{dialog=it;it.setOnCancelListener{close()}}
         val root=u.column().apply{setBackgroundColor(u.bg)};val bar=u.row().apply{setBackgroundColor(u.panel)}
-        bar.addView(u.icon("back",if(stack.size>1)"返回上一级"else"返回网页"){back()});bar.addView(u.title(route.title).apply{maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END},LinearLayout.LayoutParams(0,-2,1f))
+        bar.addView(u.icon("back",if(stack.size>1)tr("返回上一级")else tr("返回网页")){back()});bar.addView(u.title(route.title).apply{maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END},LinearLayout.LayoutParams(0,-2,1f))
         route.action?.let{item->bar.addView(u.icon(item.icon,item.title,item.run))}
-        if(stack.size>1)bar.addView(u.icon("close","返回网页"){close()})
+        if(stack.size>1)bar.addView(u.icon("close",tr("返回网页")){close()})
         root.addView(bar,LinearLayout.LayoutParams(-1,u.dp(56)))
         val col=u.column(16);route.build(col);val pageScroll=ScrollView(a).apply{addView(col)};scroll=pageScroll;root.addView(pageScroll,LinearLayout.LayoutParams(-1,0,1f))
         d.setContentView(root);d.window?.apply{setBackgroundDrawableResource(android.R.color.transparent);setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)}

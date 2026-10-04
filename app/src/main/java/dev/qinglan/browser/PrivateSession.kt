@@ -39,7 +39,7 @@ class PrivateSession private constructor(val profile:Profile) {
             }
         }
         fun create():PrivateSession {
-            check(supported()){"请更新 Android System WebView 后使用无痕模式"}
+            check(supported()){tr("请更新 Android System WebView 后使用无痕模式")}
             discardStale()
             val name=PREFIX+UUID.randomUUID().toString()
             val profile=ProfileStore.getInstance().getOrCreateProfile(name)

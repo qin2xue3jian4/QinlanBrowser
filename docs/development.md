@@ -109,3 +109,15 @@ WebView 权限实现参考 Android 官方 `PermissionRequest`、`GeolocationPerm
 手工操作可运行 `python tools/account_fixture.py`，设置 `adb reverse tcp:8881 tcp:8881`，访问 `http://127.0.0.1:8881/`。只提供合成身份、Cookie/localStorage 和小文本下载。测试后删除新建测试空间、关闭测试标签，移除该端口转发并停止 fixture；下载测试文件需从下载页删除。
 
 账号资料与引擎分离：`AccountCodec` 只序列化备注/ID/无查询参数的入口，`AccountProfiles` 用 AtomicFile 保存列表，`BrowserTab.accountId` 跟随标签生命周期。删账号需先销毁所有引用视图，移除索引后清理数据；启动删除未登记的账号 profile。列表损坏时禁止孤立配置清理。Cookie 面板捕获具体 CookieManager，下载记录保存来源账号 ID，防止后台页面与下载重试使用当前前台标签的登录。
+
+## 界面本地化
+
+运行 `python tools/localization.py` 检查三套资源的键、占位符和源码引用；更新源文案后运行 `python tools/localization.py --generate` 刷新 `TextResources.kt`。默认 `values/strings.xml` 为英语，`values-zh` 为简体中文，`values-b+zh+Hant` 为繁体中文。新增资源建议使用有意义的名称；`text_XXXX` 是这次一次性迁移生成的稳定 ID。
+
+业务代码通过显式 `tr("源文案")` 或 `tr("包含 %1\$s 的模板", value)` 引用；简体源模板对应 Android 资源 ID，`formatted=false` 保留模板中的字面百分号。`LocalText` 只替换编号参数，支持译文重排，参数不再递归翻译或格式化。不要对网页正文、收藏标题、账号名称、用户脚本或 URL 调用翻译；动态 key 只用于受控的内部枚举标签。第三方 Readability 源码保持原样。
+
+`AppLanguage` 使用 Android 13+ 原生 LocaleManager；旧版用独立本机偏好与本地化 Context。两者均默认跟随系统。BrowserActivity 自行处理 locale/layoutDirection 变化，刷新原生界面而保留已打开的 WebView 和 profile；设置目录按语言修订号失效重建，避免切换后搜索/分类残留旧语言。资源嗅探类别、历史范围、预置引擎和配色名称也在显示时解析。语言切换不关停离线文章的后台执行器。
+
+JVM 的 LanguageTest 覆盖中文脚本/地区与系统语言列表回退、参数重排、用户参数不被二次处理、百分号/搜索模板保持、设置搜索及内部标签重新本地化。无设备时可完成资源检查、单元测试和 APK 构建，但不能声称已完成真机布局或 Android 系统设置交互验收。
+
+Android 接口依据：[应用语言偏好](https://developer.android.com/guide/topics/resources/app-languages)。不新增 AppCompat、在线翻译 SDK 或服务器。

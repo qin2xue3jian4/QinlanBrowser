@@ -3,8 +3,9 @@ package dev.qinglan.browser
 import java.net.URI
 import java.util.Locale
 
-enum class ResourceKind(val label: String) {
-    VIDEO("视频"), AUDIO("音频"), IMAGE("图片"), HLS("HLS 播放列表"), DASH("DASH 播放列表"), SEGMENT("媒体分片"), BLOB("Blob 媒体")
+enum class ResourceKind(private val labelKey: String) {
+    VIDEO("视频"), AUDIO("音频"), IMAGE("图片"), HLS("HLS 播放列表"), DASH("DASH 播放列表"), SEGMENT("媒体分片"), BLOB("Blob 媒体");
+    val label get()=tr(labelKey)
 }
 data class WebResource(val url: String, val kind: ResourceKind, val mime: String = "", val referer: String = "", val userAgent: String = "", val source: String = "网页请求") {
     val name: String get() = runCatching { URI(url).path?.substringAfterLast('/')?.take(120) }.getOrNull().orEmpty().ifBlank { kind.label }

@@ -21,7 +21,7 @@ class SiteIcons(context:Context){
     }
     fun view(ui:Ui,title:String,url:String,size:Int=32):android.view.View{
         val host=key(url);val icon=cache.get(host)?:runCatching{BitmapFactory.decodeFile(file(host).path)?.also{cache.put(host,it)}}.getOrNull()
-        return if(icon!=null)ImageView(ui.context).apply{setImageBitmap(icon);scaleType=ImageView.ScaleType.FIT_CENTER;setPadding(ui.dp(4),ui.dp(4),ui.dp(4),ui.dp(4));contentDescription="网站图标";layoutParams=LinearLayout.LayoutParams(ui.dp(size),ui.dp(size))}
+        return if(icon!=null)ImageView(ui.context).apply{setImageBitmap(icon);scaleType=ImageView.ScaleType.FIT_CENTER;setPadding(ui.dp(4),ui.dp(4),ui.dp(4),ui.dp(4));contentDescription=tr("网站图标");layoutParams=LinearLayout.LayoutParams(ui.dp(size),ui.dp(size))}
         else ui.label(title.take(1).uppercase().ifBlank{"·"},(size*.48f),ui.accent).apply{setPadding(0,0,0,0);gravity=Gravity.CENTER;background=ui.round(ui.soft,8);layoutParams=LinearLayout.LayoutParams(ui.dp(size),ui.dp(size))}
     }
 }

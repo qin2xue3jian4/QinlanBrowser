@@ -13,10 +13,10 @@ object AccountCodec {
     const val LIMIT=20
     fun home(url:String):String {
         val uri=URI(url)
-        require(uri.scheme in listOf("https","http")&&!uri.host.isNullOrBlank()&&uri.rawUserInfo==null){"请先打开 HTTP / HTTPS 网站"}
+        require(uri.scheme in listOf("https","http")&&!uri.host.isNullOrBlank()&&uri.rawUserInfo==null){tr("请先打开 HTTP / HTTPS 网站")}
         return URI(uri.scheme.lowercase(),null,uri.host.lowercase(),uri.port,"/",null,null).toASCIIString()
     }
-    fun name(value:String)=value.trim().also{require(it.isNotEmpty()&&it.length<=24&&it.none(Char::isISOControl)){"名称需为 1–24 个字符"}}
+    fun name(value:String)=value.trim().also{require(it.isNotEmpty()&&it.length<=24&&it.none(Char::isISOControl)){tr("名称需为 1–24 个字符")}}
     fun create(label:String,url:String):SiteAccount {val start=home(url);return SiteAccount(PREFIX+UUID.randomUUID(),name(label),URI(start).host,start)}
     fun encode(items:List<SiteAccount>)=JSONArray().apply{items.forEach{put(JSONObject().put("id",it.id).put("name",it.name).put("site",it.site).put("url",it.startUrl))}}.toString()
     fun decode(raw:String):List<SiteAccount> {
