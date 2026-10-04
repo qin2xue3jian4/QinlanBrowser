@@ -1,0 +1,129 @@
+name: Release APK
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '已存在的版本标签，例如 v0.4.0'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate tag and version
+        id: version
+        run: |
+          python3 tools/release.py validate --tag "$RELEASE_TAG" --github-output "$GITHUB_OUTPUT"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@4c125117fe7c5aed11272ec4213f602f012f89f2 # v5
+      - name: Install Android SDK components
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          value = os.environ.get('KEYSTORE_BASE64', '')
+          if not value.strip():
+              raise SystemExit('Missing secret: ANDROID_KEYSTORE_BASE64')
+          key = Path(os.environ['RUNNER_TEMP']) / 'qinglan-release.jks'
+          key.write_bytes(base64.b64decode(''.join(value.split()), validate=True))
+          key.chmod(0o600)
+          PY
+      - name: Build signed APK and run checks
+        env:
+          QINGLAN_REQUIRE_SIGNING: 'true'
+          QINGLAN_STORE_FILE: ${{ runner.temp }}/qinglan-release.jks
+          QINGLAN_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          QINGLAN_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          QINGLAN_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          python3 -m unittest discover -s tools/tests -v
+          ./gradlew --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleRelease
+      - name: Verify and package APK
+        run: |
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
+          python3 tools/release.py package --tag "$RELEASE_TAG" --apk app/build/outputs/apk/release/app-release.apk
+      - name: Upload release files
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-files
+          path: dist/release/*
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload build reports and obfuscation mapping
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+            app/build/outputs/mapping/release/mapping.txt
+          retention-days: 30
+      - name: Remove signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/qinglan-release.jks"
+
+  draft:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ needs.build.outputs.tag }}
+      RELEASE_VERSION: ${{ needs.build.outputs.version }}
+      PRERELEASE: ${{ needs.build.outputs.prerelease }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-files
+          path: release
+      - name: Create or update release draft
+        run: |
+          if state=$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft 2>/dev/null); then
+            if [ "$state" != true ]; then
+              echo 'This release is already published. Create a new version tag instead of replacing its APK.'
+              exit 1
+            fi
+            gh release upload "$RELEASE_TAG" release/* --clobber
+          else
+            flags=()
+            if [ "$PRERELEASE" = true ]; then flags+=(--prerelease); fi
+            gh release create "$RELEASE_TAG" release/* --verify-tag --draft \
+              --title "清岚 $RELEASE_VERSION" \
+              --notes '适用于 Android 8.0 及以上版本。下载 APK 安装；SHA256SUMS 用于校验文件完整性。' \
+              "${flags[@]}"
+          fi

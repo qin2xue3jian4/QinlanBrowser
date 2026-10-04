@@ -9,3 +9,7 @@ test-results/
 .tmp/
 .local/
 dist/
+**/__pycache__/
+*.p12
+*.pfx
+keystore.properties
