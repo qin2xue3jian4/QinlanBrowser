@@ -7,15 +7,19 @@ import org.json.JSONObject
 object BackupCodec {
     data class Snapshot(val home:List<HomeItem>?,val bookmarks:List<Visit>?,val settings:Map<String,Any>?,val passwords:List<SavedPassword>?=null)
     private val boolKeys=setOf("bottomAddress","restore","thirdParty","noImages","autoHideAddress","adblockEnabled","adblockAutoUpdate","resourceSniffing")
-    fun allowed(key:String)=key in boolKeys||key in setOf("theme","search","textZoom","palette","menuColumns","customColor","customSearches","filterRules","filterSubscriptions")||Regex("site\\.[a-zA-Z0-9.:-]{1,253}\\.(desktop|js|thirdParty|dark|noImages|adblock)").matches(key)
+    fun allowed(key:String)=SettingCatalog.find(key)?.default!=null||key in boolKeys||key in setOf("theme","search","textZoom","palette","menuColumns","menuLayout","customColor","customSearches","filterRules","filterSubscriptions")||Regex("site\\.[a-zA-Z0-9.:-]{1,253}\\.(desktop|js|thirdParty|dark|noImages|adblock|textZoom)").matches(key)
     private fun validUrl(s:String)=s.length<=8192&&runCatching{val u=java.net.URI(s);u.scheme in listOf("http","https")&&!u.host.isNullOrBlank()&&u.userInfo==null}.getOrDefault(false)
     private fun settings(raw:JSONObject):Map<String,Any> {
         require(raw.length()<=3000){"设置项过多"}
         val out=linkedMapOf<String,Any>()
         raw.keys().forEach{key->if(allowed(key)){
             val v=raw.get(key)
-            val valid=when(key){"filterRules"->v is String&&v.length<=65_536;"filterSubscriptions"->v is String&&runCatching{FilterSubscriptions.parse(v)}.isSuccess;"theme"->v in listOf("light","dark","system");"palette"->v in Palette.names.keys;"customColor"->v is String&&Palette.valid(v);"customSearches"->v is String&&runCatching{SearchEngines.parse(v)}.isSuccess;"menuColumns"->v is Int&&v in 3..6;"search"->v is String&&SearchEngines.valid(v);"textZoom"->v is Number&&v.toDouble()==v.toInt().toDouble()&&v.toInt() in 50..300;else->v is Boolean}
-            require(valid){"设置项格式无效：$key"};out[key]=if(key=="textZoom")(v as Number).toInt()else v
+            val zoom=key=="textZoom"||key.endsWith(".textZoom")
+            val spec=SettingCatalog.find(key)
+            val valid=if(zoom)v is Number&&v.toDouble()==v.toInt().toDouble()&&v.toInt() in 50..200
+                else if(spec?.default!=null)spec.valid(v)
+                else when(key){"menuLayout"->v is String&&v.length<=1000&&v.split(',').all{it in MenuLayout.all};"filterRules"->v is String&&v.length<=65_536;"filterSubscriptions"->v is String&&runCatching{FilterSubscriptions.parse(v)}.isSuccess;"palette"->v in Palette.names.keys;"customColor"->v is String&&Palette.valid(v);"customSearches"->v is String&&runCatching{SearchEngines.parse(v)}.isSuccess;"search"->v is String&&SearchEngines.valid(v);else->v is Boolean}
+            require(valid){"设置项格式无效：$key"};out[key]=if(zoom)(v as Number).toInt()else v
         }};return out
     }
     fun export(home:List<HomeItem>?,bookmarks:List<Visit>?,prefs:Map<String,*>?,passwords:List<SavedPassword>?=null):String {

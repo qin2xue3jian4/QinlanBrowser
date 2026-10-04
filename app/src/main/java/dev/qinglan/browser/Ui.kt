@@ -77,6 +77,7 @@ class IconView @JvmOverloads constructor(context:Context,private val name:String
             "plus"->{line(12f,4f,12f,20f);line(4f,12f,20f,12f)}
             "site"->{line(4f,6f,20f,6f);line(4f,18f,20f,18f);rect(7f,3f,11f,9f);rect(14f,15f,18f,21f)}
             "bookmark"->line(6f,3f,18f,3f,18f,21f,12f,17f,6f,21f,6f,3f)
+            "book"->{line(12f,5f,12f,21f);line(12f,5f,3f,3f,3f,19f,12f,21f,21f,19f,21f,3f,12f,5f)}
             "history"->{canvas.drawCircle(12f,12f,9f,p);line(12f,6f,12f,12f,16f,14f)}
             "download"->{line(12f,3f,12f,16f);line(7f,11f,12f,16f,17f,11f);line(4f,17f,4f,21f,20f,21f,20f,17f)}
             "desktop"->{rect(2f,3f,22f,17f);line(12f,17f,12f,22f);line(7f,22f,17f,22f)}

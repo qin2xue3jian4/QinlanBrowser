@@ -43,6 +43,9 @@ class BrowserStore(context: Context) {
     fun siteKey(url:String) = runCatching { java.net.URI(url).host?.lowercase().orEmpty() }.getOrDefault("")
     fun siteBool(url:String,key:String,default:Boolean) = prefs.getBoolean("site.${siteKey(url)}.$key",default)
     fun setSiteBool(url:String,key:String,value:Boolean) { prefs.edit().putBoolean("site.${siteKey(url)}.$key",value).apply() }
+    fun siteOverridden(url:String,key:String)=prefs.contains("site.${siteKey(url)}.$key")
+    fun resetSite(url:String){val prefix="site.${siteKey(url)}.";val edit=prefs.edit();prefs.all.keys.filter{it.startsWith(prefix)}.forEach(edit::remove);edit.apply()}
+    fun siteZoom(url:String)=prefs.getInt("site.${siteKey(url)}.textZoom",prefs.getInt("textZoom",100)).coerceIn(50,200)
     fun bookmarkHtml():String {
         fun esc(s:String)=s.replace("&","&amp;").replace("\"","&quot;").replace("<","&lt;").replace(">","&gt;")
         fun entries(parent:String):String=bookmarks.filter{it.parent==parent}.joinToString("\n"){if(it.folder)"<DT><H3>${esc(it.title)}</H3><DL><p>\n"+bookmarks.filter{v->v.parent==it.id&&!v.folder}.joinToString("\n"){v->"<DT><A HREF=\"${esc(v.url)}\">${esc(v.title)}</A>"}+"\n</DL><p>"else "<DT><A HREF=\"${esc(it.url)}\">${esc(it.title)}</A>"}

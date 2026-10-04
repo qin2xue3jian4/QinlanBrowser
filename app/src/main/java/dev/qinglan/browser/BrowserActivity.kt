@@ -21,7 +21,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URLEncoder
 
-data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home",var searchOverride:String?=null,val filterSession:FilterSession=FilterSession(),val resources:ResourceSession=ResourceSession())
+data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home",var searchOverride:String?=null,var openerId:Long?=null,val filterSession:FilterSession=FilterSession(),val resources:ResourceSession=ResourceSession())
 
 class BrowserActivity:Activity() {
     lateinit var store:BrowserStore
@@ -41,6 +41,9 @@ class BrowserActivity:Activity() {
     lateinit var tabCount:TextView
     private lateinit var refreshButton:View
     val tabs=mutableListOf<BrowserTab>()
+    val closedTabs=ClosedTabs()
+    private var undoBar:View?=null
+    private var emptyReplacementId:Long?=null
     var selected=0
     var fullScreen=false
     private var customView:View?=null
@@ -98,7 +101,10 @@ class BrowserActivity:Activity() {
             inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI
             setSelectAllOnFocus(true)
             setOnFocusChangeListener{_,focused->if(focused)setText(currentUrl.takeIf{isHttp(it)}.orEmpty()) else syncAddress()}
-            setOnEditorActionListener{_,action,event->if(action==android.view.inputmethod.EditorInfo.IME_ACTION_GO||event?.keyCode==KeyEvent.KEYCODE_ENTER&&event.action==KeyEvent.ACTION_UP){navigateInput(text.toString());true}else false}
+            setOnEditorActionListener{_,action,event->
+                if(event?.keyCode==KeyEvent.KEYCODE_ENTER){if(event.action==KeyEvent.ACTION_UP)navigateInput(text.toString());true}
+                else if(action in listOf(android.view.inputmethod.EditorInfo.IME_ACTION_GO,android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH,android.view.inputmethod.EditorInfo.IME_ACTION_DONE)){navigateInput(text.toString());true}else false
+            }
         }
         addressBox.addView(address,LinearLayout.LayoutParams(0,ui.dp(48),1f))
         refreshButton=ui.icon("qr","扫描二维码"){startActivityForResult(Intent(this,QrScanActivity::class.java),104)};addressBox.addView(refreshButton)
@@ -140,19 +146,50 @@ class BrowserActivity:Activity() {
         return template.replace("%s",URLEncoder.encode(query,"UTF-8"))
     }
     fun open(url:String,newTab:Boolean=false){
+        address.clearFocus();content.requestFocus();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).hideSoftInputFromWindow(address.windowToken,0)
         dismissTabs();showAddress()
         if(!isHttp(url)){toast("只支持 HTTP / HTTPS 网页");return}
-        if(newTab){if(tabs.size>=50){toast("最多打开 50 个标签页");return};tabs.add(BrowserTab(url=url));switchTab(tabs.lastIndex);return}
+        if(newTab){if(tabs.size>=50){toast("最多打开 50 个标签页");return};tabs.add(BrowserTab(url=url,openerId=current?.id));switchTab(tabs.lastIndex);return}
         val t=current?:return;t.url=url;folderOpen="";if(t.web==null){t.saved=null;attach(t)}else{configure(t.web!!,url);content.removeAllViews();(t.web!!.parent as? android.view.ViewGroup)?.removeView(t.web);content.addView(t.web,FrameLayout.LayoutParams(-1,-1));t.web!!.loadUrl(url)}
         syncAddress();persistSession()
     }
     fun goHome(){dismissTabs();showAddress();val t=current?:return;t.web?.stopLoading();t.url="about:home";t.committedUrl="about:home";t.title="主页";t.resources.start("about:home","");t.filterSession.start("about:home");folderOpen="";closeFind();renderHome();syncAddress();persistSession()}
     fun switchTab(index:Int){
-        if(index !in tabs.indices)return;dismissTabs();showAddress();closeFind();current?.web?.onPause();selected=index;val t=tabs[index];t.used=System.currentTimeMillis()
+        if(index !in tabs.indices)return;address.clearFocus();content.requestFocus();dismissTabs();showAddress();closeFind();current?.web?.onPause();selected=index;val t=tabs[index];t.used=System.currentTimeMillis()
         if(t.url=="about:home")renderHome()else attach(t)
         tabCount.text=tabs.size.toString();syncAddress();progress.visibility=View.GONE;persistSession();trimTabs()
     }
-    fun closeTab(id:Long){val i=tabs.indexOfFirst{it.id==id};if(i<0)return;val t=tabs.removeAt(i);(t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy();if(i<selected)selected--;if(tabs.isEmpty())tabs.add(BrowserTab());switchTab(selected.coerceIn(0,tabs.lastIndex))}
+    fun openBackground(url:String){
+        if(!isHttp(url)){toast("只支持 HTTP / HTTPS 网页");return}
+        if(tabs.size>=50){toast("最多 50 个标签页");return}
+        val t=BrowserTab(url=url,title=Uri.parse(url).host?:"网页",openerId=current?.id)
+        tabs.add(t);t.web=createWeb(t).also{configure(it,url);it.loadUrl(url);it.onPause()}
+        tabCount.text=tabs.size.toString();persistSession();trimTabs();toast("已在后台打开")
+    }
+    fun closeTab(id:Long){
+        val i=tabs.indexOfFirst{it.id==id};if(i<0)return
+        val activeId=current?.id;val t=tabs.removeAt(i)
+        if(isHttp(t.url)||t.url=="about:home")closedTabs.push(ClosedTab(t.url,t.title,i,t.openerId,t.searchOverride))
+        (t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()
+        if(tabs.isEmpty()){val home=BrowserTab();tabs.add(home);emptyReplacementId=home.id}
+        val next=if(activeId!=id)tabs.indexOfFirst{it.id==activeId}else tabs.indexOfFirst{it.id==t.openerId}
+        switchTab(if(next>=0)next else i.coerceAtMost(tabs.lastIndex));showCloseUndo()
+    }
+    fun undoCloseTab(){
+        if(tabs.size>=50){toast("请先关闭一个标签");return}
+        val closed=closedTabs.pop()?:run{toast("没有可恢复的标签");return}
+        if(tabs.size==1&&tabs[0].id==emptyReplacementId&&tabs[0].url=="about:home"){tabs[0].web?.destroy();tabs.clear()}
+        emptyReplacementId=null;undoBar?.let{root.removeView(it)};undoBar=null
+        val index=closed.index.coerceIn(0,tabs.size)
+        tabs.add(index,BrowserTab(url=closed.url,title=closed.title,openerId=closed.openerId,searchOverride=closed.searchOverride));switchTab(index)
+    }
+    private fun showCloseUndo(){
+        undoBar?.let{root.removeView(it)}
+        val bar=ui.row().apply{setBackgroundColor(ui.soft)}
+        bar.addView(ui.label("已关闭标签",13f),LinearLayout.LayoutParams(0,-2,1f));bar.addView(ui.button("撤销"){undoCloseTab()})
+        root.addView(bar,root.indexOfChild(bottom));undoBar=bar
+        bar.postDelayed({if(undoBar===bar){root.removeView(bar);undoBar=null}},7000)
+    }
     fun newHome(){if(tabs.size>=50){toast("最多 50 个标签页");return};tabs.add(BrowserTab());switchTab(tabs.lastIndex)}
     private fun trimTabs(){tabs.filter{it!=current&&it.web!=null}.sortedByDescending{it.used}.drop(3).forEach{t->t.saved=Bundle().also{t.web?.saveState(it)};t.web?.destroy();t.web=null}}
     private fun attach(t:BrowserTab){
@@ -161,20 +198,20 @@ class BrowserActivity:Activity() {
         (t.web!!.parent as? android.view.ViewGroup)?.removeView(t.web);content.addView(t.web,FrameLayout.LayoutParams(-1,-1));t.web!!.onResume()
     }
     fun configure(web:WebView,url:String){
-        val desktop=store.siteBool(url,"desktop",false)
+        val desktop=store.siteBool(url,"desktop",prefs.getBoolean("desktop",false))
         web.settings.apply{
-            javaScriptEnabled=store.siteBool(url,"js",true);domStorageEnabled=true
+            javaScriptEnabled=store.siteBool(url,"js",prefs.getBoolean("js",true));domStorageEnabled=true
             allowFileAccess=false;allowContentAccess=false;mixedContentMode=WebSettings.MIXED_CONTENT_NEVER_ALLOW
             setSupportZoom(true);builtInZoomControls=true;displayZoomControls=false;useWideViewPort=true;loadWithOverviewMode=true
             javaScriptCanOpenWindowsAutomatically=false;setSupportMultipleWindows(true)
             mediaPlaybackRequiresUserGesture=true;loadsImagesAutomatically=!store.siteBool(url,"noImages",prefs.getBoolean("noImages",false));blockNetworkImage=!loadsImagesAutomatically
-            textZoom=prefs.getInt("textZoom",100)
+            textZoom=store.siteZoom(url)
             val ua=if(desktop)"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${WebView.getCurrentWebViewPackage()?.versionName?:"130.0.0.0"} Safari/537.36" else WebSettings.getDefaultUserAgent(this@BrowserActivity)
             if(userAgentString!=ua)userAgentString=ua
         }
         val thirdParty=store.siteBool(url,"thirdParty",prefs.getBoolean("thirdParty",false))
         CookieManager.getInstance().setAcceptThirdPartyCookies(web,thirdParty)
-        if(WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING))WebSettingsCompat.setAlgorithmicDarkeningAllowed(web.settings,ui.dark&&store.siteBool(url,"dark",true))
+        if(WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING))WebSettingsCompat.setAlgorithmicDarkeningAllowed(web.settings,ui.dark&&store.siteBool(url,"dark",prefs.getBoolean("webDark",true)))
         web.setBackgroundColor(ui.bg)
     }
     @android.annotation.SuppressLint("ClickableViewAccessibility") // WebView handles clicks; this observer never consumes touch events.
@@ -198,11 +235,11 @@ class BrowserActivity:Activity() {
                 }
             };false
         }
-        setDownloadListener{url,ua,disposition,mime,_->
+        setDownloadListener{url,ua,disposition,mime,length->
             // A download is not a committed page: don't restore/re-download it on launch.
             tab.url=tab.committedUrl
             if(tab==current){syncAddress();if(tab.url=="about:home")renderHome()}
-            persistSession();requestDownload(url,ua,disposition,mime)
+            persistSession();requestDownload(url,ua,disposition,mime,contentLength=length)
         }
         setOnLongClickListener {
             val h=hitTestResult;val u=h.extra
@@ -212,6 +249,7 @@ class BrowserActivity:Activity() {
                     panels.pages.show(if(isImage)"图片操作"else"链接操作"){col->
                         col.addView(ui.label(link.take(200),12f,ui.muted))
                         col.addView(ui.button("在新标签页打开"){panels.pages.close();open(link,true)})
+                        col.addView(ui.button("在后台打开"){panels.pages.close();openBackground(link)})
                         col.addView(ui.button(if(isImage)"保存图片"else"添加到书签"){if(isImage)requestDownload(link,settings.userAgentString,"","")else panels.library.collect(text.ifBlank{link},link)})
                         col.addView(ui.button("复制链接"){copy("链接",link);panels.pages.back()})
                         col.addView(ui.button("复制文本"){if(text.isNotBlank()){copy("链接文本",text);panels.pages.back()}else toast("此链接没有可复制的文本")})
@@ -248,7 +286,7 @@ class BrowserActivity:Activity() {
             override fun onReceivedTitle(view:WebView,title:String?){if(tab.url!="about:home")tab.title=title?:tab.title}
             override fun onCreateWindow(view:WebView,isDialog:Boolean,isUserGesture:Boolean,resultMsg:Message):Boolean{
                 if(!isUserGesture||tabs.size>=50)return false
-                val t=BrowserTab(url="about:blank",title="新页面");val web=createWeb(t);t.web=web;configure(web,tab.url);tabs.add(t)
+                val t=BrowserTab(url="about:blank",title="新页面",openerId=tab.id);val web=createWeb(t);t.web=web;configure(web,tab.url);tabs.add(t)
                 (resultMsg.obj as WebView.WebViewTransport).webView=web;resultMsg.sendToTarget();switchTab(tabs.lastIndex);return true
             }
             override fun onCloseWindow(window:WebView){tabs.find{it.web==window}?.let{closeTab(it.id)}}
@@ -280,7 +318,7 @@ class BrowserActivity:Activity() {
     @android.annotation.SuppressLint("GestureBackNavigation")
     override fun onBackPressed(){goBack()}
     fun reload(){if(currentUrl=="about:home")renderHome()else current?.web?.let{configure(it,currentUrl);it.reload()}}
-    private fun syncAddress(){if(!address.hasFocus())address.setText(if(isHttp(currentUrl))currentUrl.removePrefix("https://").removePrefix("http://").trimEnd('/')else "")}
+    private fun syncAddress(){if(!address.hasFocus())address.setText(if(isHttp(currentUrl))currentUrl.removePrefix("https://").trimEnd('/')else "")}
     fun setFullscreen(enabled:Boolean){fullScreen=enabled;top.visibility=if(enabled)View.GONE else View.VISIBLE;bottom.visibility=if(enabled)View.GONE else View.VISIBLE
         if(Build.VERSION.SDK_INT>=28)window.attributes=window.attributes.apply{layoutInDisplayCutoutMode=if(enabled){if(Build.VERSION.SDK_INT>=30)WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES}else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT}
         window.statusBarColor=if(enabled)android.graphics.Color.TRANSPARENT else ui.panel
@@ -293,17 +331,18 @@ class BrowserActivity:Activity() {
         input.addTextChangedListener(object:android.text.TextWatcher{override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int){};override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int){web.findAllAsync(s.toString())};override fun afterTextChanged(s:android.text.Editable?){} })
         web.setFindListener{active,total,done->if(done)status.text="${if(total==0)0 else active+1}/$total"};root.addView(bar,root.indexOfChild(content));findBar=bar;input.requestFocus();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).showSoftInput(input,InputMethodManager.SHOW_IMPLICIT)
     }
-    private fun closeFind(){findBar?.let{root.removeView(it);current?.web?.clearMatches();current?.web?.setFindListener(null)};findBar=null}
+    private fun closeFind(){if(findBar==null)return;findBar?.let{root.removeView(it);current?.web?.clearMatches();current?.web?.setFindListener(null)};findBar=null;content.requestFocus();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).hideSoftInputFromWindow(address.windowToken,0)}
     private fun openExternal(url:String){
         if(url.startsWith("javascript:")||url.startsWith("file:")||url.startsWith("content:")||url.startsWith("data:"))return
         val external=runCatching{if(url.startsWith("intent:"))Intent.parseUri(url,Intent.URI_INTENT_SCHEME).apply{component=null;selector=null;addCategory(Intent.CATEGORY_BROWSABLE)}else Intent(Intent.ACTION_VIEW,Uri.parse(url))}.getOrNull()?:return
         AlertDialog.Builder(this).setTitle("打开外部应用？").setMessage(Uri.parse(url).scheme?:"外部链接").setNegativeButton("取消",null).setPositiveButton("打开"){_,_->try{startActivity(external)}catch(e:Exception){external.getStringExtra("browser_fallback_url")?.takeIf(::isHttp)?.let{open(it)}?:toast("未找到对应应用")}}.show()
     }
-    fun requestDownload(url:String,ua:String,disposition:String,mime:String,referer:String=currentUrl){
+    fun requestDownload(url:String,ua:String,disposition:String,mime:String,referer:String=currentUrl,contentLength:Long=-1){
         if(!isHttp(url)){toast("支持 HTTP/HTTPS 下载，Blob 地址不能直接下载");return}
         val guessed=URLUtil.guessFileName(url,disposition,mime).replace(Regex("[\\\\/:*?\"<>|]"),"_")
         val name=ui.edit("文件名",guessed)
-        AlertDialog.Builder(this).setTitle("下载文件").setView(name).setNegativeButton("取消",null).setPositiveButton("下载"){_,_->
+        val details=ui.column(16);details.addView(ui.label("来源：${Uri.parse(url).host.orEmpty()}\n类型：${mime.ifBlank{"未知"}}\n大小：${if(contentLength>=0)android.text.format.Formatter.formatFileSize(this,contentLength)else"未知（以下载结果为准）"}",13f,ui.muted));details.addView(name)
+        AlertDialog.Builder(this).setTitle("下载文件").setView(details).setNegativeButton("取消",null).setPositiveButton("下载"){_,_->
             val fileName=name.text.toString().trim().replace(Regex("[\\\\/:*?\"<>|]"),"_").take(180).ifBlank{"download"}
             try{
                 val req=DownloadManager.Request(Uri.parse(url)).setTitle(fileName).setDescription(Uri.parse(url).host).setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED).setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,fileName)
@@ -311,7 +350,7 @@ class BrowserActivity:Activity() {
                 CookieManager.getInstance().getCookie(url)?.let{req.addRequestHeader("Cookie",it)}
                 if(isHttp(referer))req.addRequestHeader("Referer",referer)
                 val id=(getSystemService(DOWNLOAD_SERVICE)as DownloadManager).enqueue(req)
-                val ids=prefs.getStringSet("downloads",emptySet())!!.toMutableSet();ids.add(id.toString());prefs.edit().putStringSet("downloads",ids).apply();toast("已开始下载")
+                val ids=prefs.getStringSet("downloads",emptySet())!!.toMutableSet();ids.add(id.toString());prefs.edit().putStringSet("downloads",ids).putString("download.$id.referer",referer).putString("download.$id.ua",ua).apply();toast("已开始下载")
             }catch(e:Exception){toast("下载失败：${e.message}")}
         }.show()
     }
@@ -335,7 +374,7 @@ class BrowserActivity:Activity() {
     fun renderHome(){
         content.removeAllViews();folderOverlay=null
         val scroll=ScrollView(this);val column=ui.column(20);scroll.addView(column);content.addView(scroll)
-        val heading=ui.row();heading.setPadding(0,ui.dp(40),0,ui.dp(25));val names=ui.column();names.addView(ui.title("清岚"));names.addView(ui.label("长按拖动整理，松手可编辑",13f,ui.muted));heading.addView(names,LinearLayout.LayoutParams(0,-2,1f));column.addView(heading)
+        val heading=ui.row();heading.setPadding(0,ui.dp(40),0,ui.dp(25));val names=ui.column();names.addView(ui.title("清岚"));heading.addView(names,LinearLayout.LayoutParams(0,-2,1f));column.addView(heading)
         val grid=GridLayout(this).apply{columnCount=4};column.addView(grid,LinearLayout.LayoutParams(-1,-2));populateHome(grid,"")
         if(folderOpen.isNotEmpty())showFolder(folderOpen)
     }

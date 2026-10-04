@@ -18,12 +18,13 @@ class ResourcePanels(private val p: BrowserPanels) {
             col.addView(Switch(a).apply { text="收集网页资源";setTextColor(u.text);isChecked=a.sniffer.enabled();setOnCheckedChangeListener { _, b -> a.prefs.edit().putBoolean("resourceSniffing",b).apply() } })
             col.addView(u.label(tab.title.take(120),14f,u.muted).apply { maxLines=2;ellipsize=TextUtils.TruncateAt.END })
             val all=tab.resources.list()
-            val entries=all.filter { when(category) {
-                0->it.kind in setOf(ResourceKind.VIDEO,ResourceKind.AUDIO,ResourceKind.HLS,ResourceKind.DASH,ResourceKind.BLOB)
-                1->it.kind==ResourceKind.VIDEO;2->it.kind==ResourceKind.AUDIO;3->it.kind==ResourceKind.IMAGE
-                4->it.playlist;5->it.kind==ResourceKind.SEGMENT;6->it.kind==ResourceKind.BLOB;else->true
+            fun matches(index:Int,resource:WebResource):Boolean=with(resource){when(index) {
+                0->kind in setOf(ResourceKind.VIDEO,ResourceKind.AUDIO,ResourceKind.HLS,ResourceKind.DASH,ResourceKind.BLOB)
+                1->kind==ResourceKind.VIDEO;2->kind==ResourceKind.AUDIO;3->kind==ResourceKind.IMAGE
+                4->playlist;5->kind==ResourceKind.SEGMENT;6->kind==ResourceKind.BLOB;else->true
             } }
-            col.addView(u.item("分类 · ${categories[category]}","显示 ${entries.size} 项 · 本页共 ${all.size} 项（最多 300）"){p.choose("资源分类",categories,category){category=it;p.pages.refresh()}})
+            val entries=all.filter{matches(category,it)}
+            col.addView(u.item("分类 · ${categories[category]}","显示 ${entries.size} 项 · 本页共 ${all.size} 项（最多 300）"){p.choose("资源分类",categories.mapIndexed{i,name->"$name · ${all.count{matches(i,it)}}"},category){category=it;p.pages.refresh()}})
             val row=u.row()
             row.addView(u.button("重新扫描",true){tab.web?.let { a.sniffer.scan(it,tab.resources){if(!a.isDestroyed)p.pages.refresh()} } ?: p.pages.refresh()},LinearLayout.LayoutParams(0,-2,1f))
             row.addView(u.button("清空列表"){tab.resources.clear();p.pages.refresh()},LinearLayout.LayoutParams(0,-2,1f));col.addView(row)
