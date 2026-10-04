@@ -54,7 +54,7 @@ class DownloadPanels(private val p:BrowserPanels){
         if(e.status==DownloadManager.STATUS_SUCCESSFUL){
             col.addView(u.button("打开文件",true){file(e,false)})
             col.addView(u.button("分享文件"){file(e,true)})
-        }else if(e.status==DownloadManager.STATUS_FAILED){col.addView(u.button("重新下载"){a.requestDownload(e.url,p.prefs.getString("download.$id.ua",null)?:WebSettings.getDefaultUserAgent(a),"",e.mime,p.prefs.getString("download.$id.referer","").orEmpty(),suggestedName=e.title)})}
+        }else if(e.status==DownloadManager.STATUS_FAILED){col.addView(u.button("重新下载"){a.requestDownload(e.url,p.prefs.getString("download.$id.ua",null)?:WebSettings.getDefaultUserAgent(a),"",e.mime,p.prefs.getString("download.$id.referer","").orEmpty(),suggestedName=e.title,downloadScope=p.prefs.getString("download.$id.account","").orEmpty())})}
         col.addView(u.button("复制来源链接"){a.copy("下载来源",e.url)})
         if(e.status==DownloadManager.STATUS_FAILED||e.status==DownloadManager.STATUS_PAUSED)col.addView(u.item("下载排错帮助","检查网络、仅 Wi-Fi 限制、可用空间和链接是否过期"){p.help()})
         col.addView(u.button("仅移除清岚记录"){AlertDialog.Builder(a).setTitle("移除记录？").setMessage("文件会保留，进行中的系统下载会继续。").setNegativeButton("取消",null).setPositiveButton("移除"){_,_->forget(id);p.pages.back()}.show()})
@@ -62,7 +62,7 @@ class DownloadPanels(private val p:BrowserPanels){
         col.addView(u.button("刷新详情"){p.pages.refresh()})
         val tick=object:Runnable{override fun run(){if(!col.isAttachedToWindow)return;val fresh=entries().firstOrNull{it.id==id};if(fresh!=null){if(fresh.status!=e.status){p.pages.refresh();return};status.text=summary(fresh)};col.postDelayed(this,1500)}};col.postDelayed(tick,1500)
     }}
-    private fun forget(id:Long){p.prefs.edit().putStringSet("downloads",p.prefs.getStringSet("downloads",emptySet()).orEmpty()-id.toString()).remove("download.$id.referer").remove("download.$id.ua").apply()}
+    private fun forget(id:Long){p.prefs.edit().putStringSet("downloads",p.prefs.getStringSet("downloads",emptySet()).orEmpty()-id.toString()).remove("download.$id.referer").remove("download.$id.ua").remove("download.$id.account").apply()}
     private fun file(e:Entry,share:Boolean){runCatching{
         val uri=manager.getUriForDownloadedFile(e.id)?:error("Missing file")
         a.contentResolver.openFileDescriptor(uri,"r")?.close()?:error("Missing file")

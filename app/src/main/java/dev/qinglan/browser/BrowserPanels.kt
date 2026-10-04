@@ -16,6 +16,7 @@ class BrowserPanels(val a:BrowserActivity){
     val library=LibraryPanels(this)
     val vault=VaultPanels(this)
     val cookie=CookiePanels(this)
+    val accounts=AccountPanels(this)
     val searches=SearchPanels(this)
     val appearancePanels=AppearancePanels(this)
     val scripts=ScriptPanels(this)
@@ -33,7 +34,7 @@ class BrowserPanels(val a:BrowserActivity){
     fun menuEditor()=menuPanels.editor()
     fun tabs(){if(a.dismissTabs())return;renderTabs()}
     private fun renderTabs(){val col=u.column(4)
-        a.tabs.toList().forEachIndexed{i,t->val row=u.row().apply{setBackgroundColor(if(i==a.selected)u.soft else u.panel)};row.addView(a.icons.view(u,t.title,t.url));row.addView(u.label(t.title,14f).apply{maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;gravity=Gravity.CENTER_VERTICAL;setPadding(u.dp(8),0,0,0);setOnClickListener{a.switchTab(a.tabs.indexOf(t))}},LinearLayout.LayoutParams(0,u.dp(48),1f));row.addView(u.icon("close","关闭 ${t.title.take(50)}"){a.closeTab(t.id);renderTabs()});col.addView(row,LinearLayout.LayoutParams(-1,u.dp(48)));col.addView(u.rule())}
+        a.tabs.toList().forEachIndexed{i,t->val row=u.row().apply{setBackgroundColor(if(i==a.selected)u.soft else u.panel)};row.addView(a.icons.view(u,t.title,t.url));row.addView(u.label(a.accountTabTitle(t),14f).apply{maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;gravity=Gravity.CENTER_VERTICAL;setPadding(u.dp(8),0,0,0);setOnClickListener{a.switchTab(a.tabs.indexOf(t))}},LinearLayout.LayoutParams(0,u.dp(48),1f));row.addView(u.icon("close","关闭 ${t.title.take(50)}"){a.closeTab(t.id);renderTabs()});col.addView(row,LinearLayout.LayoutParams(-1,u.dp(48)));col.addView(u.rule())}
         col.addView(u.button("＋ 新建标签页"){a.newHome()}.apply{background=u.round(u.panel,0);stateListAnimator=null},LinearLayout.LayoutParams(-1,u.dp(48)));a.showTabs(col)
     }
     fun closeOtherTabs(){if(a.tabs.size<2){a.toast("没有其他标签");return};confirm("关闭其他 ${a.tabs.size-1} 个标签？","当前页面会保留。未提交的表单无法通过撤销恢复。"){pages.close();a.closeOtherTabs()}}
@@ -45,6 +46,7 @@ class BrowserPanels(val a:BrowserActivity){
         input.onChange{query=it;render(it)};render(query)
     }}
     fun site(){if(a.isIncognito){pages.show("无痕网站信息"){col->col.addView(u.label(a.currentUrl,14f));col.addView(u.label("无痕会话不与普通浏览共享登录；网站规则继承普通设置，无痕中不保存新的站点设置。"));col.addView(u.button("退出无痕模式"){a.privateMode()})};return};val url=a.currentUrl;pages.show("网站设置"){col->
+        if(a.isHttp(url)||a.current?.accountId.orEmpty().isNotEmpty())col.addView(u.item("网站账号 · ${a.accounts.label(a.current?.accountId.orEmpty(),a.store.siteKey(url))}","只切换当前标签，其他网站与标签不变"){accounts.current()})
         col.addView(u.item("搜索引擎 · ${searches.name(a.current?.searchOverride?:prefs.getString("search",SearchEngines.default)!!)}",if(a.current?.searchOverride!=null)"仅当前标签页"else"使用默认搜索引擎"){searchEngine()})
         if(a.isHttp(url)){
             col.addView(u.label(Uri.parse(url).host.orEmpty(),18f))
@@ -82,7 +84,7 @@ class BrowserPanels(val a:BrowserActivity){
     }}
     fun about(){pages.show("关于项目"){col->col.addView(u.item("正文提取开源许可","Mozilla Readability 0.6.0 · Apache 2.0"){info("Mozilla Readability",a.assets.open("reader/NOTICE.txt").bufferedReader().use{it.readText()}+"\n\n"+a.assets.open("reader/LICENSE.md").bufferedReader().use{it.readText()})});col.addView(u.label("清岚 ${BuildConfig.VERSION_NAME}\nAndroid ${Build.VERSION.RELEASE}\nWebView ${WebView.getCurrentWebViewPackage()?.versionName?:"未知"}\n\n使用系统 WebView，数据保存在本机。"));col.addView(u.item("过滤规则与公共后缀表许可"){filter.information()});col.addView(u.item("MPL 2.0 许可证"){info("MPL 2.0",a.assets.open("MPL-2.0.txt").bufferedReader().use{it.readText()})});col.addView(u.item("开源许可","ZXing · Apache License 2.0"){info("ZXing 开源许可",a.assets.open("zxing-LICENSE.txt").bufferedReader().use{it.readText()})})}}
     fun searchEngine(permanent:Boolean=false)=searches.show(permanent)
-    fun clearData(){pages.show("清理浏览数据"){col->val labels=listOf("历史记录和最近关闭","网页缓存","所有网站 Cookie（退出登录）","网站本地存储");val boxes=labels.map{CheckBox(a).apply{text=it;setTextColor(u.text)}.also(col::addView)};col.addView(u.button("清理所选数据"){val checks=boxes.map{it.isChecked};if(checks.none{it})return@button;confirm("确认清理",labels.filterIndexed{i,_->checks[i]}.joinToString("\n")){if(checks[0])a.clearHistoryData();if(checks[1]){val existing=a.tabs.firstNotNullOfOrNull{it.web};if(existing!=null)existing.clearCache(true)else WebView(a).apply{clearCache(true);destroy()}};if(checks[2])CookieManager.getInstance().removeAllCookies{CookieManager.getInstance().flush()};if(checks[3])WebStorage.getInstance().deleteAllData();a.toast("已清理")}})}}
+    fun clearData(){pages.show("清理浏览数据"){col->col.addView(u.label("历史记录共用；以下缓存、Cookie 和网站存储仅清理默认账号。独立账号请在网站多账号中删除对应空间。",13f,u.muted));val labels=listOf("历史记录和最近关闭","默认账号网页缓存","默认账号所有网站 Cookie（退出登录）","默认账号网站本地存储");val boxes=labels.map{CheckBox(a).apply{text=it;setTextColor(u.text)}.also(col::addView)};col.addView(u.button("清理所选数据"){val checks=boxes.map{it.isChecked};if(checks.none{it})return@button;confirm("确认清理",labels.filterIndexed{i,_->checks[i]}.joinToString("\n")){if(checks[0])a.clearHistoryData();if(checks[1]){val existing=a.tabs.filter{it.accountId.isEmpty()&&!it.incognito}.firstNotNullOfOrNull{it.web};if(existing!=null)existing.clearCache(true)else WebView(a).apply{clearCache(true);destroy()}};if(checks[2])CookieManager.getInstance().removeAllCookies{CookieManager.getInstance().flush()};if(checks[3])WebStorage.getInstance().deleteAllData();a.toast("已清理")}})}}
     fun reading(){pages.show("朗读本页"){col->val status=u.label(if(a.speech.speaking)"正在朗读"else if(a.speech.paused)"已暂停"else"使用系统语音引擎朗读本页正文");col.addView(status);a.speech.observe(status){status.text=if(a.speech.speaking)"正在朗读"else if(a.speech.paused)"已暂停"else"已停止"};col.addView(u.button("开始 / 重新朗读",true){a.speech.readPage()});col.addView(u.button("暂停"){a.speech.pause()});col.addView(u.button("继续"){a.speech.resume()});col.addView(u.button("停止"){a.speech.stop()});col.addView(u.label("离开应用时暂停；长页面最多读取前 8 万字符。",12f,u.muted));col.addView(u.item("系统语音设置"){runCatching{a.startActivity(Intent("com.android.settings.TTS_SETTINGS"))}.onFailure{a.toast("系统未提供语音设置入口")}})}}
     fun downloads()=DownloadPanels(this).show()
 }

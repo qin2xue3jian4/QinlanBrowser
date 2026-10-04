@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit
 
 /** Uses synthetic cookies in a reserved .test domain. Never reads real-site cookies. */
 class CookieInstrumentation:Instrumentation(){
+    private var accounts=""
     private var incognito=""
     private var importAuthorizedFile=false
     private var revision4=""
@@ -22,8 +23,9 @@ class CookieInstrumentation:Instrumentation(){
     private var cleanupFeatures=false
     private var improvements=false
     private var maturity=""
-    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);incognito=arguments?.getString("incognito").orEmpty();maturity=arguments?.getString("maturity").orEmpty();improvements=arguments?.getString("improvements")=="true";cleanupResources=arguments?.getString("cleanupResources")=="true";resources=arguments?.getString("resources")=="true";filtering=arguments?.getString("filtering")=="true";revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
+    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);accounts=arguments?.getString("accounts").orEmpty();incognito=arguments?.getString("incognito").orEmpty();maturity=arguments?.getString("maturity").orEmpty();improvements=arguments?.getString("improvements")=="true";cleanupResources=arguments?.getString("cleanupResources")=="true";resources=arguments?.getString("resources")=="true";filtering=arguments?.getString("filtering")=="true";revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
     override fun onStart(){
+        if(accounts.isNotEmpty()){AccountChecks.run(this,accounts);return}
         if(incognito.isNotEmpty()){IncognitoChecks.run(this,incognito);return}
         if(maturity.isNotEmpty()){if(maturity=="download")MaturityChecks.download(this)else MaturityChecks.run(this);return}
         if(improvements){ImprovementChecks.run(this);return}

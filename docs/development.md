@@ -99,3 +99,13 @@ WebView 权限实现参考 Android 官方 `PermissionRequest`、`GeolocationPerm
 异常恢复分两步：运行 `-e incognito seed`，收到 READY 后在 30 秒内 `adb shell am force-stop dev.qinglan.browser`，再运行 `-e incognito recover`。种子步骤故意不走正常生命周期清理，恢复步骤验证启动清除旧配置且未恢复无痕标签。
 
 `PrivateSession` 要求 AndroidX WebKit `MULTI_PROFILE` 与 `DELETE_BROWSING_DATA`。新 WebView 的第一次调用必须是 `WebViewCompat.setProfile`；销毁会话所有 WebView 后调用 `WebStorageCompat.deleteBrowsingData(profile.webStorage)`。已加载的 profile 在当前进程可能无法删除，因此会话名称从不复用，下次启动删除旧配置。默认 profile 不参加无痕清理。没有新增依赖或服务端。
+
+## 多账号回归
+
+`-e accounts core` 验证账号/默认备注命名、重名拒绝、Cookie/localStorage/关联登录域隔离、后台标签继承、切换范围、撤销关闭、无痕互不干扰，以及删除账号保留其他登录。
+
+重启验证依次执行 `-e accounts seed`、`adb shell am force-stop dev.qinglan.browser`、`-e accounts recover`，runner 同上述无痕测试。种子步骤用保留测试域写入持久 Cookie 和 localStorage，退后台并等待 WebView 批量写盘，再结束进程；恢复步骤检查名称、账号绑定与两个 origin 的数据，并清理合成账号。不能把立即杀死进程前的 JavaScript 回调当作数据库已刷盘证明。
+
+手工操作可运行 `python tools/account_fixture.py`，设置 `adb reverse tcp:8881 tcp:8881`，访问 `http://127.0.0.1:8881/`。只提供合成身份、Cookie/localStorage 和小文本下载。测试后删除新建测试空间、关闭测试标签，移除该端口转发并停止 fixture；下载测试文件需从下载页删除。
+
+账号资料与引擎分离：`AccountCodec` 只序列化备注/ID/无查询参数的入口，`AccountProfiles` 用 AtomicFile 保存列表，`BrowserTab.accountId` 跟随标签生命周期。删账号需先销毁所有引用视图，移除索引后清理数据；启动删除未登记的账号 profile。列表损坏时禁止孤立配置清理。Cookie 面板捕获具体 CookieManager，下载记录保存来源账号 ID，防止后台页面与下载重试使用当前前台标签的登录。

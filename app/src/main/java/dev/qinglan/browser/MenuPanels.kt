@@ -34,6 +34,7 @@ class MenuPanels(private val p:BrowserPanels) {
         Action("undo","back","撤销关闭标签"){a.undoCloseTab()},
         Action("tabSearch","search","搜索标签"){p.searchTabs()},
         Action("closeOtherTabs","close","关闭其他标签"){p.closeOtherTabs()},
+        Action("accounts","site","网站账号"){p.accounts.current()},
         Action("incognito","shield",if(a.isIncognito)"退出无痕"else"无痕模式"){a.privateMode()},
         Action("tools","menu","更多工具"){allTools()},
         Action("menuEditor","site","菜单定制"){editor()},
@@ -56,7 +57,7 @@ class MenuPanels(private val p:BrowserPanels) {
     }
     fun allTools(){var query="";p.pages.show("全部工具"){col->
         val input=u.edit("搜索工具",query);col.addView(input);val rows=u.column();col.addView(rows)
-        val groups=linkedMapOf("阅读与页面" to listOf("reader","readingList","speech","find","print","qr","refresh","share","pageTop","pageBottom"),"收藏与标签" to listOf("collect","bookmarks","history","downloads","tabSearch","undo","closeOtherTabs"),"网站与外观" to listOf("incognito","site","desktop","theme","images","fullscreen","filter","resources","cookies"))
+        val groups=linkedMapOf("阅读与页面" to listOf("reader","readingList","speech","find","print","qr","refresh","share","pageTop","pageBottom"),"收藏与标签" to listOf("collect","bookmarks","history","downloads","tabSearch","undo","closeOtherTabs"),"网站与外观" to listOf("accounts","incognito","site","desktop","theme","images","fullscreen","filter","resources","cookies"))
         fun render(){rows.removeAllViews();val map=actions().associateBy{it.id};var count=0
             groups.forEach{(title,ids)->val items=ids.mapNotNull{map[it]}.filter{it.title.contains(query,true)};if(items.isNotEmpty()){rows.addView(u.label(title,13f,u.accent));items.forEach{item->count++;rows.addView(u.item(item.title){p.pages.close();item.run()})}}}
             if(count==0)rows.addView(u.label("没有匹配的工具"))
