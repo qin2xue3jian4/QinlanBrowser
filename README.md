@@ -4,6 +4,27 @@
 
 ## 使用
 
+### 0.4.0 更新
+
+- 主页长按至震动后继续拖动可排序；拖到文件夹中央移入，两侧用于排序。文件夹展开后可拖到「移回主页」区域移出。不移动、松手会在项目旁显示编辑和删除；名称与网址使用紧凑编辑框。
+- 书签新增「编辑模式」：复选框批量选择、全选、移动到文件夹或根目录、批量删除；按住右侧移动柄即可上下排序。搜索时停用拖动，以免改变不可见项目的顺序。删除文件夹会保留未选中的子网站并移回根目录。
+- 右下角菜单再次点击即收起。「添加到主页」与「收藏网页」合并为一个收藏入口，分别勾选书签和主页。
+- 配色提供八种预设和自定义 RGB / `#RRGGBB` 色值。背景自动生成浅色或深色同色系，按钮文字自动选择黑白以保证对比度。
+- 搜索引擎可命名保存多个自定义模板（最多 50 个），支持编辑和删除，并继续支持当前标签临时切换或设为默认。原有自定义搜索地址保留，可从管理页命名保存。搜索引擎列表与自定义颜色均随设置备份。
+
+### 轻量用户脚本
+
+设置 → 高级功能 → 用户脚本。支持导入 `.user.js` 或粘贴源代码，安装预览、手动启停、查看源代码、删除和单独导出。新脚本默认关闭，启停或删除后刷新网页生效。
+
+- 支持 `@match`、`@include` 网址通配符、`@exclude`、`@exclude-match`，以及 `@run-at document-start/document-end/document-idle`。
+- 支持 `GM_addStyle` / `GM.addStyle`、`GM_log` / `GM.log`、`GM_info` / `GM.info`、`unsafeWindow`。适合页面样式和内容修改类脚本。
+- 仅在顶层 HTTP/HTTPS 网页执行，与网页共享 JavaScript 环境，没有独立扩展沙箱，也不向网页暴露原生文件、密码或 Cookie 管理接口。脚本仍能读取匹配网页本身的内容，应只启用可信脚本。
+- **不是完整的 Tampermonkey 扩展实现**：不支持 `@require`、`@resource`、跨域请求、GM 存储、菜单命令等高级接口；声明不支持依赖或授权时拒绝安装。没有自动下载依赖或自动更新。脚本单文件上限 256 KB，最多 50 个，总共 2 MB。
+- 使用系统 WebView 的文档开始注入能力；旧内核不具备该能力时不允许启用 document-start 脚本，其余脚本延后到加载完成执行。已打开页面的 DOM 修改要刷新后才会撤销。
+- 脚本单独导出，不纳入普通设置备份。当前不支持直接点击安装网站链接安装。
+
+实现参考：[Tampermonkey 元数据与接口文档](https://www.tampermonkey.net/documentation.php?locale=zh_CN)、[Android WebView 文档开始脚本接口](https://developer.android.com/reference/androidx/webkit/WebViewCompat#addDocumentStartJavaScript(android.webkit.WebView,java.lang.String,java.util.Set%3Cjava.lang.String%3E))。
+
 ### 0.3.0 更新
 
 - 工具菜单与标签列表均在底栏上方显示。新建标签按钮使用普通底色；只有当前标签突出显示。设置 → 外观与主题可选每行 3～6 个工具。
@@ -67,7 +88,7 @@ Windows：
 .\build.ps1
 ```
 
-默认执行 Release 构建、Cookie JVM 单元测试和 Android lint。脚本只为本次构建设置项目内 Java 临时目录，避免此电脑的 Windows Unix-domain-socket 临时路径问题。
+默认执行 Release 构建、JVM 单元测试和 Android lint。脚本只为本次构建设置项目内 Java 临时目录，避免此电脑的 Windows Unix-domain-socket 临时路径问题。
 
 常用目标：
 
@@ -95,6 +116,6 @@ Release 为便于个人直接安装，使用本机 Android 调试签名，但构
 - 同时最多 50 个标签，保留最近 4 个 WebView，其余按需恢复。进程重启恢复标签标题和 URL，不承诺恢复表单与滚动位置。
 - 普通 HTTP/HTTPS 下载使用系统 DownloadManager，并传递目标 URL 的 Cookie、UA 与 Referer。暂不支持 Blob 下载、媒体嗅探或下载队列的暂停/重试管理。
 - 支持系统文件选择器上传与视频全屏；网页实时摄像头、麦克风和定位权限暂不开放。
-- 不含云同步、广告过滤、油猴脚本及无痕独立存储；密码管理为手动保存/填入，边界见上文。
+- 不含云同步、内置广告过滤及无痕独立存储；密码管理为手动保存/填入，边界见上文。
 - 原生扫码相机权限与网页权限分离；网页仍不能使用摄像头或麦克风。二维码识别使用 ZXing 3.5.4，许可证随应用提供。
 - 网页兼容性取决于设备 WebView；主题变暗以 WebView 能力和网站样式为准。
