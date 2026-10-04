@@ -29,6 +29,7 @@ class BrowserActivity:Activity() {
     lateinit var panels:BrowserPanels
     lateinit var icons:SiteIcons
     lateinit var speech:PageSpeech
+    lateinit var scripts:UserScripts
     lateinit var root:LinearLayout
     lateinit var content:FrameLayout
     lateinit var address:EditText
@@ -47,8 +48,9 @@ class BrowserActivity:Activity() {
     private var documentWrite:String?=null
     private var findBar:LinearLayout?=null
     private var folderOpen:String=""
-    private var folderDialog:android.app.Dialog?=null
+    private var folderOverlay:View?=null
     private var tabsOverlay:View?=null
+    var overlayKind="";private set
     private var scrollTravel=0
     private var lastScrollDirection=0
     val current get()=tabs.getOrNull(selected)
@@ -59,7 +61,7 @@ class BrowserActivity:Activity() {
         store=BrowserStore(this)
         ui=Ui(this,isDark());setTheme(if(ui.dark)R.style.AppThemeDark else R.style.AppTheme)
         super.onCreate(savedInstanceState)
-        icons=SiteIcons(this);speech=PageSpeech(this)
+        icons=SiteIcons(this);speech=PageSpeech(this);scripts=UserScripts(this)
         panels=BrowserPanels(this)
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         CookieManager.getInstance().setAcceptCookie(true)
@@ -173,6 +175,7 @@ class BrowserActivity:Activity() {
     }
     @android.annotation.SuppressLint("ClickableViewAccessibility") // WebView handles clicks; this observer never consumes touch events.
     private fun createWeb(tab:BrowserTab):WebView=SearchWebView(this){query->open(searchUrl(query),true)}.apply {
+        scripts.attach(this)
         var gestureY=0f
         // Use finger movement rather than layout-generated scroll events: changing toolbar
         // height can itself move scrollY, which otherwise immediately reverses the hide.
@@ -216,6 +219,7 @@ class BrowserActivity:Activity() {
             }
             override fun onPageStarted(view:WebView,url:String,favicon:Bitmap?){if(tab.url=="about:home"&&url=="about:blank")return;tab.url=url;if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.VISIBLE}}
             override fun onPageFinished(view:WebView,url:String){
+                scripts.finished(view)
                 if(tab.url=="about:home")return;tab.url=url;tab.committedUrl=url;tab.title=view.title?.takeIf{it.isNotBlank()}?:Uri.parse(url).host?:"网页"
                 if(tab==current){syncAddress();this@BrowserActivity.progress.visibility=View.GONE};store.visit(tab.title,url);CookieManager.getInstance().flush();persistSession()
             }
@@ -248,12 +252,12 @@ class BrowserActivity:Activity() {
     fun hideVideo(){customView?.let{(it.parent as? android.view.ViewGroup)?.removeView(it)};customView=null;customViewCallback?.onCustomViewHidden();customViewCallback=null;setFullscreen(false)}
     fun goBack(){when{tabsOverlay!=null->dismissTabs();customView!=null->hideVideo();fullScreen->setFullscreen(false);findBar!=null->closeFind();folderOpen.isNotEmpty()->{folderOpen="";renderHome()};currentUrl=="about:home"->moveTaskToBack(true);current?.web?.canGoBack()==true->{showAddress();current!!.web!!.goBack()};else->goHome()}}
     fun showAddress(){if(!fullScreen)top.visibility=View.VISIBLE;scrollTravel=0}
-    fun dismissTabs():Boolean {val overlay=tabsOverlay?:return false;content.removeView(overlay);tabsOverlay=null;return true}
-    fun showTabs(view:View){
+    fun dismissTabs():Boolean {val overlay=tabsOverlay?:return false;content.removeView(overlay);tabsOverlay=null;overlayKind="";return true}
+    fun showTabs(view:View,kind:String="tabs"){
         dismissTabs();address.clearFocus();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).hideSoftInputFromWindow(address.windowToken,0)
         val overlay=FrameLayout(this).apply{setBackgroundColor(0x33000000);setOnClickListener{dismissTabs()}}
         val scroll=ScrollView(this).apply{setBackgroundColor(ui.panel);addView(view);isFillViewport=false;isClickable=true}
-        overlay.addView(scroll,FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM));content.addView(overlay,FrameLayout.LayoutParams(-1,-1));tabsOverlay=overlay
+        overlay.addView(scroll,FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM));content.addView(overlay,FrameLayout.LayoutParams(-1,-1));tabsOverlay=overlay;overlayKind=kind
         scroll.post{if(scroll.height>content.height*3/4){scroll.layoutParams=(scroll.layoutParams as FrameLayout.LayoutParams).apply{height=content.height*3/4}}}
     }
     // API 33+ uses the native OnBackInvokedDispatcher registered in onCreate.
@@ -314,10 +318,14 @@ class BrowserActivity:Activity() {
     fun copy(label:String,text:String){(getSystemService(CLIPBOARD_SERVICE)as ClipboardManager).setPrimaryClip(ClipData.newPlainText(label,text));toast("已复制")}
 
     fun renderHome(){
-        content.removeAllViews();val scroll=ScrollView(this);val column=ui.column(20);scroll.addView(column);content.addView(scroll)
-        val heading=ui.row();heading.setPadding(0,ui.dp(40),0,ui.dp(25));val names=ui.column();names.addView(ui.title("清岚"));names.addView(ui.label("把空间留给你喜欢的网站",13f,ui.muted));heading.addView(names,LinearLayout.LayoutParams(0,-2,1f));column.addView(heading)
+        content.removeAllViews();folderOverlay=null
+        val scroll=ScrollView(this);val column=ui.column(20);scroll.addView(column);content.addView(scroll)
+        val heading=ui.row();heading.setPadding(0,ui.dp(40),0,ui.dp(25));val names=ui.column();names.addView(ui.title("清岚"));names.addView(ui.label("长按拖动整理，松手可编辑",13f,ui.muted));heading.addView(names,LinearLayout.LayoutParams(0,-2,1f));column.addView(heading)
         val grid=GridLayout(this).apply{columnCount=4};column.addView(grid,LinearLayout.LayoutParams(-1,-2));populateHome(grid,"")
         if(folderOpen.isNotEmpty())showFolder(folderOpen)
+    }
+    private fun moveHome(id:String,parent:String,target:String?=null,after:Boolean=false){
+        LibraryOrder.home(store.home,id,parent,target,after);store.save();folderOpen=parent;renderHome()
     }
     private fun populateHome(grid:GridLayout,parent:String){
         grid.removeAllViews()
@@ -326,44 +334,49 @@ class BrowserActivity:Activity() {
             val badge=FrameLayout(this).apply{background=ui.round(ui.soft,17)}
             if(item.folder){val mini=GridLayout(this).apply{columnCount=2;setPadding(ui.dp(6),ui.dp(6),ui.dp(6),ui.dp(6))};val children=store.home.filter{it.parent==item.id}.take(4)
                 if(children.isEmpty())badge.addView(IconView(this,"folder",ui.accent),FrameLayout.LayoutParams(-1,-1))
-                else{children.forEach{child->mini.addView(ui.label(child.title.take(1),11f,ui.accent).apply{gravity=Gravity.CENTER},GridLayout.LayoutParams().apply{width=ui.dp(20);height=ui.dp(20)})};badge.addView(mini)}
+                else{children.forEach{child->mini.addView(icons.view(ui,child.title,child.url,20),GridLayout.LayoutParams().apply{width=ui.dp(20);height=ui.dp(20)})};badge.addView(mini)}
             }else badge.addView(icons.view(ui,item.title,item.url,48),FrameLayout.LayoutParams(-1,-1))
             tile.addView(badge,LinearLayout.LayoutParams(ui.dp(54),ui.dp(54)));tile.addView(ui.label(item.title,12f).apply{maxLines=2;gravity=Gravity.CENTER;ellipsize=android.text.TextUtils.TruncateAt.END})
-            tile.setOnClickListener{if(item.folder)showFolder(item.id)else open(item.url)};tile.setOnLongClickListener{folderDialog?.dismiss();homeItemActions(item);true}
+            tile.setOnClickListener{if(item.folder)showFolder(item.id)else open(item.url)}
+            DragSupport.source(tile,DragSupport.Item("home",item.id)){homeItemActions(item,tile)}
+            DragSupport.target(tile,"home",{it.id!=item.id}){drag,x,_->
+                val moving=store.home.find{it.id==drag.id}
+                if(item.folder&&moving?.folder==false&&x>tile.width*.25f&&x<tile.width*.75f)moveHome(drag.id,item.id)
+                else moveHome(drag.id,parent,item.id,x>=tile.width/2f)
+            }
             grid.addView(tile,GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED),GridLayout.spec(GridLayout.UNDEFINED,1f)).apply{width=0;height=ui.dp(104)})
         }
         val add=ui.column(3).apply{gravity=Gravity.CENTER;isFocusable=true;contentDescription="添加网站或文件夹";setOnClickListener{addHomeChoice(parent)}}
-        add.addView(ui.icon("plus","添加网站或文件夹"){addHomeChoice(parent)}.apply{background=ui.round(ui.soft,17)},LinearLayout.LayoutParams(ui.dp(54),ui.dp(54)));add.addView(ui.label("添加",12f,ui.muted).apply{gravity=Gravity.CENTER})
+        add.addView(IconView(this,"plus",ui.accent).apply{background=ui.round(ui.soft,17)},LinearLayout.LayoutParams(ui.dp(54),ui.dp(54)));add.addView(ui.label("添加",12f,ui.muted).apply{gravity=Gravity.CENTER})
+        DragSupport.target(add,"home"){drag,_,_->moveHome(drag.id,parent)}
         grid.addView(add,GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED),GridLayout.spec(GridLayout.UNDEFINED,1f)).apply{width=0;height=ui.dp(104)})
-        val empty=(grid.columnCount-grid.childCount%grid.columnCount)%grid.columnCount
-        repeat(empty){grid.addView(View(this),GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED),GridLayout.spec(GridLayout.UNDEFINED,1f)).apply{width=0;height=ui.dp(104)})}
+        repeat((grid.columnCount-grid.childCount%grid.columnCount)%grid.columnCount){grid.addView(View(this),GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED),GridLayout.spec(GridLayout.UNDEFINED,1f)).apply{width=0;height=ui.dp(104)})}
     }
     fun showFolder(id:String){
         val folder=store.home.find{it.id==id&&it.folder}?:return;folderOpen=id
-        val wrap=ui.column(18);wrap.addView(ui.title(folder.title));wrap.addView(ui.label("长按网站可编辑或移动",12f,ui.muted));val grid=GridLayout(this).apply{columnCount=3};wrap.addView(grid,LinearLayout.LayoutParams(-1,-2));populateHome(grid,id)
-        folderDialog?.dismiss();val dialog=panels.dialog(wrap,false);folderDialog=dialog;dialog.setOnDismissListener{folderOpen="";folderDialog=null}
-        wrap.scaleX=.92f;wrap.scaleY=.92f;wrap.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
-        val items=store.home.filter{it.parent==id}
-        for(i in 0..items.size){val v=grid.getChildAt(i);v.setOnClickListener{dialog.dismiss();val item=items.getOrNull(i);if(item!=null)open(item.url)else editHome(null,id,false)}}
+        folderOverlay?.let(content::removeView)
+        val overlay=FrameLayout(this).apply{setBackgroundColor(0x66000000);setOnClickListener{folderOpen="";renderHome()}}
+        val wrap=ui.column(16).apply{background=ui.round(ui.panel,22);isClickable=true};val heading=ui.row();heading.addView(ui.title(folder.title),LinearLayout.LayoutParams(0,-2,1f));heading.addView(ui.icon("close","关闭文件夹"){folderOpen="";renderHome()});wrap.addView(heading)
+        val out=ui.label("拖到这里移回主页",14f,ui.accent).apply{gravity=Gravity.CENTER;minimumHeight=ui.dp(52);background=ui.round(ui.soft)};wrap.addView(out)
+        DragSupport.target(out,"home"){drag,_,_->moveHome(drag.id,"")}
+        wrap.addView(ui.label("拖到文件夹中央可移入；拖到两侧可排序",12f,ui.muted))
+        val grid=GridLayout(this).apply{columnCount=3};val scroll=ScrollView(this).apply{addView(grid)};wrap.addView(scroll,LinearLayout.LayoutParams(-1,-2));populateHome(grid,id)
+        overlay.addView(wrap,FrameLayout.LayoutParams(-1,-2,Gravity.CENTER).apply{leftMargin=ui.dp(20);rightMargin=ui.dp(20)});content.addView(overlay,FrameLayout.LayoutParams(-1,-1));folderOverlay=overlay
+        wrap.post{val max=content.height-ui.dp(60);if(wrap.height>max){wrap.layoutParams=wrap.layoutParams.apply{height=max};scroll.layoutParams=LinearLayout.LayoutParams(-1,0,1f)}}
     }
-    fun addHomeChoice(parent:String=""){if(parent.isNotEmpty()){folderDialog?.dismiss();editHome(null,parent,false);return};panels.choose("添加到主页",listOf("网站","文件夹")){i->editHome(null,parent,i==1)}}
+    fun addHomeChoice(parent:String=""){if(parent.isNotEmpty()){editHome(null,parent,false);return};panels.choose("添加到主页",listOf("网站","文件夹")){i->editHome(null,parent,i==1)}}
     fun editHome(item:HomeItem?,parent:String="",folder:Boolean=false,initialTitle:String="",initialUrl:String=""){
-        panels.pages.show(if(folder)"编辑主页文件夹"else"编辑主页网站"){col->val title=ui.edit(if(folder)"文件夹名称"else"网站名称",item?.title?:initialTitle);col.addView(title)
-        val url=ui.edit("https://example.com",item?.url?:initialUrl);if(!folder)col.addView(url)
-        col.addView(ui.button("保存",true){
-            val name=title.text.toString().trim();var address=url.text.toString().trim();if(!folder&&!address.contains("://"))address="https://$address"
-            if(name.isEmpty()){title.error="请输入名称";return@button};if(!folder&&!isHttp(address)){url.error="请输入 HTTP/HTTPS 网址";return@button}
+        ItemEditor.show(this,if(folder)"编辑主页文件夹"else"编辑主页网站",item?.title?:initialTitle,if(folder)null else item?.url?:initialUrl){name,address->
             if(item==null)store.home.add(HomeItem(title=name,url=if(folder)""else address,parent=parent,folder=folder))else{item.title=name;item.url=if(folder)""else address}
-            store.save();panels.pages.back();if(currentUrl=="about:home"){folderOpen="";renderHome()};toast("已保存")
-        })}
+            store.save();if(currentUrl=="about:home")renderHome();toast("已保存")
+        }
     }
-    private fun homeItemActions(item:HomeItem){
-        val actions=if(item.folder)arrayOf("重命名","向前移动","删除文件夹（网站移回主页）")else arrayOf("编辑","移动到文件夹 / 主页","向前移动","删除")
-        panels.choose(item.title,actions.toList()){i->when{
-            i==0->editHome(item,item.parent,item.folder)
-            !item.folder&&i==1->{val folders=store.home.filter{it.folder};panels.choose("移动到",listOf("主页")+folders.map{it.title}){pos->item.parent=if(pos==0)""else folders[pos-1].id;store.save();folderOpen="";renderHome()}}
-            (item.folder&&i==1)||(!item.folder&&i==2)->{val index=store.home.indexOf(item);val prior=(index-1 downTo 0).firstOrNull{store.home[it].parent==item.parent};if(prior!=null)java.util.Collections.swap(store.home,index,prior);store.save();folderOpen="";renderHome()}
-            else->panels.confirm("删除主页项目",item.title){if(item.folder)store.home.filter{it.parent==item.id}.forEach{it.parent=""};store.home.remove(item);store.save();folderOpen="";renderHome()}
-        }}
+    private fun homeItemActions(item:HomeItem,anchor:View){
+        PopupMenu(this,anchor).apply{
+            menu.add("编辑").setOnMenuItemClickListener{editHome(item,item.parent,item.folder);true}
+            menu.add("删除").setOnMenuItemClickListener{
+                AlertDialog.Builder(this@BrowserActivity).setTitle("删除 ${item.title}？").setMessage(if(item.folder)"文件夹内的网站会移回主页。"else"从主页移除此网站。").setNegativeButton("取消",null).setPositiveButton("删除"){_,_->if(item.folder)store.home.filter{it.parent==item.id}.forEach{it.parent=""};store.home.remove(item);store.save();renderHome()}.show();true
+            };show()
+        }
     }
 }

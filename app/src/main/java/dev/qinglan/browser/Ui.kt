@@ -12,13 +12,19 @@ import android.view.View
 import android.widget.*
 
 class Ui(val context:Context,val dark:Boolean) {
-    private val palette=context.getSharedPreferences("preferences",Context.MODE_PRIVATE).getString("palette","green")
-    val bg=Color.parseColor(if(dark)"#151A19" else "#F8FAF9")
-    val panel=Color.parseColor(if(dark)"#202724" else "#FFFFFF")
-    val text=Color.parseColor(if(dark)"#E5EEE9" else "#243B33")
-    val muted=Color.parseColor(if(dark)"#A4B7AE" else "#718179")
-    val soft=Color.parseColor(when(palette){"blue"->if(dark)"#263346"else"#EAF1FB";"purple"->if(dark)"#342C44"else"#F1ECF8";"amber"->if(dark)"#3F3325"else"#FAF0E0";else->if(dark)"#29342E" else "#EDF3EF"})
-    val accent=Color.parseColor(when(palette){"blue"->if(dark)"#A8C8F4"else"#285B98";"purple"->if(dark)"#CFB9F0"else"#70489A";"amber"->if(dark)"#E9C387"else"#855C20";else->if(dark)"#A3D6C5" else "#286658"})
+    private val prefs=context.getSharedPreferences("preferences",Context.MODE_PRIVATE)
+    private val palette=prefs.getString("palette","green")
+    private val base=Color.parseColor(if(palette=="custom")prefs.getString("customColor","#286658")!! else Palette.colors[palette]?:"#286658")
+    val bg=blend(base,if(dark)Color.BLACK else Color.WHITE,if(dark).91f else .97f)
+    val panel=if(dark)blend(base,Color.BLACK,.85f)else Color.WHITE
+    val text=if(dark)Color.parseColor("#E7EBEA")else Color.parseColor("#24312C")
+    val muted=if(dark)Color.parseColor("#AEBBB5")else Color.parseColor("#64756D")
+    val soft=blend(base,if(dark)Color.BLACK else Color.WHITE,if(dark).75f else .9f)
+    val accent=if(dark)blend(base,Color.WHITE,.65f)else if(contrast(base)==Color.BLACK)blend(base,Color.BLACK,.48f)else base
+    companion object {
+        fun contrast(color:Int):Int {fun linear(n:Int):Double{val x=n/255.0;return if(x<=.04045)x/12.92 else Math.pow((x+.055)/1.055,2.4)};val l=.2126*linear(Color.red(color))+.7152*linear(Color.green(color))+.0722*linear(Color.blue(color));return if(l>.179)Color.BLACK else Color.WHITE}
+        private fun blend(a:Int,b:Int,f:Float)=Color.rgb((Color.red(a)*(1-f)+Color.red(b)*f).toInt(),(Color.green(a)*(1-f)+Color.green(b)*f).toInt(),(Color.blue(a)*(1-f)+Color.blue(b)*f).toInt())
+    }
     fun dp(n:Int)=(n*context.resources.displayMetrics.density+.5f).toInt()
     fun round(color:Int,radius:Int=16)=GradientDrawable().apply{setColor(color);cornerRadius=dp(radius).toFloat()}
     fun column(padding:Int=0)=LinearLayout(context).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(padding),dp(padding),dp(padding),dp(padding))}
@@ -27,7 +33,7 @@ class Ui(val context:Context,val dark:Boolean) {
     fun title(s:String)=label(s,22f).apply{typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL)}
     fun button(s:String,primary:Boolean=false,action:()->Unit)=Button(context).apply {
         text=s;isAllCaps=false;textSize=14f;minHeight=dp(48);minimumHeight=dp(48);minWidth=0;minimumWidth=0
-        setTextColor(if(primary)panel else this@Ui.text);background=round(if(primary)accent else soft,12)
+        setTextColor(if(primary)contrast(accent) else this@Ui.text);background=round(if(primary)accent else soft,12)
         setPadding(dp(12),dp(6),dp(12),dp(6));setOnClickListener{action()}
     }
     fun icon(name:String,description:String,action:()->Unit)=IconView(context,name,accent).apply {
