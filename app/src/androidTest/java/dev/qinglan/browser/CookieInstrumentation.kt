@@ -14,8 +14,10 @@ import java.util.concurrent.TimeUnit
 class CookieInstrumentation:Instrumentation(){
     private var importAuthorizedFile=false
     private var features=false
-    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
+    private var cleanupFeatures=false
+    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
     override fun onStart(){
+        if(cleanupFeatures){FeatureChecks.cleanup(this);return}
         if(features){FeatureChecks.run(this);return}
         if(importAuthorizedFile){importUserFile();return}
         val result=Bundle()

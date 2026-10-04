@@ -74,6 +74,7 @@ class IconView @JvmOverloads constructor(context:Context,private val name:String
             "desktop"->{rect(2f,3f,22f,17f);line(12f,17f,12f,22f);line(7f,22f,17f,22f)}
             "moon"->{path.reset();path.moveTo(15f,3f);path.cubicTo(1f,1f,0f,21f,14f,21f);path.cubicTo(19f,21f,22f,16f,21f,13f);path.cubicTo(12f,18f,8f,8f,15f,3f);canvas.drawPath(path,p)}
             "search"->{canvas.drawCircle(10f,10f,6f,p);line(15f,15f,21f,21f)}
+            "speaker"->{line(3f,9f,7f,9f,12f,5f,12f,19f,7f,15f,3f,15f,3f,9f);canvas.drawArc(10f,7f,20f,17f,-60f,120f,false,p);canvas.drawArc(8f,3f,24f,21f,-60f,120f,false,p)}
             "folder"->{line(3f,7f,3f,4f,10f,4f,13f,7f,21f,7f,21f,20f,3f,20f,3f,7f);line(3f,9f,21f,9f)}
             "image"->{rect(3f,3f,21f,21f);canvas.drawCircle(8f,8f,1f,p);line(3f,18f,10f,11f,14f,15f,17f,12f,21f,16f)}
             "fullscreen"->{line(3f,9f,3f,3f,9f,3f);line(15f,3f,21f,3f,21f,9f);line(21f,15f,21f,21f,15f,21f);line(9f,21f,3f,21f,3f,15f)}

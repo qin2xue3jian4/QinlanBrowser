@@ -2,12 +2,22 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import json
+import struct
+import zlib
+
+def icon_png():
+    def chunk(kind,data):
+        return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
+    pixels=b''.join(b'\x00'+bytes([32,150,100,255])*32 for _ in range(32))
+    return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',32,32,8,6,0,0,0))+chunk(b'IDAT',zlib.compress(pixels))+chunk(b'IEND',b'')
 
 EVENTS=Path(__file__).resolve().parents[1]/'test-results'/'fixture-events.jsonl'
 EVENTS.parent.mkdir(exist_ok=True)
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        if self.path=='/favicon.ico':
+            body=icon_png();self.send_response(200);self.send_header('Content-Type','image/png');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body);return
         with EVENTS.open('a',encoding='utf8') as f:
             f.write(json.dumps({'path':self.path,'cookie_ok':'ql_fixture=synthetic-only' in self.headers.get('Cookie',''),'desktop':'X11' in self.headers.get('User-Agent','')})+'\n')
         if self.path=='/download':

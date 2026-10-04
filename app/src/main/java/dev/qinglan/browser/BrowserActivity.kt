@@ -346,25 +346,24 @@ class BrowserActivity:Activity() {
         val items=store.home.filter{it.parent==id}
         for(i in 0..items.size){val v=grid.getChildAt(i);v.setOnClickListener{dialog.dismiss();val item=items.getOrNull(i);if(item!=null)open(item.url)else editHome(null,id,false)}}
     }
-    fun addHomeChoice(parent:String=""){if(parent.isNotEmpty()){folderDialog?.dismiss();editHome(null,parent,false);return};AlertDialog.Builder(this).setTitle("添加到主页").setItems(arrayOf("网站","文件夹")){_,i->editHome(null,parent,i==1)}.show()}
+    fun addHomeChoice(parent:String=""){if(parent.isNotEmpty()){folderDialog?.dismiss();editHome(null,parent,false);return};panels.choose("添加到主页",listOf("网站","文件夹")){i->editHome(null,parent,i==1)}}
     fun editHome(item:HomeItem?,parent:String="",folder:Boolean=false,initialTitle:String="",initialUrl:String=""){
-        val col=ui.column(20);val title=ui.edit(if(folder)"文件夹名称"else"网站名称",item?.title?:initialTitle);col.addView(title)
+        panels.pages.show(if(folder)"编辑主页文件夹"else"编辑主页网站"){col->val title=ui.edit(if(folder)"文件夹名称"else"网站名称",item?.title?:initialTitle);col.addView(title)
         val url=ui.edit("https://example.com",item?.url?:initialUrl);if(!folder)col.addView(url)
-        val dialog=AlertDialog.Builder(this).setTitle(if(item==null)"添加${if(folder)"文件夹"else"网站"}"else"编辑${if(folder)"文件夹"else"网站"}").setView(col).setNegativeButton("取消",null).setPositiveButton("保存",null).create()
-        dialog.setOnShowListener{dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener{
+        col.addView(ui.button("保存",true){
             val name=title.text.toString().trim();var address=url.text.toString().trim();if(!folder&&!address.contains("://"))address="https://$address"
-            if(name.isEmpty()){title.error="请输入名称";return@setOnClickListener};if(!folder&&!isHttp(address)){url.error="请输入 HTTP/HTTPS 网址";return@setOnClickListener}
+            if(name.isEmpty()){title.error="请输入名称";return@button};if(!folder&&!isHttp(address)){url.error="请输入 HTTP/HTTPS 网址";return@button}
             if(item==null)store.home.add(HomeItem(title=name,url=if(folder)""else address,parent=parent,folder=folder))else{item.title=name;item.url=if(folder)""else address}
-            store.save();dialog.dismiss();if(currentUrl=="about:home"){folderOpen="";renderHome()};toast("已保存")
-        }};dialog.show()
+            store.save();panels.pages.back();if(currentUrl=="about:home"){folderOpen="";renderHome()};toast("已保存")
+        })}
     }
     private fun homeItemActions(item:HomeItem){
         val actions=if(item.folder)arrayOf("重命名","向前移动","删除文件夹（网站移回主页）")else arrayOf("编辑","移动到文件夹 / 主页","向前移动","删除")
-        AlertDialog.Builder(this).setTitle(item.title).setItems(actions){_,i->when{
+        panels.choose(item.title,actions.toList()){i->when{
             i==0->editHome(item,item.parent,item.folder)
-            !item.folder&&i==1->{val folders=store.home.filter{it.folder};AlertDialog.Builder(this).setTitle("移动到").setItems((listOf("主页")+folders.map{it.title}).toTypedArray()){_,pos->item.parent=if(pos==0)""else folders[pos-1].id;store.save();folderOpen="";renderHome()}.show()}
+            !item.folder&&i==1->{val folders=store.home.filter{it.folder};panels.choose("移动到",listOf("主页")+folders.map{it.title}){pos->item.parent=if(pos==0)""else folders[pos-1].id;store.save();folderOpen="";renderHome()}}
             (item.folder&&i==1)||(!item.folder&&i==2)->{val index=store.home.indexOf(item);val prior=(index-1 downTo 0).firstOrNull{store.home[it].parent==item.parent};if(prior!=null)java.util.Collections.swap(store.home,index,prior);store.save();folderOpen="";renderHome()}
-            else->AlertDialog.Builder(this).setTitle("删除 ${item.title}？").setNegativeButton("取消",null).setPositiveButton("删除"){_,_->if(item.folder)store.home.filter{it.parent==item.id}.forEach{it.parent=""};store.home.remove(item);store.save();folderOpen="";renderHome()}.show()
-        }}.show()
+            else->panels.confirm("删除主页项目",item.title){if(item.folder)store.home.filter{it.parent==item.id}.forEach{it.parent=""};store.home.remove(item);store.save();folderOpen="";renderHome()}
+        }}
     }
 }
