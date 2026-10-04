@@ -3,6 +3,7 @@ package dev.qinglan.browser
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.Dialog
 import android.app.DownloadManager
 import android.content.*
 import android.content.res.Configuration
@@ -44,7 +45,6 @@ class BrowserActivity:Activity() {
     private lateinit var refreshButton:View
     val tabs=mutableListOf<BrowserTab>()
     val closedTabs=ClosedTabs()
-    private var undoBar:View?=null
     private var emptyReplacementId:Long?=null
     var selected=0
     var fullScreen=false
@@ -94,7 +94,7 @@ class BrowserActivity:Activity() {
         }else if(intent.action==Intent.ACTION_VIEW)intent.dataString?.takeIf(::isHttp)?.let{panels.pages.close();open(it,prefs.getBoolean("externalNewTab",true))}
     }
     fun buildChrome() {
-        suggestions.dismiss();undoBar=null
+        suggestions.dismiss()
         root=ui.column();root.setBackgroundColor(ui.bg)
         top=ui.row().apply{setPadding(ui.dp(8),ui.dp(5),ui.dp(8),ui.dp(5));setBackgroundColor(ui.panel)}
         val addressBox=ui.row().apply{background=ui.round(ui.soft,15)}
@@ -181,28 +181,21 @@ class BrowserActivity:Activity() {
         (t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()
         if(tabs.isEmpty()){val home=BrowserTab();tabs.add(home);emptyReplacementId=home.id}
         val next=if(activeId!=id)tabs.indexOfFirst{it.id==activeId}else tabs.indexOfFirst{it.id==t.openerId}
-        switchTab(if(next>=0)next else i.coerceAtMost(tabs.lastIndex));showCloseUndo()
+        switchTab(if(next>=0)next else i.coerceAtMost(tabs.lastIndex))
     }
     fun closeOtherTabs(){val keep=current?:return;emptyReplacementId=null;val closing=tabs.withIndex().filter{it.value!==keep}
         closing.forEach{(index,t)->if(isHttp(t.url)||t.url=="about:home")closedTabs.push(ClosedTab(t.url,t.title,index,t.openerId,t.searchOverride));(t.web?.parent as? ViewGroup)?.removeView(t.web);t.web?.destroy()}
-        tabs.removeAll{it!==keep};selected=0;switchTab(0);if(closing.isNotEmpty())showCloseUndo()
+        tabs.removeAll{it!==keep};selected=0;switchTab(0)
     }
     fun undoCloseTab(){
         if(tabs.size>=50){toast("请先关闭一个标签");return}
         val closed=closedTabs.pop()?:run{toast("没有可恢复的标签");return}
         if(tabs.size==1&&tabs[0].id==emptyReplacementId&&tabs[0].url=="about:home"){tabs[0].web?.destroy();tabs.clear()}
-        emptyReplacementId=null;undoBar?.let{root.removeView(it)};undoBar=null
+        emptyReplacementId=null
         val index=closed.index.coerceIn(0,tabs.size)
         tabs.add(index,BrowserTab(url=closed.url,title=closed.title,openerId=closed.openerId,searchOverride=closed.searchOverride));switchTab(index)
     }
-    private fun showCloseUndo(){
-        undoBar?.let{root.removeView(it)}
-        val bar=ui.row().apply{setBackgroundColor(ui.soft)}
-        bar.addView(ui.label("已关闭标签",13f),LinearLayout.LayoutParams(0,-2,1f));bar.addView(ui.button("撤销"){undoCloseTab()})
-        root.addView(bar,root.indexOfChild(bottom));undoBar=bar
-        bar.postDelayed({if(undoBar===bar){root.removeView(bar);undoBar=null}},7000)
-    }
-    fun clearHistoryData(){store.history.clear();store.save();closedTabs.clear();undoBar?.let{root.removeView(it)};undoBar=null;tabs.forEach{it.web?.clearHistory();it.saved=null}}
+    fun clearHistoryData(){store.history.clear();store.save();closedTabs.clear();tabs.forEach{it.web?.clearHistory();it.saved=null}}
     fun newHome(){if(tabs.size>=50){toast("最多 50 个标签页");return};tabs.add(BrowserTab());switchTab(tabs.lastIndex)}
     internal fun trimTabs(){tabs.filter{it!=current&&it.web!=null}.sortedByDescending{it.used}.drop(prefs.getInt("activeWebViews",4).coerceIn(2,8)-1).forEach{t->t.saved=Bundle().also{t.web?.saveState(it)};t.web?.destroy();t.web=null}}
     private fun attach(t:BrowserTab){
@@ -218,6 +211,7 @@ class BrowserActivity:Activity() {
             allowFileAccess=false;allowContentAccess=false;mixedContentMode=WebSettings.MIXED_CONTENT_NEVER_ALLOW
             setSupportZoom(true);builtInZoomControls=true;displayZoomControls=false;useWideViewPort=true;loadWithOverviewMode=true
             javaScriptCanOpenWindowsAutomatically=false;setSupportMultipleWindows(true)
+            disabledActionModeMenuItems=WebSettings.MENU_ITEM_PROCESS_TEXT
             mediaPlaybackRequiresUserGesture=!store.siteBool(url,"autoplay",prefs.getBoolean("autoplay",false));loadsImagesAutomatically=!store.siteBool(url,"noImages",prefs.getBoolean("noImages",false));blockNetworkImage=!loadsImagesAutomatically
             textZoom=store.siteZoom(url)
             val ua=if(desktop)"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${WebView.getCurrentWebViewPackage()?.versionName?:"130.0.0.0"} Safari/537.36" else WebSettings.getDefaultUserAgent(this@BrowserActivity)
@@ -229,7 +223,7 @@ class BrowserActivity:Activity() {
         web.setBackgroundColor(ui.bg)
     }
     @android.annotation.SuppressLint("ClickableViewAccessibility") // WebView handles clicks; this observer never consumes touch events.
-    private fun createWeb(tab:BrowserTab):WebView=SearchWebView(this){query->open(searchUrl(query),true)}.apply {
+    private fun createWeb(tab:BrowserTab):WebView=WebView(this).apply {
         scripts.attach(this)
         tab.filterSession.start(tab.url)
         tab.resources.start(tab.url,settings.userAgentString)
@@ -260,15 +254,18 @@ class BrowserActivity:Activity() {
             if(!u.isNullOrBlank()&&h.type in listOf(WebView.HitTestResult.SRC_ANCHOR_TYPE,WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE,WebView.HitTestResult.IMAGE_TYPE)){
                 val isImage=h.type==WebView.HitTestResult.IMAGE_TYPE
                 val handler=Handler(Looper.getMainLooper()){message->val link=if(isImage)u else message.data.getString("url")?:u;val text=message.data.getString("title").orEmpty()
-                    panels.pages.show(if(isImage)"图片操作"else"链接操作"){col->
+                    if(current!==tab||tab.web!==this||!hasWindowFocus())return@Handler true
+                    val col=ui.column(16);lateinit var sheet:Dialog
+                    fun action(label:String,run:()->Unit){col.addView(ui.item(label){sheet.dismiss();run()})}
+                    col.addView(ui.title(if(isImage)"图片操作"else"链接操作"))
                         col.addView(ui.label(link.take(200),12f,ui.muted))
-                        col.addView(ui.button("在新标签页打开"){panels.pages.close();open(link,true)})
-                        col.addView(ui.button("在后台打开"){panels.pages.close();openBackground(link)})
-                        col.addView(ui.button(if(isImage)"保存图片"else"添加到书签"){if(isImage)requestDownload(link,settings.userAgentString,"","")else panels.library.collect(text.ifBlank{link},link)})
-                        col.addView(ui.button("复制链接"){copy("链接",link);panels.pages.back()})
-                        col.addView(ui.button("复制文本"){if(text.isNotBlank()){copy("链接文本",text);panels.pages.back()}else toast("此链接没有可复制的文本")})
-                        col.addView(ui.button("添加到主页"){panels.library.collect(text.ifBlank{link},link,false,true)})
-                    };true};requestFocusNodeHref(handler.obtainMessage());true
+                        action("在新标签页打开"){open(link,true)}
+                        action("在后台打开"){openBackground(link)}
+                        action(if(isImage)"保存图片"else"添加到书签"){if(isImage)requestDownload(link,settings.userAgentString,"","")else panels.library.collect(text.ifBlank{link},link)}
+                        action("复制链接"){copy("链接",link)}
+                        if(text.isNotBlank())action("复制文本"){copy("链接文本",text)}
+                        action("添加到主页"){panels.library.collect(text.ifBlank{link},link,false,true)}
+                    sheet=panels.dialog(col);true};requestFocusNodeHref(handler.obtainMessage());true
             }else false
         }
         webViewClient=object:WebViewClient(){

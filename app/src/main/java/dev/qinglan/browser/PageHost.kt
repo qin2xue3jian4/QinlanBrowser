@@ -8,7 +8,8 @@ import android.widget.*
 
 /** One full-window surface, rebuilt from a route stack. Back always visits its parent. */
 class PageHost(private val a:BrowserActivity){
-    private data class Route(val title:String,val build:(LinearLayout)->Unit,var scrollY:Int=0)
+    data class HeaderAction(val icon:String,val title:String,val run:()->Unit)
+    private data class Route(val title:String,val action:HeaderAction?,val build:(LinearLayout)->Unit,var scrollY:Int=0)
     private val stack=mutableListOf<Route>()
     private var dialog:Dialog?=null
     private var backRegistered=false
@@ -16,7 +17,7 @@ class PageHost(private val a:BrowserActivity){
     private var dialogDark:Boolean?=null
     val visible get()=stack.isNotEmpty()
     private fun remember(){stack.lastOrNull()?.scrollY=scroll?.scrollY?:0}
-    fun show(title:String,build:(LinearLayout)->Unit){remember();stack.add(Route(title,build));render()}
+    fun show(title:String,action:HeaderAction?=null,build:(LinearLayout)->Unit){remember();stack.add(Route(title,action,build));render()}
     fun back(){if(stack.isNotEmpty())stack.removeAt(stack.lastIndex);if(stack.isEmpty())close()else render()}
     fun close(){stack.clear();scroll=null;dialog?.dismiss();dialog=null;backRegistered=false}
     fun refresh(){if(stack.isNotEmpty()){remember();render()}}
@@ -29,6 +30,7 @@ class PageHost(private val a:BrowserActivity){
         }.also{dialog=it;it.setOnCancelListener{close()}}
         val root=u.column().apply{setBackgroundColor(u.bg)};val bar=u.row().apply{setBackgroundColor(u.panel)}
         bar.addView(u.icon("back",if(stack.size>1)"返回上一级"else"返回网页"){back()});bar.addView(u.title(route.title).apply{maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END},LinearLayout.LayoutParams(0,-2,1f))
+        route.action?.let{item->bar.addView(u.icon(item.icon,item.title,item.run))}
         if(stack.size>1)bar.addView(u.icon("close","返回网页"){close()})
         root.addView(bar,LinearLayout.LayoutParams(-1,u.dp(56)))
         val col=u.column(16);route.build(col);val pageScroll=ScrollView(a).apply{addView(col)};scroll=pageScroll;root.addView(pageScroll,LinearLayout.LayoutParams(-1,0,1f))

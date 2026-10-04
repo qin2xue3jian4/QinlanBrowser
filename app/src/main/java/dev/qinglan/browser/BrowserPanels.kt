@@ -33,11 +33,10 @@ class BrowserPanels(val a:BrowserActivity){
     fun menuEditor()=menuPanels.editor()
     fun tabs(){if(a.dismissTabs())return;renderTabs()}
     private fun renderTabs(){val col=u.column(4)
-        if(a.tabs.size>1)col.addView(u.item("关闭其他标签","保留当前标签；最近 10 条可限时撤销"){a.dismissTabs();confirm("关闭其他 ${a.tabs.size-1} 个标签？","当前页面会保留。未提交的表单无法通过撤销恢复。"){pages.close();a.closeOtherTabs()}})
-        val actions=u.row();actions.addView(u.button("搜索标签"){a.dismissTabs();searchTabs()},LinearLayout.LayoutParams(0,-2,1f));if(a.closedTabs.available())actions.addView(u.button("撤销关闭"){a.undoCloseTab()},LinearLayout.LayoutParams(0,-2,1f));col.addView(actions)
         a.tabs.toList().forEachIndexed{i,t->val row=u.row().apply{setBackgroundColor(if(i==a.selected)u.soft else u.panel)};row.addView(a.icons.view(u,t.title,t.url));row.addView(u.label(t.title,14f).apply{maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;gravity=Gravity.CENTER_VERTICAL;setPadding(u.dp(8),0,0,0);setOnClickListener{a.switchTab(a.tabs.indexOf(t))}},LinearLayout.LayoutParams(0,u.dp(48),1f));row.addView(u.icon("close","关闭 ${t.title.take(50)}"){a.closeTab(t.id);renderTabs()});col.addView(row,LinearLayout.LayoutParams(-1,u.dp(48)));col.addView(u.rule())}
         col.addView(u.button("＋ 新建标签页"){a.newHome()}.apply{background=u.round(u.panel,0);stateListAnimator=null},LinearLayout.LayoutParams(-1,u.dp(48)));a.showTabs(col)
     }
+    fun closeOtherTabs(){if(a.tabs.size<2){a.toast("没有其他标签");return};confirm("关闭其他 ${a.tabs.size-1} 个标签？","当前页面会保留。未提交的表单无法通过撤销恢复。"){pages.close();a.closeOtherTabs()}}
     fun searchTabs(){var query="";pages.show("搜索标签"){col->
         val input=u.edit("搜索标题或网址",query);col.addView(input);val results=u.column();col.addView(results)
         fun render(query:String){results.removeAllViews();val found=a.tabs.filter{it.title.contains(query,true)||it.url.contains(query,true)}

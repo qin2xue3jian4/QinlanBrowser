@@ -33,6 +33,9 @@ class MenuPanels(private val p:BrowserPanels) {
         Action("cookies","cookie","Cookie 管理"){p.cookies()},
         Action("undo","back","撤销关闭标签"){a.undoCloseTab()},
         Action("tabSearch","search","搜索标签"){p.searchTabs()},
+        Action("closeOtherTabs","close","关闭其他标签"){p.closeOtherTabs()},
+        Action("tools","menu","更多工具"){allTools()},
+        Action("menuEditor","site","菜单定制"){editor()},
         Action("settings","settings","设置"){p.settings()}
     )
     fun show(){if(a.overlayKind=="menu"){a.dismissTabs();return};a.dismissTabs()
@@ -47,12 +50,11 @@ class MenuPanels(private val p:BrowserPanels) {
         }
         repeat((columns-grid.childCount%columns)%columns){grid.addView(View(a),GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED),GridLayout.spec(GridLayout.UNDEFINED,1f)).apply{width=0;height=1})}
         col.addView(grid)
-        val footer=u.row();footer.addView(u.button("更多工具"){a.dismissTabs();allTools()},LinearLayout.LayoutParams(0,-2,1f))
-        footer.addView(u.button("定制菜单"){a.dismissTabs();editor()},LinearLayout.LayoutParams(0,-2,1f));col.addView(footer);a.showTabs(col,"menu")
+        a.showTabs(col,"menu")
     }
     fun allTools(){var query="";p.pages.show("全部工具"){col->
         val input=u.edit("搜索工具",query);col.addView(input);val rows=u.column();col.addView(rows)
-        val groups=linkedMapOf("阅读与页面" to listOf("reader","readingList","speech","find","print","qr","refresh","share","pageTop","pageBottom"),"收藏与标签" to listOf("collect","bookmarks","history","downloads","tabSearch","undo"),"网站与外观" to listOf("site","desktop","theme","images","fullscreen","filter","resources","cookies"))
+        val groups=linkedMapOf("阅读与页面" to listOf("reader","readingList","speech","find","print","qr","refresh","share","pageTop","pageBottom"),"收藏与标签" to listOf("collect","bookmarks","history","downloads","tabSearch","undo","closeOtherTabs"),"网站与外观" to listOf("site","desktop","theme","images","fullscreen","filter","resources","cookies"))
         fun render(){rows.removeAllViews();val map=actions().associateBy{it.id};var count=0
             groups.forEach{(title,ids)->val items=ids.mapNotNull{map[it]}.filter{it.title.contains(query,true)};if(items.isNotEmpty()){rows.addView(u.label(title,13f,u.accent));items.forEach{item->count++;rows.addView(u.item(item.title){p.pages.close();item.run()})}}}
             if(count==0)rows.addView(u.label("没有匹配的工具"))

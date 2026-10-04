@@ -28,7 +28,10 @@ class SettingsPanels(private val p:BrowserPanels) {
         }
         search.onChange{query=it;render(it)};render(query)
     }}
-    fun group(name:String){p.pages.show(name){col->SettingCatalog.entries.filter{it.group==name}.forEach{s->col.addView(u.item(s.title,if(s.default!=null)"${summary(s)} · ${s.description}"else s.description){open(s.id)})}}}
+    fun group(name:String){p.pages.show(name){col->SettingCatalog.sections[name].orEmpty().forEach{section->
+        if(section.title.isNotEmpty())col.addView(u.label(section.title,13f,u.accent))
+        section.ids.mapNotNull(SettingCatalog::find).forEach{s->col.addView(u.item(s.title,if(s.default!=null)"${summary(s)} · ${s.description}"else s.description){open(s.id)})}
+    }}}
     private fun modified(){p.pages.show("已修改设置"){col->
         val changed=SettingCatalog.entries.filter{it.default!=null&&value(it)!=it.default}
         if(changed.isEmpty())col.addView(u.label("全局设置均为默认值"))
@@ -42,6 +45,7 @@ class SettingsPanels(private val p:BrowserPanels) {
             "filter"->p.filter.show();"scripts"->p.scripts.show();"speech"->p.reading()
             "reader"->{p.pages.close();p.reader.show()};"print"->{p.pages.close();p.reader.printPage()}
             "readingList"->p.reader.saved()
+            "tabSearch"->p.searchTabs();"undo"->{p.pages.close();a.undoCloseTab()};"closeOtherTabs"->p.closeOtherTabs();"tools"->p.menuPanels.allTools()
             "backup"->p.vault.backup();"passwords"->p.vault.passwords();"cookies"->p.cookies()
             "clear"->p.clearData();"about"->p.about();"help"->p.help()
             "defaultBrowser"->runCatching{
@@ -86,7 +90,8 @@ class SettingsPanels(private val p:BrowserPanels) {
         col.addView(u.label("这里只列出单独设置过的网站。恢复默认不删除 Cookie 或登录数据。",13f,u.muted))
         if(hosts.isEmpty())col.addView(u.label("所有网站均使用默认设置"))
         hosts.forEach{host->col.addView(u.item(host,"查看覆盖项或恢复默认"){p.pages.show(host){detail->
-            p.prefs.all.filterKeys{it.startsWith("site.$host.")}.forEach{(key,v)->val name=key.substringAfterLast('.');detail.addView(u.label("${siteTitle(name)}：${if(v is Boolean)if(v)"开启"else"关闭" else v}",14f))}
+            val order=listOf("adblock","js","desktop","noImages","dark","textZoom","autoplay","thirdParty","camera","microphone","location")
+            p.prefs.all.filterKeys{it.startsWith("site.$host.")}.toList().sortedBy{(key,_)->order.indexOf(key.substringAfterLast('.')).takeIf{it>=0}?:Int.MAX_VALUE}.forEach{(key,v)->val name=key.substringAfterLast('.');detail.addView(u.label("${siteTitle(name)}：${if(v is Boolean)if(v)"开启"else"关闭" else v}",14f))}
             detail.addView(u.button("恢复此网站默认"){p.store.resetSite("https://$host");apply("site");p.pages.back();p.pages.refresh();a.toast("已恢复默认，刷新网页后完全生效")})
         }})}
     }}
