@@ -47,7 +47,7 @@ class MenuPanels(private val p:BrowserPanels) {
         footer.addView(u.button("定制菜单"){a.dismissTabs();editor()},LinearLayout.LayoutParams(0,-2,1f));col.addView(footer);a.showTabs(col,"menu")
     }
     fun editor(){p.pages.show("菜单定制"){col->
-        col.addView(u.label("勾选显示，长按拖动排序。也可用箭头调整；隐藏的功能仍可在更多工具中找到。",13f,u.muted))
+        col.addView(u.label("勾选显示，长按移动柄拖动排序，也可用箭头调整。隐藏的功能仍在更多工具中。",13f,u.muted))
         val active=MenuLayout.parse(p.prefs.getString("menuLayout",null));val map=actions().associateBy{it.id}
         val order=active+MenuLayout.all.filterNot{it in active}
         fun save(ids:List<String>){p.prefs.edit().putString("menuLayout",ids.joinToString(",")).apply();p.pages.refresh()}
@@ -57,7 +57,8 @@ class MenuPanels(private val p:BrowserPanels) {
                 val index=active.indexOf(id)
                 row.addView(u.icon("back","上移 ${item.title}"){if(index>0)save(MenuLayout.move(active,id,active[index-1]))})
                 row.addView(u.icon("forward","下移 ${item.title}"){if(index<active.size-2){val next=active.toMutableList();next[index]=next[index+1];next[index+1]=id;save(next)}})
-                DragSupport.source(row,DragSupport.Item("menu",id))
+                val handle=u.icon("menu","拖动 ${item.title}"){a.toast("长按移动柄后拖动排序")}
+                row.addView(handle);DragSupport.source(handle,DragSupport.Item("menu",id))
                 DragSupport.target(row,"menu"){drag,_,_->save(MenuLayout.move(active,drag.id,id))}
             };col.addView(row)
         }

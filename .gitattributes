@@ -1,0 +1,2 @@
+# Preserve the exact, checksummed upstream JavaScript bytes on Windows too.
+app/src/main/assets/reader/Readability.js text eol=lf
