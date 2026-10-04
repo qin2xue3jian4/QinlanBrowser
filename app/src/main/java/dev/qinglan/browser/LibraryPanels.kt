@@ -44,7 +44,7 @@ class LibraryPanels(private val p:BrowserPanels){
                     val item=row(v,if(v.folder)"${store.bookmarks.count{it.parent==v.id}} 个网站"else v.url){if(editing)select(v.id)else if(v.folder)bookmarks(v.id)else{pages.close();a.openCollection(v.url)}}
                     if(editing){
                         item.addView(CheckBox(a).apply{isChecked=v.id in selected;contentDescription="选择 ${v.title}";setOnCheckedChangeListener{_,b->if(b)selected.add(v.id)else selected.remove(v.id);status.text="已选 ${selected.size} 项 · 按住右侧 ≡ 拖动排序"}},0)
-                        val handle=u.icon("menu","移动 ${v.title}"){a.toast("按住拖动柄上下移动")};item.addView(handle)
+                        val handle=u.icon("grip","移动 ${v.title}"){a.toast("按住拖动柄上下移动")};item.addView(handle)
                         if(query.isBlank()){
                             DragSupport.source(handle,DragSupport.Item("bookmark",v.id),false)
                             DragSupport.target(item,"bookmark",{it.id!=v.id}){drag,_,y->LibraryOrder.bookmarks(store.bookmarks,setOf(drag.id),parent,v.id,y>=item.height/2f);store.save();render()}

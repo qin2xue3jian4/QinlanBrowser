@@ -180,7 +180,7 @@ class BrowserActivity:Activity() {
         address.onChange{suggestions.update(it)}
         addressBox.addView(address,LinearLayout.LayoutParams(0,ui.dp(48),1f))
         refreshButton=ui.icon("refresh","刷新网页"){when{address.hasFocus()->address.setText("");prefs.getString("toolbarAction","refresh")=="qr"->scanQr();progress.visibility==View.VISIBLE->{current?.web?.stopLoading();progress.visibility=View.GONE;updateAddressAction()};else->reload()}};addressBox.addView(refreshButton)
-        if(isIncognito)top.addView(ui.icon("shield","无痕模式 · 点击退出"){privateMode()})
+        if(isIncognito)top.addView(ui.icon("incognito","无痕模式 · 点击退出"){privateMode()})
         address.hint=if(isIncognito)"无痕搜索或输入网址"else"搜索或输入网址"
         top.addView(addressBox,LinearLayout.LayoutParams(if(isIncognito)0 else -1,-2,if(isIncognito)1f else 0f))
         progress=ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal).apply{max=100;visibility=View.GONE;progressTintList=android.content.res.ColorStateList.valueOf(ui.accent)}

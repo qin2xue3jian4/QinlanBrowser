@@ -80,7 +80,19 @@ class IconView @JvmOverloads constructor(context:Context,private var name:String
             "close"->{line(6f,6f,18f,18f);line(6f,18f,18f,6f)}
             "plus"->{line(12f,4f,12f,20f);line(4f,12f,20f,12f)}
             "site"->{line(4f,6f,20f,6f);line(4f,18f,20f,18f);rect(7f,3f,11f,9f);rect(14f,15f,18f,21f)}
+            "account"->{canvas.drawCircle(12f,7f,4f,p);path.reset();path.moveTo(4f,21f);path.lineTo(4f,19f);path.cubicTo(4f,11f,20f,11f,20f,19f);path.lineTo(20f,21f);path.close();canvas.drawPath(path,p)}
+            "customize"->{rect(3f,3f,10f,10f);rect(14f,3f,21f,10f);rect(3f,14f,10f,21f);line(13f,21f,14f,17f,19f,12f,22f,15f,17f,20f,13f,21f);line(18f,13f,21f,16f)}
+            "tools"->{rect(3f,8f,21f,21f);line(8f,8f,8f,4f,16f,4f,16f,8f);line(3f,13f,21f,13f);line(10f,13f,10f,16f,14f,16f,14f,13f)}
+            "grip"->{for(x in listOf(9f,15f))for(y in listOf(6f,12f,18f))canvas.drawPoint(x,y,p)}
+            "up","pageTop"->{line(12f,20f,12f,if(name=="up")4f else 8f);val tip=if(name=="up")4f else 8f;line(6f,tip+6f,12f,tip,18f,tip+6f);if(name=="pageTop")line(5f,3f,19f,3f)}
+            "down","pageBottom"->{line(12f,4f,12f,if(name=="down")20f else 16f);val tip=if(name=="down")20f else 16f;line(6f,tip-6f,12f,tip,18f,tip-6f);if(name=="pageBottom")line(5f,21f,19f,21f)}
             "bookmark"->line(6f,3f,18f,3f,18f,21f,12f,17f,6f,21f,6f,3f)
+            "bookmarkAdd"->{line(13f,3f,4f,3f,4f,21f,10f,17f,16f,21f,16f,13f);line(18f,2f,18f,10f);line(14f,6f,22f,6f)}
+            "share"->{path.reset();path.moveTo(14f,3f);path.lineTo(22f,10f);path.lineTo(14f,17f);path.lineTo(14f,12f);path.cubicTo(7f,12f,4f,16f,2f,21f);path.cubicTo(2f,10f,6f,7f,14f,7f);path.close();canvas.drawPath(path,p)}
+            "undo"->{line(8f,3f,3f,8f,8f,13f);path.reset();path.moveTo(3f,8f);path.lineTo(14f,8f);path.cubicTo(23f,8f,23f,20f,14f,20f);path.lineTo(10f,20f);canvas.drawPath(path,p)}
+            "printer"->{line(6f,8f,6f,3f,18f,3f,18f,8f);line(6f,17f,3f,17f,3f,8f,21f,8f,21f,17f,18f,17f);line(6f,14f,18f,14f,18f,22f,6f,22f,6f,14f);canvas.drawPoint(17f,11f,p)}
+            "offline"->{line(12f,21f,4f,21f,4f,3f,15f,3f,20f,8f,20f,12f);line(15f,3f,15f,8f,20f,8f);line(8f,11f,12f,11f);line(8f,15f,11f,15f);line(14f,18f,17f,21f,22f,15f)}
+            "incognito"->{line(3f,11f,21f,11f);line(6f,11f,8f,3f,12f,5f,16f,3f,18f,11f);canvas.drawCircle(7f,18f,3f,p);canvas.drawCircle(17f,18f,3f,p);line(10f,18f,14f,18f)}
             "book"->{line(12f,5f,12f,21f);line(12f,5f,3f,3f,3f,19f,12f,21f,21f,19f,21f,3f,12f,5f)}
             "history"->{canvas.drawCircle(12f,12f,9f,p);line(12f,6f,12f,12f,16f,14f)}
             "download"->{line(12f,3f,12f,16f);line(7f,11f,12f,16f,17f,11f);line(4f,17f,4f,21f,20f,21f,20f,17f)}

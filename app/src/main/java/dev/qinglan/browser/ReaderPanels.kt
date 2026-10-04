@@ -53,7 +53,7 @@ class ReaderPanels(private val p:BrowserPanels) {
     @android.annotation.SuppressLint("ClickableViewAccessibility") // Single taps reveal tools; the header offers an accessible button. Selection remains native.
     private fun render(title:String,text:String,url:String,truncated:Boolean,offline:Boolean=false){
         var showTools:(()->Unit)?=null
-        p.pages.show(if(offline)"离线阅读"else"阅读模式",PageHost.HeaderAction("menu","阅读工具"){showTools?.invoke()}){col->
+        p.pages.show(if(offline)"离线阅读"else"阅读模式",PageHost.HeaderAction("tools","阅读工具"){showTools?.invoke()}){col->
             col.keepScreenOn=p.prefs.getBoolean("readerKeepAwake",false)
             var size=p.prefs.getInt("readerSize",20).coerceIn(14,32)
             col.addView(u.title(title))
