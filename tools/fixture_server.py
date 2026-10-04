@@ -18,6 +18,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200);self.send_header('Content-Type','image/svg+xml' if self.path=='/image.svg' else 'text/html; charset=utf-8')
         self.send_header('Set-Cookie','ql_fixture=synthetic-only; Path=/; HttpOnly; SameSite=Lax');self.end_headers()
         html='''<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qinglan QA</title><style>body{font:18px sans-serif;padding:22px;background:#fafcfb;color:#243b33}a,button,input{display:block;margin:22px 0;padding:12px}img{width:90px;height:90px}</style><h1>Qinglan QA</h1><p>Find needle here. Another needle.</p><a href="/second">Second page</a><a href="/download">Download test file</a><a target="_blank" href="/new-tab">New tab</a><input type="file"><img alt="Test image" src="/image.svg"><p>Cookie fixture uses synthetic data only.</p>'''
+        if self.path=='/long':
+            html=html.replace('<title>Qinglan QA</title>','<title>'+('Long title for uniform tab rows ' * 12)+'</title>')+'<p>Scroll test</p>'*180
         if self.path=='/image.svg':
             self.wfile.write(b'<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90"><rect width="90" height="90" fill="green"/></svg>')
         else:self.wfile.write(html.encode())

@@ -32,29 +32,51 @@ class BrowserPanels(private val a:BrowserActivity) {
         return d
     }
     private fun page(title:String)=u.column(20).apply{addView(u.title(title))}
+    /** A separate full-window management page, with its own back bar and scrolling body. */
+    private fun pageDialog(col:LinearLayout):Dialog {
+        a.dismissTabs()
+        val title=(col.getChildAt(0)as TextView).text.toString();col.removeViewAt(0)
+        val d=Dialog(a,if(u.dark)R.style.AppThemeDark else R.style.AppTheme)
+        val root=u.column().apply{setBackgroundColor(u.bg)};val bar=u.row().apply{setBackgroundColor(u.panel)}
+        bar.addView(u.icon("back","返回网页"){d.dismiss()});bar.addView(u.title(title));root.addView(bar,LinearLayout.LayoutParams(-1,u.dp(56)))
+        root.addView(ScrollView(a).apply{addView(col)},LinearLayout.LayoutParams(-1,0,1f))
+        d.setContentView(root);d.window?.apply{setBackgroundDrawableResource(android.R.color.transparent);setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)}
+        d.show();d.window?.apply{
+            setLayout(-1,-1);statusBarColor=u.panel;navigationBarColor=u.bg
+            if(Build.VERSION.SDK_INT>=30){setDecorFitsSystemWindows(false);root.setOnApplyWindowInsetsListener{v,insets->val bars=insets.getInsets(android.view.WindowInsets.Type.systemBars() or android.view.WindowInsets.Type.ime());v.setPadding(bars.left,bars.top,bars.right,bars.bottom);insets};insetsController?.setSystemBarsAppearance(if(u.dark)0 else android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);root.requestApplyInsets()}
+            else{root.fitsSystemWindows=true;decorView.systemUiVisibility=if(u.dark)0 else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR}
+        };return d
+    }
     private fun info(title:String,message:String)=AlertDialog.Builder(a).setTitle(title).setMessage(message).setPositiveButton("知道了",null).show()
     fun menu(){
+        a.dismissTabs()
         val col=page("浏览工具");lateinit var d:Dialog
         val grid=GridLayout(a).apply{columnCount=3}
         fun entry(icon:String,title:String,run:()->Unit){val box=u.column(5).apply{gravity=Gravity.CENTER;minimumHeight=u.dp(82);isFocusable=true;contentDescription=title;setOnClickListener{d.dismiss();run()}}
             box.addView(u.icon(icon,title){d.dismiss();run()});box.addView(u.label(title,12f).apply{gravity=Gravity.CENTER})
             grid.addView(box,GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED),GridLayout.spec(GridLayout.UNDEFINED,1f)).apply{width=0})}
         entry("bookmark","书签"){library(false)};entry("history","历史"){library(true)};entry("download","下载"){downloads()}
-        entry("cookie","Cookie 管理"){cookies()};entry("desktop",if(store.siteBool(a.currentUrl,"desktop",false))"电脑模式 · 开"else"电脑模式"){toggleSite("desktop",false)};entry("moon","夜间模式"){prefs.edit().putString("theme",if(u.dark)"light"else"dark").apply();a.retheme()}
+        entry("cookie","Cookie 管理"){cookies()};entry("desktop",if(store.siteBool(a.currentUrl,"desktop",false))"电脑模式 · 开"else"电脑模式"){toggleSite("desktop",false)};entry("moon",if(u.dark)"日间模式"else"夜间模式"){prefs.edit().putString("theme",if(u.dark)"light"else"dark").apply();a.retheme()}
         entry("image",if(prefs.getBoolean("noImages",false))"无图模式 · 开"else"无图模式"){prefs.edit().putBoolean("noImages",!prefs.getBoolean("noImages",false)).apply();a.tabs.forEach{t->t.web?.let{a.configure(it,t.url)}};a.reload();a.toast("无图模式已切换")}
         entry("refresh","刷新"){a.reload()};entry("search","页面查找"){a.showFind()}
         entry("fullscreen","全屏"){a.setFullscreen(true)};entry("plus","添加到主页"){addCurrentHome()};entry("bookmark","收藏当前页"){bookmarkCurrent()}
         entry("site","网站设置"){site()};entry("settings","设置"){settings()};entry("globe","分享链接"){if(a.isHttp(a.currentUrl))a.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT,a.currentUrl),"分享链接"))}
-        col.addView(grid);col.addView(u.label("清岚 0.1 · 简单，自在",12f,u.muted).apply{gravity=Gravity.CENTER});d=dialog(col)
+        col.addView(grid);col.addView(u.label("清岚 ${BuildConfig.VERSION_NAME} · 简单，自在",12f,u.muted).apply{gravity=Gravity.CENTER});d=dialog(col)
     }
     private fun toggleSite(key:String,default:Boolean){if(!a.isHttp(a.currentUrl)){a.toast("请先打开网站");return};store.setSiteBool(a.currentUrl,key,!store.siteBool(a.currentUrl,key,default));a.reload()}
-    fun tabs(){val col=page("标签页 · ${a.tabs.size}");lateinit var d:Dialog
-        val add=u.button("＋ 新建标签页",true){d.dismiss();a.newHome()};col.addView(add,LinearLayout.LayoutParams(-1,u.dp(48)))
-        a.tabs.toList().forEachIndexed{i,t->val r=u.row();val title=u.column(8).apply{addView(u.label((if(i==a.selected)"● "else"")+t.title));addView(u.label(if(t.url=="about:home")"主页"else Uri.parse(t.url).host.orEmpty(),12f,u.muted));setOnClickListener{d.dismiss();a.switchTab(a.tabs.indexOf(t))};isFocusable=true}
-            r.addView(title,LinearLayout.LayoutParams(0,-2,1f));r.addView(u.icon("close","关闭 ${t.title}"){d.dismiss();a.closeTab(t.id);tabs()});col.addView(r);col.addView(u.rule())}
-        d=dialog(col)
+    fun tabs(){if(a.dismissTabs())return;renderTabs()}
+    private fun renderTabs(){val col=u.column(4)
+        a.tabs.toList().forEachIndexed{i,t->val r=u.row().apply{setBackgroundColor(if(i==a.selected)u.soft else u.panel)}
+            val title=u.label((if(i==a.selected)"● "else"")+t.title,14f).apply{maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;gravity=Gravity.CENTER_VERTICAL;setPadding(u.dp(12),0,u.dp(4),0);setOnClickListener{a.dismissTabs();a.switchTab(a.tabs.indexOf(t))};isFocusable=true}
+            r.addView(title,LinearLayout.LayoutParams(0,u.dp(48),1f));r.addView(u.icon("close","关闭 ${t.title.take(60)}"){a.dismissTabs();a.closeTab(t.id);renderTabs()});col.addView(r,LinearLayout.LayoutParams(-1,u.dp(48)));col.addView(u.rule())}
+        col.addView(u.button("＋ 新建标签页"){a.dismissTabs();a.newHome()},LinearLayout.LayoutParams(-1,u.dp(48)))
+        a.showTabs(col)
     }
-    fun site(){val url=a.currentUrl;if(!a.isHttp(url)){a.toast("打开网站后可设置");return};val col=page("网站设置");col.addView(u.label(Uri.parse(url).host.orEmpty(),13f,u.muted));lateinit var d:Dialog
+    fun site(){val url=a.currentUrl;val col=page("快捷设置");lateinit var d:Dialog
+        val engine=a.current?.searchOverride?:prefs.getString("search",SearchEngines.default)!!
+        col.addView(u.item("搜索引擎 · ${SearchEngines.name(engine)}",if(a.current?.searchOverride!=null)"仅当前标签页"else"使用默认搜索引擎"){d.dismiss();searchEngine()})
+        if(!a.isHttp(url)){d=dialog(col);return}
+        col.addView(u.label(Uri.parse(url).host.orEmpty(),13f,u.muted))
         col.addView(u.button("Cookie 管理",true){d.dismiss();cookies()})
         fun toggle(title:String,key:String,default:Boolean){val s=Switch(a).apply{text=title;setTextColor(u.text);setPadding(u.dp(4),u.dp(9),u.dp(4),u.dp(9));minimumHeight=u.dp(52);isChecked=store.siteBool(url,key,default);setOnCheckedChangeListener{_,checked->store.setSiteBool(url,key,checked);a.current?.web?.let{a.configure(it,url)}}};col.addView(s)}
         toggle("电脑模式","desktop",false);toggle("JavaScript","js",true);toggle("允许第三方 Cookie","thirdParty",prefs.getBoolean("thirdParty",false));toggle("网页深色（夜间时）","dark",true);toggle("无图模式","noImages",prefs.getBoolean("noImages",false))
@@ -71,7 +93,7 @@ class BrowserPanels(private val a:BrowserActivity) {
             if(data.size>200)list.addView(u.label("显示前 200 项，请搜索缩小范围",12f,u.muted))
         }
         if(!history){val actions=u.row();actions.addView(u.button("导入 HTML"){d.dismiss();importBookmarks()},LinearLayout.LayoutParams(0,-2,1f));actions.addView(u.button("导出 HTML"){a.writeDocument("qinglan-bookmarks.html","text/html",store.bookmarkHtml())},LinearLayout.LayoutParams(0,-2,1f));col.addView(actions)}
-        search.addTextChangedListener(object:android.text.TextWatcher{override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int){};override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int){render(s.toString())};override fun afterTextChanged(s:android.text.Editable?){} });render();d=dialog(col)
+        search.addTextChangedListener(object:android.text.TextWatcher{override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int){};override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int){render(s.toString())};override fun afterTextChanged(s:android.text.Editable?){} });render();d=pageDialog(col)
     }
     private fun importBookmarks(){a.readDocument{html->
         val links=Regex("<a\\b[^>]*href\\s*=\\s*[\"']([^\"']+)[\"'][^>]*>([\\s\\S]*?)</a>",RegexOption.IGNORE_CASE).findAll(html).map{m->Visit(android.text.Html.fromHtml(m.groupValues[2],0).toString(),android.text.Html.fromHtml(m.groupValues[1],0).toString())}.filter{a.isHttp(it.url)}.toList()
@@ -79,17 +101,66 @@ class BrowserPanels(private val a:BrowserActivity) {
     }}
     fun settings(){val col=page("设置");lateinit var d:Dialog
         fun choice(title:String,options:Array<String>,current:Int,onSelect:(Int)->Unit){col.addView(u.item(title,options[current]){AlertDialog.Builder(a).setTitle(title).setSingleChoiceItems(options,current){pick,i->pick.dismiss();d.dismiss();onSelect(i)}.setNegativeButton("取消",null).show()})}
-        fun toggle(title:String,key:String,default:Boolean){col.addView(Switch(a).apply{text=title;setTextColor(u.text);minimumHeight=u.dp(52);setPadding(u.dp(4),u.dp(8),u.dp(4),u.dp(8));isChecked=prefs.getBoolean(key,default);setOnCheckedChangeListener{_,checked->prefs.edit().putBoolean(key,checked).apply()}})}
+        fun toggle(title:String,key:String,default:Boolean){col.addView(Switch(a).apply{text=title;setTextColor(u.text);minimumHeight=u.dp(52);setPadding(u.dp(4),u.dp(8),u.dp(4),u.dp(8));isChecked=prefs.getBoolean(key,default);setOnCheckedChangeListener{_,checked->prefs.edit().putBoolean(key,checked).apply();if(key=="autoHideAddress"&&!checked)a.showAddress()}})}
         choice("界面主题",arrayOf("跟随系统","浅色","深色"),listOf("system","light","dark").indexOf(prefs.getString("theme","system")).coerceAtLeast(0)){prefs.edit().putString("theme",listOf("system","light","dark")[it]).apply();a.retheme()}
         choice("地址栏位置",arrayOf("顶部（默认）","底部"),if(prefs.getBoolean("bottomAddress",false))1 else 0){prefs.edit().putBoolean("bottomAddress",it==1).apply();a.retheme()}
+        toggle("向下浏览时隐藏地址栏","autoHideAddress",true)
         val sizes=listOf(80,90,100,110,125,150,175,200)
         choice("网页字号",sizes.map{"$it%"}.toTypedArray(),sizes.indexOf(prefs.getInt("textZoom",100)).coerceAtLeast(0)){prefs.edit().putInt("textZoom",sizes[it]).apply();a.tabs.forEach{t->t.web?.let{w->a.configure(w,t.url)}}}
-        col.addView(u.item("搜索引擎",prefs.getString("search","https://www.bing.com/search?q=%s").orEmpty()){val edit=u.edit("包含 %s 的搜索地址",prefs.getString("search","https://www.bing.com/search?q=%s").orEmpty());val pick=AlertDialog.Builder(a).setTitle("搜索引擎（%s 代表关键词）").setView(edit).setNegativeButton("取消",null).setNeutralButton("百度"){_,_->prefs.edit().putString("search","https://www.baidu.com/s?wd=%s").apply()}.setPositiveButton("保存",null).create();pick.setOnShowListener{pick.getButton(-1).setOnClickListener{val s=edit.text.toString();if(!s.contains("%s")||!a.isHttp(s.replace("%s","test")))edit.error="需要有效的 HTTP/HTTPS 地址，包含 %s" else{prefs.edit().putString("search",s).apply();pick.dismiss()}}};pick.show()})
+        col.addView(u.item("搜索引擎",SearchEngines.name(prefs.getString("search",SearchEngines.default)!!)){d.dismiss();searchEngine(true)})
+        col.addView(u.item("备份与恢复","可选书签、主页和设置，不含 Cookie 与历史"){d.dismiss();backup()})
         toggle("恢复上次标签页","restore",true);toggle("默认允许第三方 Cookie","thirdParty",false)
         col.addView(u.item("清理浏览数据","历史、缓存、Cookie 可分别选择"){d.dismiss();clearData()})
         col.addView(u.item("设置为默认浏览器"){try{a.startActivity(Intent(android.provider.Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))}catch(e:Exception){a.toast("请在系统设置中选择默认浏览器")}})
-        col.addView(u.item("关于清岚","0.1.0 · 原生 WebView"){val provider=WebView.getCurrentWebViewPackage();info("关于清岚","版本：${BuildConfig.VERSION_NAME}\n系统：Android ${Build.VERSION.RELEASE}\nWebView：${provider?.versionName?:"未知"}\n完整 Cookie 属性：${if(WebViewFeature.isFeatureSupported(WebViewFeature.GET_COOKIE_INFO))"支持"else"不支持"}\n\n数据保存在本机。首版支持网站文件夹、书签历史、下载、多标签和 Cookie JSON 交换。")})
+        col.addView(u.item("关于清岚","${BuildConfig.VERSION_NAME} · 原生 WebView"){val provider=WebView.getCurrentWebViewPackage();info("关于清岚","版本：${BuildConfig.VERSION_NAME}\n系统：Android ${Build.VERSION.RELEASE}\nWebView：${provider?.versionName?:"未知"}\n完整 Cookie 属性：${if(WebViewFeature.isFeatureSupported(WebViewFeature.GET_COOKIE_INFO))"支持"else"不支持"}\n\n二维码识别使用 ZXing（Apache License 2.0）。")})
+        col.addView(u.item("开源许可","ZXing · Apache License 2.0"){val license=page("ZXing 开源许可");license.addView(u.label(a.assets.open("zxing-LICENSE.txt").bufferedReader().use{it.readText()},12f));pageDialog(license)})
+        d=pageDialog(col)
+    }
+    fun searchEngine(permanent:Boolean=false){
+        val col=page("搜索引擎");val names=SearchEngines.presets.keys.toList()+"自定义"
+        val active=a.current?.searchOverride?:prefs.getString("search",SearchEngines.default)!!
+        val spinner=Spinner(a).apply{adapter=ArrayAdapter(a,android.R.layout.simple_spinner_dropdown_item,names);setSelection(names.indexOf(SearchEngines.name(active)))};col.addView(spinner)
+        val input=u.edit("搜索网址，%s 表示关键词",active);col.addView(input)
+        spinner.onItemSelectedListener=object:AdapterView.OnItemSelectedListener{
+            override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long){if(position<SearchEngines.presets.size){input.setText(SearchEngines.presets.values.elementAt(position));input.visibility=View.GONE}else input.visibility=View.VISIBLE}
+            override fun onNothingSelected(parent:AdapterView<*>?){}
+        }
+        val scope=RadioGroup(a);val temporary=RadioButton(a).apply{id=View.generateViewId();text="仅当前标签页（关闭后失效）";setTextColor(u.text)};val default=RadioButton(a).apply{id=View.generateViewId();text="设为默认搜索引擎";setTextColor(u.text)}
+        scope.addView(temporary);scope.addView(default);scope.check(if(permanent)default.id else temporary.id);col.addView(scope)
+        lateinit var d:Dialog
+        col.addView(u.button("应用",true){val template=input.text.toString().trim();if(!SearchEngines.valid(template)){input.error="请输入包含 %s 的 HTTP/HTTPS 搜索网址";return@button}
+            if(scope.checkedRadioButtonId==default.id){prefs.edit().putString("search",template).apply();a.current?.searchOverride=null}else a.current?.searchOverride=template
+            d.dismiss();a.toast("搜索引擎已更新")})
+        if(a.current?.searchOverride!=null)col.addView(u.button("当前标签页恢复默认"){a.current?.searchOverride=null;d.dismiss();a.toast("已恢复默认搜索引擎")})
         d=dialog(col)
+    }
+    fun backup(){
+        val col=page("备份与恢复");col.addView(u.label("备份仅包含勾选的项目。不包含 Cookie、历史、下载记录、标签页或网站存储。",14f,u.muted))
+        val boxes=listOf("书签","主页网站和文件夹","浏览器与网站设置").map{label->CheckBox(a).apply{text=label;isChecked=true;setTextColor(u.text);minimumHeight=u.dp(48)}.also{col.addView(it)}}
+        col.addView(u.button("导出选中项目",true){
+            if(boxes.none{it.isChecked}){a.toast("请至少选择一项");return@button}
+            runCatching{BackupCodec.export(if(boxes[1].isChecked)store.home else null,if(boxes[0].isChecked)store.bookmarks else null,if(boxes[2].isChecked)prefs.all else null)}.onSuccess{a.writeDocument("qinglan-backup.json","application/json",it)}.onFailure{info("导出失败",it.message.orEmpty())}
+        })
+        lateinit var d:Dialog
+        col.addView(u.button("选择备份文件恢复"){
+            a.readDocument{raw->
+                val snapshot=runCatching{BackupCodec.parse(raw)}.getOrElse{info("无法恢复",it.message?:"文件无效");return@readDocument}
+                val keys=mutableListOf<String>();val labels=mutableListOf<String>()
+                snapshot.bookmarks?.let{keys.add("bookmarks");labels.add("书签（${it.size} 项）")};snapshot.home?.let{keys.add("home");labels.add("主页（${it.size} 项）")};snapshot.settings?.let{keys.add("settings");labels.add("设置（${it.size} 项）")}
+                val selected=BooleanArray(keys.size){true}
+                AlertDialog.Builder(a).setTitle("恢复备份 · 替换勾选项目").setMultiChoiceItems(labels.toTypedArray(),selected){_,i,b->selected[i]=b}.setNegativeButton("取消",null).setPositiveButton("恢复") {_,_->
+                    val chosen=keys.filterIndexed{i,_->selected[i]}.toSet();if(chosen.isEmpty()){a.toast("未选择恢复项目");return@setPositiveButton}
+                    val oldHome=store.home.toList();val oldBookmarks=store.bookmarks.toList()
+                    try {
+                        if("home" in chosen){store.home.clear();store.home.addAll(snapshot.home!!)}
+                        if("bookmarks" in chosen){store.bookmarks.clear();store.bookmarks.addAll(snapshot.bookmarks!!)}
+                        store.save()
+                        if("settings" in chosen){val edit=prefs.edit();prefs.all.keys.filter(BackupCodec::allowed).forEach{edit.remove(it)};snapshot.settings!!.forEach{(k,v)->when(v){is Boolean->edit.putBoolean(k,v);is String->edit.putString(k,v);is Int->edit.putInt(k,v)}};edit.apply()}
+                        d.dismiss();a.retheme();a.toast("已恢复所选项目")
+                    }catch(e:Exception){store.home.clear();store.home.addAll(oldHome);store.bookmarks.clear();store.bookmarks.addAll(oldBookmarks);info("恢复失败",e.message.orEmpty())}
+                }.show()
+            }
+        });d=pageDialog(col)
     }
     private fun clearData(){val checks=booleanArrayOf(false,false,false,false);AlertDialog.Builder(a).setTitle("选择要清理的数据").setMultiChoiceItems(arrayOf("历史记录","网页缓存","所有网站 Cookie（会退出登录）","网站本地存储"),checks){_,i,c->checks[i]=c}.setNegativeButton("取消",null).setPositiveButton("清理"){_,_->
         if(checks[0]){store.history.clear();store.save()};if(checks[1])a.tabs.forEach{it.web?.clearCache(true)};if(checks[2])CookieManager.getInstance().removeAllCookies{CookieManager.getInstance().flush();a.toast("Cookie 已清理")};if(checks[3])WebStorage.getInstance().deleteAllData();if(!checks[2])a.toast("已清理所选数据")
@@ -103,7 +174,7 @@ class BrowserPanels(private val a:BrowserActivity) {
                 else if(status==DownloadManager.STATUS_FAILED){val query=manager.query(DownloadManager.Query().setFilterById(id));query?.use{if(it.moveToFirst())a.toast("下载失败，代码 ${it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))}")}}
             })
         }}
-        lateinit var d:Dialog;col.addView(u.button("刷新列表"){d.dismiss();downloads()});d=dialog(col)
+        lateinit var d:Dialog;col.addView(u.button("刷新列表"){d.dismiss();downloads()});d=pageDialog(col)
     }
     fun cookies(){val url=a.currentUrl;if(!a.isHttp(url)){a.toast("请先打开需要管理 Cookie 的网站");return}
         val col=page("Cookie 管理");col.addView(u.label(Uri.parse(url).host.orEmpty(),14f,u.accent));col.addView(u.label("当前 URL 可访问的 Cookie。其他路径、子域名需分别打开；不会读取其他浏览器的数据。",12f,u.muted));lateinit var d:Dialog

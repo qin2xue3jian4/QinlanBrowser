@@ -63,6 +63,7 @@ class IconView @JvmOverloads constructor(context:Context,private val name:String
             "menu"->{line(4f,6f,20f,6f);line(4f,12f,20f,12f);line(4f,18f,20f,18f)}
             "tabs"->{rect(6f,6f,21f,21f);line(3f,17f,3f,3f,17f,3f)}
             "refresh"->{canvas.drawArc(4f,4f,20f,20f,40f,285f,false,p);line(20f,3f,20f,9f,14f,9f)}
+            "qr"->{rect(3f,3f,9f,9f);rect(15f,3f,21f,9f);rect(3f,15f,9f,21f);line(15f,15f,18f,15f,18f,18f,21f,18f,21f,21f);line(15f,18f,15f,21f)}
             "close"->{line(6f,6f,18f,18f);line(6f,18f,18f,6f)}
             "plus"->{line(12f,4f,12f,20f);line(4f,12f,20f,12f)}
             "site"->{line(4f,6f,20f,6f);line(4f,18f,20f,18f);rect(7f,3f,11f,9f);rect(14f,15f,18f,21f)}

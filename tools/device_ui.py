@@ -2,6 +2,7 @@
 import subprocess
 import sys
 import re
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -12,7 +13,11 @@ def adb(*args):
     return subprocess.check_output([ADB, *args], stderr=subprocess.STDOUT)
 
 def snapshot():
-    adb('shell', 'uiautomator', 'dump', '/data/local/tmp/qinglan-window.xml')
+    for attempt in range(3):
+        result=adb('shell', 'uiautomator', 'dump', '/data/local/tmp/qinglan-window.xml')
+        if b'UI hierchary dumped' in result: break
+        if attempt==2: raise RuntimeError('Could not capture a fresh UI hierarchy')
+        time.sleep(0.7)
     raw = adb('shell', 'cat', '/data/local/tmp/qinglan-window.xml').decode('utf-8')
     doc = ET.fromstring(raw[raw.index('<?xml'):])
     for n in doc.iter('node'):

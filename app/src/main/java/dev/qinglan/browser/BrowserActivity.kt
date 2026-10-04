@@ -21,7 +21,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URLEncoder
 
-data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home")
+data class BrowserTab(val id:Long=System.nanoTime(),var url:String="about:home",var title:String="主页",var web:WebView?=null,var saved:Bundle?=null,var used:Long=0,var committedUrl:String="about:home",var searchOverride:String?=null)
 
 class BrowserActivity:Activity() {
     lateinit var store:BrowserStore
@@ -46,6 +46,9 @@ class BrowserActivity:Activity() {
     private var findBar:LinearLayout?=null
     private var folderOpen:String=""
     private var folderDialog:android.app.Dialog?=null
+    private var tabsOverlay:View?=null
+    private var scrollTravel=0
+    private var lastScrollDirection=0
     val current get()=tabs.getOrNull(selected)
     val currentUrl get()=current?.url.orEmpty()
     val prefs get()=store.prefs
@@ -83,7 +86,7 @@ class BrowserActivity:Activity() {
             setOnEditorActionListener{_,action,event->if(action==android.view.inputmethod.EditorInfo.IME_ACTION_GO||event?.keyCode==KeyEvent.KEYCODE_ENTER&&event.action==KeyEvent.ACTION_UP){navigateInput(text.toString());true}else false}
         }
         addressBox.addView(address,LinearLayout.LayoutParams(0,ui.dp(48),1f))
-        refreshButton=ui.icon("refresh","刷新页面"){reload()};addressBox.addView(refreshButton)
+        refreshButton=ui.icon("qr","扫描二维码"){startActivityForResult(Intent(this,QrScanActivity::class.java),104)};addressBox.addView(refreshButton)
         top.addView(addressBox,LinearLayout.LayoutParams(-1,-2))
         progress=ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal).apply{max=100;visibility=View.GONE;progressTintList=android.content.res.ColorStateList.valueOf(ui.accent)}
         content=FrameLayout(this).apply{isFocusableInTouchMode=true}
@@ -91,6 +94,7 @@ class BrowserActivity:Activity() {
         fun nav(name:String,label:String,run:()->Unit){bottom.addView(ui.icon(name,label,run),LinearLayout.LayoutParams(0,ui.dp(48),1f))}
         nav("back","后退"){goBack()};nav("forward","前进"){current?.web?.takeIf{it.canGoForward()}?.goForward()};nav("home","主页"){goHome()}
         val tabButton=FrameLayout(this).apply{contentDescription="标签页";isClickable=true;isFocusable=true;setOnClickListener{panels.tabs()}}
+        tabButton.setOnLongClickListener{dismissTabs();newHome();true}
         tabCount=ui.label("1",15f,ui.accent).apply{gravity=Gravity.CENTER;background=ui.round(ui.soft,8)}
         tabButton.addView(tabCount,FrameLayout.LayoutParams(ui.dp(28),ui.dp(30),Gravity.CENTER));bottom.addView(tabButton,LinearLayout.LayoutParams(0,ui.dp(48),1f))
         nav("menu","菜单"){panels.menu()}
@@ -117,18 +121,19 @@ class BrowserActivity:Activity() {
         address.clearFocus();content.requestFocus();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).hideSoftInputFromWindow(address.windowToken,0);open(url)
     }
     fun searchUrl(query:String):String {
-        val template=prefs.getString("search","https://www.bing.com/search?q=%s")!!
+        val template=current?.searchOverride?:prefs.getString("search",SearchEngines.default)!!
         return template.replace("%s",URLEncoder.encode(query,"UTF-8"))
     }
     fun open(url:String,newTab:Boolean=false){
+        dismissTabs();showAddress()
         if(!isHttp(url)){toast("只支持 HTTP / HTTPS 网页");return}
         if(newTab){if(tabs.size>=50){toast("最多打开 50 个标签页");return};tabs.add(BrowserTab(url=url));switchTab(tabs.lastIndex);return}
         val t=current?:return;t.url=url;folderOpen="";if(t.web==null){t.saved=null;attach(t)}else{configure(t.web!!,url);content.removeAllViews();(t.web!!.parent as? android.view.ViewGroup)?.removeView(t.web);content.addView(t.web,FrameLayout.LayoutParams(-1,-1));t.web!!.loadUrl(url)}
         syncAddress();persistSession()
     }
-    fun goHome(){val t=current?:return;t.web?.stopLoading();t.url="about:home";t.committedUrl="about:home";t.title="主页";folderOpen="";closeFind();renderHome();syncAddress();persistSession()}
+    fun goHome(){dismissTabs();showAddress();val t=current?:return;t.web?.stopLoading();t.url="about:home";t.committedUrl="about:home";t.title="主页";folderOpen="";closeFind();renderHome();syncAddress();persistSession()}
     fun switchTab(index:Int){
-        if(index !in tabs.indices)return;closeFind();current?.web?.onPause();selected=index;val t=tabs[index];t.used=System.currentTimeMillis()
+        if(index !in tabs.indices)return;dismissTabs();showAddress();closeFind();current?.web?.onPause();selected=index;val t=tabs[index];t.used=System.currentTimeMillis()
         if(t.url=="about:home")renderHome()else attach(t)
         tabCount.text=tabs.size.toString();syncAddress();progress.visibility=View.GONE;persistSession();trimTabs()
     }
@@ -157,7 +162,22 @@ class BrowserActivity:Activity() {
         if(WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING))WebSettingsCompat.setAlgorithmicDarkeningAllowed(web.settings,ui.dark&&store.siteBool(url,"dark",true))
         web.setBackgroundColor(ui.bg)
     }
+    @android.annotation.SuppressLint("ClickableViewAccessibility") // WebView handles clicks; this observer never consumes touch events.
     private fun createWeb(tab:BrowserTab):WebView=WebView(this).apply {
+        var gestureY=0f
+        // Use finger movement rather than layout-generated scroll events: changing toolbar
+        // height can itself move scrollY, which otherwise immediately reverses the hide.
+        setOnTouchListener{_,event->
+            if(event.actionMasked==MotionEvent.ACTION_DOWN){gestureY=event.rawY;scrollTravel=0;lastScrollDirection=0}
+            else if(event.actionMasked==MotionEvent.ACTION_MOVE&&event.pointerCount==1){
+                val delta=(gestureY-event.rawY).toInt();gestureY=event.rawY
+                if(tab==current&&!fullScreen&&!address.hasFocus()&&findBar==null&&tabsOverlay==null&&prefs.getBoolean("autoHideAddress",true)){
+                    val direction=delta.compareTo(0);if(direction!=lastScrollDirection){scrollTravel=0;lastScrollDirection=direction};scrollTravel+=delta
+                    if(scrollTravel < -ui.dp(24))showAddress()
+                    else if(scrollTravel>ui.dp(32)){this@BrowserActivity.top.visibility=View.GONE;scrollTravel=0}
+                }
+            };false
+        }
         setDownloadListener{url,ua,disposition,mime,_->
             // A download is not a committed page: don't restore/re-download it on launch.
             tab.url=tab.committedUrl
@@ -208,7 +228,16 @@ class BrowserActivity:Activity() {
         }
     }
     fun hideVideo(){customView?.let{(it.parent as? android.view.ViewGroup)?.removeView(it)};customView=null;customViewCallback?.onCustomViewHidden();customViewCallback=null;setFullscreen(false)}
-    fun goBack(){when{customView!=null->hideVideo();fullScreen->setFullscreen(false);findBar!=null->closeFind();folderOpen.isNotEmpty()->{folderOpen="";renderHome()};currentUrl=="about:home"->moveTaskToBack(true);current?.web?.canGoBack()==true->current!!.web!!.goBack();else->goHome()}}
+    fun goBack(){when{tabsOverlay!=null->dismissTabs();customView!=null->hideVideo();fullScreen->setFullscreen(false);findBar!=null->closeFind();folderOpen.isNotEmpty()->{folderOpen="";renderHome()};currentUrl=="about:home"->moveTaskToBack(true);current?.web?.canGoBack()==true->{showAddress();current!!.web!!.goBack()};else->goHome()}}
+    fun showAddress(){if(!fullScreen)top.visibility=View.VISIBLE;scrollTravel=0}
+    fun dismissTabs():Boolean {val overlay=tabsOverlay?:return false;content.removeView(overlay);tabsOverlay=null;return true}
+    fun showTabs(view:View){
+        dismissTabs();address.clearFocus();(getSystemService(INPUT_METHOD_SERVICE)as InputMethodManager).hideSoftInputFromWindow(address.windowToken,0)
+        val overlay=FrameLayout(this).apply{setBackgroundColor(0x33000000);setOnClickListener{dismissTabs()}}
+        val scroll=ScrollView(this).apply{setBackgroundColor(ui.panel);addView(view);isFillViewport=false;isClickable=true}
+        overlay.addView(scroll,FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM));content.addView(overlay,FrameLayout.LayoutParams(-1,-1));tabsOverlay=overlay
+        scroll.post{if(scroll.height>content.height*3/4){scroll.layoutParams=(scroll.layoutParams as FrameLayout.LayoutParams).apply{height=content.height*3/4}}}
+    }
     // API 33+ uses the native OnBackInvokedDispatcher registered in onCreate.
     // This override is only the legacy Android 8-12 path.
     @android.annotation.SuppressLint("GestureBackNavigation")
@@ -254,6 +283,7 @@ class BrowserActivity:Activity() {
             101->{val callback=documentRead;documentRead=null;if(resultCode==RESULT_OK)data?.data?.let{uri->try{val bytes=contentResolver.openInputStream(uri)?.use{input->val out=java.io.ByteArrayOutputStream();val buffer=ByteArray(8192);while(true){val n=input.read(buffer);if(n<0)break;require(out.size()+n<=1_048_576){"文件超过 1 MB"};out.write(buffer,0,n)};out.toByteArray()}?:throw Exception("读取失败");callback?.invoke(bytes.toString(Charsets.UTF_8))}catch(e:Exception){toast(e.message?:"读取失败")}}}
             102->{val text=documentWrite;documentWrite=null;if(resultCode==RESULT_OK&&text!=null)data?.data?.let{uri->try{contentResolver.openOutputStream(uri,"wt")?.use{it.write(text.toByteArray())}?:throw Exception("无法写入");toast("已导出")}catch(e:Exception){toast("导出失败")}}}
             103->{val result=if(resultCode==RESULT_OK){data?.clipData?.let{c->Array(c.itemCount){c.getItemAt(it).uri}}?:data?.data?.let{arrayOf(it)}}else null;uploadCallback?.onReceiveValue(result);uploadCallback=null}
+            104->{if(resultCode==RESULT_OK)data?.getStringExtra("url")?.takeIf(::isHttp)?.let{open(it)}}
         }
     }
     fun persistSession(){val a=JSONArray();tabs.forEach{a.put(JSONObject().put("url",it.url).put("title",it.title))};prefs.edit().putString("tabs",a.toString()).putInt("selected",selected).apply()}
