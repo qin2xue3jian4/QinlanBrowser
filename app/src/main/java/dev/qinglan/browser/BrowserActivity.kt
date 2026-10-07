@@ -257,7 +257,8 @@ class BrowserActivity:Activity() {
         dismissTabs();showAddress()
         if(!isHttp(url)){toast(tr("只支持 HTTP / HTTPS 网页"));return}
         if(newTab){if(tabs.size>=50){toast(tr("最多打开 50 个标签页"));return};tabs.add(BrowserTab(url=url,incognito=isIncognito,accountId=current?.accountId.orEmpty(),openerId=current?.id));switchTab(tabs.lastIndex);return}
-        val t=current?:return;security.begin(t);t.error=null;t.url=url;folderOpen="";if(t.web==null){t.saved=null;attach(t)}else{configure(t.web!!,url);content.removeAllViews();(t.web!!.parent as? android.view.ViewGroup)?.removeView(t.web);content.addView(t.web,FrameLayout.LayoutParams(-1,-1));t.web!!.loadUrl(url)}
+        // Reusing a tab after the native home page must resume its paused WebView.
+        val t=current?:return;security.begin(t);t.error=null;t.url=url;folderOpen="";if(t.web==null){t.saved=null;attach(t)}else{configure(t.web!!,url);attach(t);t.web!!.loadUrl(url)}
         syncAddress();updateScrollButtons();persistSession()
     }
     fun goHome(){dismissTabs();showAddress();val t=current?:return;t.web?.stopLoading();t.web?.onPause();t.error=null;t.url="about:home";t.committedUrl="about:home";t.title=tr("主页");t.resources.start("about:home","");t.filterSession.start("about:home");folderOpen="";closeFind();renderHome();syncAddress();persistSession()}
