@@ -7,7 +7,7 @@
 | Android CI | `main` 提交、Pull Request、手动运行 | Debug APK、检查报告 |
 | Release APK | Releases 页面发布、推送版本标签、手动选择已有标签 | 签名 APK、SHA-256 校验文件；为现有 Release 附加文件，或创建草稿 |
 
-当前版本为 **1.0.0**，Android 版本号为 **17**。正式发布使用标签 **v1.0.0**；现有 Release 的标题和正文会保留，已发布文件不会被覆盖。工作流创建的草稿需要手动发布。
+当前版本为 **1.0.1**，Android 版本号为 **18**。正式发布使用标签 **v1.0.1**；现有 Release 的标题和正文会保留，已发布文件不会被覆盖。工作流创建的草稿需要手动发布。
 
 ## 首次配置签名
 
@@ -42,14 +42,14 @@ $keyPath = (Resolve-Path 'qinglan-release.jks').Path
 
 Linux / macOS 可使用 `mkdir -p .local && openssl base64 -A -in qinglan-release.jks -out .local/keystore-base64.txt`。用完后删除临时编码文件。
 
-## 从 Releases 页面发布 v1.0.0
+## 从 Releases 页面发布
 
 1. 完成上面的四项签名 Secrets 配置，并确保仓库允许 GitHub Actions 运行。签名密钥只配置一次，以后版本继续使用同一密钥。
 2. 将本次代码及工作流同步到 GitHub 的默认分支，等待 **Android CI** 通过。不要选择仍包含旧版 `version.properties` 的提交。
-3. 打开 **Releases → Draft a new release**，在 **Choose a tag** 输入 `v1.0.0`，选择 **Create new tag on publish**，目标选择包含本次修改的最新提交。
-4. 标题可填写 **清岚 1.0.0**，正文可复制 [1.0.0 发布说明](releases/1.0.0.md)。不要勾选 **Set as a pre-release**；将正式版本设为 latest。
+3. 打开 **Releases → Draft a new release**，在 **Choose a tag** 输入 `v1.0.1`，选择 **Create new tag on publish**，目标选择包含本次修改的最新提交。
+4. 标题可填写 **清岚 1.0.1**，正文可复制 [1.0.1 发布说明](releases/1.0.1.md)。不要勾选 **Set as a pre-release**；将正式版本设为 latest。
 5. 点击 **Publish release**。发布事件会启动 **Release APK** 工作流，验证版本、运行测试和 lint、构建压缩后的签名 APK，并核对签名。
-6. 在 **Actions** 等待工作流完成，然后刷新 Release 页面。应出现 **qinglan-1.0.0.apk** 和 **SHA256SUMS** 两个附件。无需从 CI 下载 Debug 包，也无需手动上传安装包。
+6. 在 **Actions** 等待工作流完成，然后刷新 Release 页面。应出现 **qinglan-1.0.1.apk** 和 **SHA256SUMS** 两个附件。无需从 CI 下载 Debug 包，也无需手动上传安装包。
 
 发布页面先创建，APK 附件随后生成；构建失败时该页面可能暂时只有源码压缩包。查看 Actions 失败步骤，修复签名 Secrets 或权限后重跑；附件齐全之前，应用更新检查不会将这个版本显示为可安装更新。
 
@@ -62,14 +62,14 @@ Linux / macOS 可使用 `mkdir -p .local && openssl base64 -A -in qinglan-releas
 适用于需要先审核安装包，或仓库已启用不可变发布的情况。
 
 ```sh
-git tag -a v1.0.0 -m "清岚 1.0.0"
+git tag -a v1.0.1 -m "清岚 1.0.1"
 git push origin main
-git push origin v1.0.0
+git push origin v1.0.1
 ```
 
 推送版本标签会触发 **Release APK**，完成后自动创建含 APK、校验文件及默认说明的草稿。打开 Releases 检查附件，编辑说明并点击 **Publish release**。如果已有同标签的草稿，只更新附件并保留你填写的标题和正文。
 
-已有标签也可从 **Actions → Release APK → Run workflow** 手动填写 `v1.0.0`。此入口不会创建 Git 标签，标签必须已经存在；仅在 Releases 草稿中填写一个尚未创建的标签并不等于标签已经存在。
+已有标签也可从 **Actions → Release APK → Run workflow** 手动填写 `v1.0.1`。此入口不会创建 Git 标签，标签必须已经存在；仅在 Releases 草稿中填写一个尚未创建的标签并不等于标签已经存在。
 
 ## 重跑、校验和后续版本
 
@@ -79,7 +79,7 @@ git push origin v1.0.0
 - 构建和附件上传均固定到同一个 Git 提交；工作流只在最后上传附件的任务申请 `contents: write`。无需额外个人访问令牌。
 - 使用 `sha256sum -c SHA256SUMS` 校验下载文件。Windows 可执行 `Get-FileHash .\qinglan-1.0.0.apk -Algorithm SHA256`，与文件中的摘要比较。
 
-后续发布需修改 `version.properties`，递增 `VERSION_NAME` 和 `VERSION_CODE`，提交后创建对应标签，例如 `v1.0.1`；不要通过移动原标签替换已经发布的二进制文件。预发布可使用 `v1.1.0-beta.1`，并在 Releases 页面勾选 pre-release。
+后续发布需修改 `version.properties`，递增 `VERSION_NAME` 和 `VERSION_CODE`，提交后创建对应标签，例如 `v1.0.2`；不要通过移动原标签替换已经发布的二进制文件。预发布可使用 `v1.1.0-beta.1`，并在 Releases 页面勾选 pre-release。
 
 应用更新检查使用 GitHub latest release API，接受带或不带 `v` 的版本标签。只有公开正式版及名为 `qinglan-<版本>.apk` 的附件会触发更新提示；草稿、预发布和缺少 APK 的版本不参与。后续版本必须保持相同发行签名，不能用 Debug 包替代发行包。
 
@@ -91,7 +91,7 @@ git push origin v1.0.0
 git remote set-url origin https://github.com/qin2xue3jian4/QinlanBrowser.git
 ```
 
-更新检查禁止 HTTP 重定向，并严格核对发布页和 APK 来源地址，因此旧版 APK 不能依赖 GitHub 的改名跳转。将地址修复随递增版本发布，例如 `v1.0.1`，同时递增 Android `VERSION_CODE`；保留已发布的 `v1.0.0` 标签和附件。
+更新检查禁止 HTTP 重定向，并严格核对发布页和 APK 来源地址，因此旧版 APK 不能依赖 GitHub 的改名跳转。将地址修复随递增版本发布，本次使用 `v1.0.1` 和 Android `VERSION_CODE=18`；保留已发布的 `v1.0.0` 标签和附件。
 
 Release 工作流使用动态的 `GITHUB_REPOSITORY`，无需修改仓库名。仓库改名不改变应用包名、安装数据或发行签名，后续安装包继续使用原发行密钥。保持仓库私有时，应用的匿名更新检查无法读取其 Release；不要把仓库访问令牌打包到 APK。
 

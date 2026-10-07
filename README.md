@@ -28,7 +28,7 @@
 
 公开发布的安装包来自 **Release APK** 工作流，启用代码压缩和资源裁剪。**Android CI** 生成的 Debug 包供开发测试使用，体积较大，也可能因签名不同而无法覆盖正式版。初次使用的主页不预置网站，可自行添加收藏。
 
-维护者发布 1.0.0 时，先完成[签名配置](docs/releasing.md)，同步代码后可直接在 GitHub Releases 新建 `v1.0.0`，选择最新代码并点击发布。工作流会自动构建并附加 `qinglan-1.0.0.apk` 和 `SHA256SUMS`，详见[发布步骤](docs/releasing.md#从-releases-页面发布-v100)。
+维护者发布时，先完成[签名配置](docs/releasing.md)，递增 `version.properties` 中的版本名称和 Android 版本号，再同步代码并在 GitHub Releases 创建对应标签。标签必须指向声明该版本的提交；仅在发布页面填写新版本号不会修改安装包版本。工作流会自动构建并附加签名 APK 和 `SHA256SUMS`，详见[发布步骤](docs/releasing.md#从-releases-页面发布)。
 
 清岚不打包浏览器内核。网页兼容性随系统 WebView 更新，建议保持其为较新版本。部分功能也依赖系统组件，例如朗读需要可用的语音引擎。
 
