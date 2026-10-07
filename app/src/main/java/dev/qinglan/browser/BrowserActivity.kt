@@ -564,10 +564,11 @@ class BrowserActivity:Activity() {
         }
     }
     fun persistSession(){if(isIncognito||tabs.any{it.incognito})return;val a=JSONArray();tabs.forEach{a.put(JSONObject().put("url",it.url).put("title",it.title).put("account",it.accountId))};prefs.edit().putString("tabs",a.toString()).putInt("selected",selected).apply()}
-    override fun onPause(){suggestions.dismiss();super.onPause();speech.pause();current?.web?.onPause();persistSession();if(!isIncognito)accounts.flush()}
+    override fun onPause(){panels.updates.paused();suggestions.dismiss();super.onPause();speech.pause();current?.web?.onPause();persistSession();if(!isIncognito)accounts.flush()}
     override fun onStop(){security.cancel();webPermissions.cancel();super.onStop()}
-    override fun onResume(){super.onResume();if(uiLanguage!=AppLanguage.effective(this))refreshLanguage();current?.web?.onResume()}
-    override fun onDestroy(){scripts.close();security.clear();blobs.close();exports.close();webPermissions.cancel();suggestions.dismiss();panels.pages.close();panels.reader.close();speech.close();filtering.subscriptions.close();uploadCallback?.onReceiveValue(null);tabs.forEach{t->(t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()};tabs.clear();privateSession?.close();privateSession=null;super.onDestroy()}
+    override fun onResume(){super.onResume();if(uiLanguage!=AppLanguage.effective(this))refreshLanguage();current?.web?.onResume();panels.updates.resumed()}
+    override fun onWindowFocusChanged(hasFocus:Boolean){super.onWindowFocusChanged(hasFocus);if(hasFocus&&::panels.isInitialized)window.decorView.post{panels.updates.notifyPending()}}
+    override fun onDestroy(){panels.updates.close();scripts.close();security.clear();blobs.close();exports.close();webPermissions.cancel();suggestions.dismiss();panels.pages.close();panels.reader.close();speech.close();filtering.subscriptions.close();uploadCallback?.onReceiveValue(null);tabs.forEach{t->(t.web?.parent as? android.view.ViewGroup)?.removeView(t.web);t.web?.destroy()};tabs.clear();privateSession?.close();privateSession=null;super.onDestroy()}
     fun toast(message:String){Toast.makeText(this,message,Toast.LENGTH_SHORT).show()}
     fun copy(label:String,text:String){(getSystemService(CLIPBOARD_SERVICE)as ClipboardManager).setPrimaryClip(ClipData.newPlainText(label,text));toast(tr("已复制"))}
 
@@ -583,8 +584,10 @@ class BrowserActivity:Activity() {
         content.removeAllViews();folderOverlay=null
         val scroll=ScrollView(this);val column=ui.column(20);scroll.addView(column);content.addView(scroll)
         val heading=ui.row();heading.setPadding(0,ui.dp(40),0,ui.dp(25));val names=ui.column();names.addView(ui.title(tr("清岚")));heading.addView(names,LinearLayout.LayoutParams(0,-2,1f));if(prefs.getBoolean("homeTitle",true))column.addView(heading)
+        if(store.home.isEmpty())column.addView(ui.label(tr("输入网址或搜索，点击「＋」添加常用网站或文件夹。"),14f,ui.muted))
         val grid=GridLayout(this).apply{columnCount=prefs.getInt("homeColumns",4).coerceIn(3,5)};column.addView(grid,LinearLayout.LayoutParams(-1,-2));populateHome(grid,"")
         if(folderOpen.isNotEmpty())showFolder(folderOpen)
+        scroll.post{panels.updates.notifyPending()}
     }
     private fun moveHome(id:String,parent:String,target:String?=null,after:Boolean=false){
         LibraryOrder.home(store.home,id,parent,target,after);store.save();folderOpen=parent;renderHome()

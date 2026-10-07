@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit
 class CookieInstrumentation:Instrumentation(){
     private var userscripts=""
     private var webdav=""
+    private var updates=""
+    private var controlSite=""
     private var scriptHistory=""
     private var accounts=""
     private var controls=""
@@ -27,13 +29,14 @@ class CookieInstrumentation:Instrumentation(){
     private var cleanupFeatures=false
     private var improvements=false
     private var maturity=""
-    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);webdav=arguments?.getString("webdav").orEmpty();userscripts=arguments?.getString("userscripts").orEmpty();scriptHistory=arguments?.getString("scriptHistory").orEmpty();controls=arguments?.getString("controls").orEmpty();accounts=arguments?.getString("accounts").orEmpty();incognito=arguments?.getString("incognito").orEmpty();maturity=arguments?.getString("maturity").orEmpty();improvements=arguments?.getString("improvements")=="true";cleanupResources=arguments?.getString("cleanupResources")=="true";resources=arguments?.getString("resources")=="true";filtering=arguments?.getString("filtering")=="true";revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
+    override fun onCreate(arguments:Bundle?){super.onCreate(arguments);updates=arguments?.getString("updates").orEmpty();controlSite=arguments?.getString("controlSite").orEmpty();webdav=arguments?.getString("webdav").orEmpty();userscripts=arguments?.getString("userscripts").orEmpty();scriptHistory=arguments?.getString("scriptHistory").orEmpty();controls=arguments?.getString("controls").orEmpty();accounts=arguments?.getString("accounts").orEmpty();incognito=arguments?.getString("incognito").orEmpty();maturity=arguments?.getString("maturity").orEmpty();improvements=arguments?.getString("improvements")=="true";cleanupResources=arguments?.getString("cleanupResources")=="true";resources=arguments?.getString("resources")=="true";filtering=arguments?.getString("filtering")=="true";revision4=arguments?.getString("revision4").orEmpty();cleanupFeatures=arguments?.getString("cleanupFeatures")=="true";features=arguments?.getString("features")=="true";importAuthorizedFile=arguments?.getString("importAuthorizedFile")=="true";start()}
     override fun onStart(){
+        if(updates.isNotEmpty()){UpdateChecks.run(this,updates);return}
         if(webdav.isNotEmpty()){WebDavChecks.run(this,webdav);return}
         if(userscripts.isNotEmpty()){when(userscripts){"cleanup"->UserScriptCleanupChecks.run(this,scriptHistory);"review"->UserScriptReviewChecks.run(this);"popular"->UserScriptPopularChecks.run(this);"install"->UserScriptInstallChecks.run(this);"remote"->UserScriptInstallChecks.run(this,true);else->UserScriptChecks.run(this)};return}
         if(controls=="navigation"){NavigationChecks.run(this);return}
         if(controls=="menu"){MenuChecks.run(this);return}
-        if(controls.isNotEmpty()){ControlsChecks.run(this,controls);return}
+        if(controls.isNotEmpty()){ControlsChecks.run(this,controls,controlSite);return}
         if(accounts.isNotEmpty()){AccountChecks.run(this,accounts);return}
         if(incognito.isNotEmpty()){IncognitoChecks.run(this,incognito);return}
         if(maturity.isNotEmpty()){if(maturity=="download")MaturityChecks.download(this)else MaturityChecks.run(this);return}

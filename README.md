@@ -2,7 +2,7 @@
 
 轻量 Android 浏览器，基于系统 WebView。把常用浏览功能、可整理的主页和站点管理放在一个小巧的安装包里。
 
-[下载安装](https://github.com/qin2xue3jian4/AndroidBrowser/releases) · [使用指南](docs/guide.md) · [构建与开发](docs/development.md) · [发布指南](docs/releasing.md)
+[下载安装](https://github.com/qin2xue3jian4/AndroidBrowser/releases) · [使用指南](docs/guide.md) · [数据与隐私](docs/privacy.md) · [构建与开发](docs/development.md) · [发布指南](docs/releasing.md)
 
 ## 功能
 
@@ -18,12 +18,15 @@
 - **站点管理**：独立网站设置、前台 HTTPS 网站权限确认、外部应用跳转控制、Cookie 导入导出、手动保存与填入密码、轻量用户脚本。
 - **备份**：按需导出主页、书签、设置和已保存密码；包含密码的备份使用密码加密。
 - **设置同步**：连接自己的 HTTPS WebDAV 服务器，手动上传或下载浏览器设置，支持坚果云；下载确认后恢复，上传检查远端版本。
+- **更新检查**：使用应用时每天自动检查一次 GitHub 正式版本，也可在设置中手动检查或关闭自动检查；支持查看更新说明并前往下载。
 
 ## 安装
 
 需要 **Android 8.0 或更高版本**，以及可用的 Android System WebView。
 
 在 [Releases](https://github.com/qin2xue3jian4/AndroidBrowser/releases) 下载 APK 后安装。更新时使用相同来源、相同签名的安装包即可覆盖升级。
+
+公开发布的安装包来自 **Release APK** 工作流，启用代码压缩和资源裁剪。**Android CI** 生成的 Debug 包供开发测试使用，体积较大，也可能因签名不同而无法覆盖正式版。初次使用的主页不预置网站，可自行添加收藏。
 
 清岚不打包浏览器内核。网页兼容性随系统 WebView 更新，建议保持其为较新版本。部分功能也依赖系统组件，例如朗读需要可用的语音引擎。
 
@@ -34,6 +37,8 @@
 Cookie 导出文件包含明文登录凭据。用户脚本能够读取和修改匹配网页的内容，请仅导入可信文件。使用方式及支持范围见[使用指南](docs/guide.md)。
 
 WebDAV 仅同步设置和界面语言，服务器凭据在本机加密保存；书签、密码、Cookie、历史和标签不参与同步。无痕不会隐藏 IP；主动保存的下载、书签和离线文章仍会保留。用户脚本支持基础页面修改，并不兼容完整的 Tampermonkey API。
+
+更新检查只请求 GitHub 的公开发布信息，不发送浏览记录、设置或账号数据。网页浏览、搜索、过滤订阅和自行配置的同步会连接相应服务，详细说明见[数据与隐私](docs/privacy.md)。
 
 ## 反馈
 

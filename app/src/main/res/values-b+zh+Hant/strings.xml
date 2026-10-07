@@ -1102,4 +1102,47 @@
     <string name="webdav_description" formatted="false">"連線到自己的 WebDAV 伺服器，手動上傳或還原瀏覽器設定。"</string>
     <string name="webdav_keywords" formatted="false">"同步 堅果雲 雲端 設定"</string>
     <string name="webdav_save_failed" formatted="false">"儲存同步設定失敗，已還原原設定"</string>
+    <string name="update_limited" formatted="false">"GitHub 暫時限制了請求，請稍後重試"</string>
+    <string name="update_http_error" formatted="false">"檢查更新失敗（HTTP %1$s）"</string>
+    <string name="update_large" formatted="false">"更新資訊過大，請前往 GitHub 發布頁查看"</string>
+    <string name="update_invalid" formatted="false">"無法讀取更新資訊，請前往 GitHub 發布頁查看"</string>
+    <string name="update_network" formatted="false">"無法連線到 GitHub，請檢查網路後重試"</string>
+    <string name="update_title" formatted="false">"檢查更新"</string>
+    <string name="update_current" formatted="false">"目前版本：%1$s"</string>
+    <string name="update_privacy" formatted="false">"僅檢查 GitHub 公開發布的正式版本。自動檢查最多每天一次，不傳送瀏覽記錄、設定或帳號資訊。"</string>
+    <string name="update_new" formatted="false">"發現新版本 %1$s"</string>
+    <string name="update_now" formatted="false">"立即檢查更新"</string>
+    <string name="update_busy" formatted="false">"正在檢查更新，請稍候"</string>
+    <string name="update_automatic" formatted="false">"自動檢查更新"</string>
+    <string name="update_releases" formatted="false">"GitHub 發布頁"</string>
+    <string name="update_checked" formatted="false">"上次成功檢查：%1$s"</string>
+    <string name="update_progress" formatted="false">"正在檢查 GitHub 更新…"</string>
+    <string name="update_none" formatted="false">"未找到可安裝的公開正式版本，請前往 GitHub 發布頁查看。"</string>
+    <string name="update_latest" formatted="false">"目前已是最新版本（%1$s）。"</string>
+    <string name="update_failure" formatted="false">"檢查更新失敗"</string>
+    <string name="update_prompt" formatted="false">"清嵐有新版本可用，可查看更新說明並前往 GitHub 下載。"</string>
+    <string name="update_view" formatted="false">"查看更新"</string>
+    <string name="update_later" formatted="false">"稍後"</string>
+    <string name="update_compare" formatted="false">"目前 %1$s → 新版 %2$s"</string>
+    <string name="update_no_notes" formatted="false">"此版本未提供更新說明。"</string>
+    <string name="update_install" formatted="false">"前往 GitHub 下載 APK 後，依系統提示安裝。覆蓋升級需要安裝套件簽章與目前版本一致。"</string>
+    <string name="update_download" formatted="false">"前往 GitHub 下載"</string>
+    <string name="update_description" formatted="false">"查看 GitHub 正式版本、更新說明和下載入口。"</string>
+    <string name="update_auto_description" formatted="false">"使用應用程式時每天檢查一次 GitHub 正式版本；發現新版本後在首頁提示。"</string>
+    <string name="update_tagline" formatted="false">"輕量、簡潔的 Android 瀏覽器"</string>
+    <string name="update_version" formatted="false">"版本 %1$s（%2$s）"</string>
+    <string name="update_debug" formatted="false">"偵錯建置"</string>
+    <string name="update_release" formatted="false">"發行建置"</string>
+    <string name="update_project" formatted="false">"專案首頁"</string>
+    <string name="update_feedback" formatted="false">"回報問題"</string>
+    <string name="update_feedback_privacy" formatted="false">"提交前請移除螢幕截圖、日誌和檔案中的私人資料。"</string>
+    <string name="update_data" formatted="false">"資料與隱私"</string>
+    <string name="update_local" formatted="false">"瀏覽資料儲存在裝置本機。"</string>
+    <string name="update_data_description" formatted="false">"書籤、歷史、密碼和網站帳號儲存在裝置本機。啟用 WebDAV 後，僅將設定同步到你指定的伺服器。更新檢查僅請求 GitHub 發布資訊；不傳送瀏覽記錄、設定、密碼或 Cookie。存取網頁、搜尋和規則訂閱會連線到相應服務。"</string>
+    <string name="update_environment" formatted="false">"Android %1$s · WebView %2$s"</string>
+    <string name="home_empty_hint" formatted="false">"輸入網址或搜尋，點擊「＋」新增常用網站或資料夾。"</string>
+    <string name="update_help_title" formatted="false">"無法檢查應用程式更新"</string>
+    <string name="update_help_body" formatted="false">"檢查網路是否可以存取 GitHub，稍後重試或手動開啟發布頁。清嵐只檢查已公開發布、帶有 APK 的正式版本；草稿和預發布版本不會顯示為更新。自動檢查可以在設定中關閉。"</string>
+    <string name="webdav_help_title" formatted="false">"WebDAV 同步失敗"</string>
+    <string name="webdav_help_body" formatted="false">"檢查 HTTPS 目錄網址、帳號和應用程式密碼，確認目錄已存在並允許寫入。堅果雲需要填寫同步資料夾路徑，不能直接向根網址上傳。遠端版本改變時，請重新開始操作；下載需要確認後才會取代本機設定。"</string>
 </resources>

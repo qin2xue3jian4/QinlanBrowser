@@ -64,6 +64,8 @@ object SettingCatalog {
         SettingSpec("cookies",tr("Cookie 管理"),tr("数据管理"),tr("查看和管理网站 Cookie；导出可能包含登录凭据。"),keywords=tr("导入 导出 登录")),
         SettingSpec("clear",tr("清理浏览数据"),tr("数据管理"),tr("自行选择历史、缓存、Cookie 和网站存储。"),keywords=tr("删除 隐私 缓存")),
         SettingSpec("defaultBrowser",tr("默认浏览器"),tr("关于"),tr("前往系统设置选择默认浏览器。")),
+        SettingSpec("updates",tr("检查更新"),tr("关于"),tr("查看 GitHub 正式版本、更新说明和下载入口。")),
+        SettingSpec("autoCheckUpdates",tr("自动检查更新"),tr("关于"),tr("使用应用时每天检查一次 GitHub 正式版本；发现新版本后在主页提示。"),true),
         SettingSpec("help",tr("帮助与排错"),tr("关于"),tr("常见问题、权限设置和不含浏览数据的诊断信息。"),keywords=tr("下载失败 白屏 网页异常 反馈")),
         SettingSpec("about",tr("关于项目"),tr("关于"),tr("版本、系统 WebView、开源许可。"),keywords=tr("版本 内核 许可"))
     )
@@ -74,7 +76,7 @@ object SettingCatalog {
         tr("网站与隐私") to listOf(Section(tr("网站例外"),listOf("siteOverrides","accounts","certificateTrust")),Section(tr("连接安全"),listOf("httpsOnly","certificateExceptions")),Section(tr("内容与显示"),listOf("js","desktop","noImages","webDark","autoplay")),Section(tr("隐私与跳转"),listOf("incognito","thirdParty","recordHistory","externalApps")),Section(tr("网站权限询问"),listOf("cameraPrompt","microphonePrompt","locationPrompt"))),
         tr("工具") to listOf(Section(tr("标签整理"),listOf("tabSearch","undo","closeOtherTabs")),Section(tr("阅读与朗读"),listOf("reader","readerSize","readerSpacing","readerKeepAwake","speech","speechRate")),Section(tr("网页处理"),listOf("filter","scripts","resourceSniffing","downloadWifiOnly","blobDownloads","shareFormat","print","tools"))),
         tr("数据管理") to listOf(Section(tr("保存的数据"),listOf("readingList","passwords","cookies")),Section(tr("备份与清理"),listOf("backup","webdav","clear"))),
-        tr("关于") to listOf(Section("",listOf("defaultBrowser","help","about")))
+        tr("关于") to listOf(Section("",listOf("updates","autoCheckUpdates","defaultBrowser","help","about")))
     )
     private val extra get()=listOf(
         SettingSpec("language",tr("语言 / Language"),tr("外观"),tr("默认跟随系统。更改只影响浏览器界面，不翻译网页或修改收藏、账号名称。"),keywords=tr("语言 英语 简体 繁体 language English")),

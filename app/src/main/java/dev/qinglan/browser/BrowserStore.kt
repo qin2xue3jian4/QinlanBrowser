@@ -26,8 +26,6 @@ class BrowserStore(context: Context) {
             data.optJSONArray("home")?.let { a -> for (i in 0 until a.length()) { val o=a.getJSONObject(i);home.add(HomeItem(o.getString("id"),o.getString("title"),o.optString("url"),o.optString("parent"),o.optBoolean("folder"))) } }
             fun visits(key: String, list: MutableList<Visit>) { data.optJSONArray(key)?.let { a -> for(i in 0 until a.length()) { val o=a.getJSONObject(i);list.add(Visit(o.optString("title"),o.getString("url"),o.optLong("time"),o.optString("id").ifBlank{UUID.randomUUID().toString()},o.optString("parent"),o.optBoolean("folder"))) } } }
             visits("bookmarks",bookmarks);visits("history",history)
-        } else {
-            home.add(HomeItem(title="ChatGPT",url="https://chatgpt.com/"))
         }
     }
     @Synchronized fun save() {

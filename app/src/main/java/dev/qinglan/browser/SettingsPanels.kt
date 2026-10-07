@@ -63,6 +63,7 @@ class SettingsPanels(private val p:BrowserPanels) {
             "tabSearch"->p.searchTabs();"undo"->{p.pages.close();a.undoCloseTab()};"closeOtherTabs"->p.closeOtherTabs();"tools"->p.menuPanels.allTools()
             "backup"->p.vault.backup();"passwords"->p.vault.passwords();"cookies"->p.cookies()
             "webdav"->p.webdav.show()
+            "updates"->p.updates.show()
             "clear"->p.clearData();"about"->p.about();"help"->p.help()
             "defaultBrowser"->runCatching{
                 if(android.os.Build.VERSION.SDK_INT>=29){val roles=a.getSystemService(android.app.role.RoleManager::class.java);if(roles.isRoleHeld(android.app.role.RoleManager.ROLE_BROWSER))a.toast(tr("清岚已经是默认浏览器"))else if(roles.isRoleAvailable(android.app.role.RoleManager.ROLE_BROWSER))a.startActivityForResult(roles.createRequestRoleIntent(android.app.role.RoleManager.ROLE_BROWSER),106)else a.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))}

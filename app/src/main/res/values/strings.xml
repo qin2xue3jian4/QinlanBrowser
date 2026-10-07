@@ -1102,4 +1102,47 @@
     <string name="webdav_description" formatted="false">"Connect to your WebDAV server to manually upload or restore browser settings."</string>
     <string name="webdav_keywords" formatted="false">"sync Nutstore cloud settings"</string>
     <string name="webdav_save_failed" formatted="false">"Unable to save synced settings. Original settings were restored."</string>
+    <string name="update_limited" formatted="false">"GitHub is temporarily limiting requests. Try again later."</string>
+    <string name="update_http_error" formatted="false">"Update check failed (HTTP %1$s)"</string>
+    <string name="update_large" formatted="false">"Update information is too large. Visit the GitHub releases page."</string>
+    <string name="update_invalid" formatted="false">"Unable to read update information. Visit the GitHub releases page."</string>
+    <string name="update_network" formatted="false">"Unable to connect to GitHub. Check your network and try again."</string>
+    <string name="update_title" formatted="false">"Check for updates"</string>
+    <string name="update_current" formatted="false">"Installed version: %1$s"</string>
+    <string name="update_privacy" formatted="false">"Checks public stable releases on GitHub only. Automatic checks run at most once a day and send no browsing history, settings or account information."</string>
+    <string name="update_new" formatted="false">"New version available: %1$s"</string>
+    <string name="update_now" formatted="false">"Check now"</string>
+    <string name="update_busy" formatted="false">"Checking for updates. Please wait."</string>
+    <string name="update_automatic" formatted="false">"Check for updates automatically"</string>
+    <string name="update_releases" formatted="false">"GitHub releases"</string>
+    <string name="update_checked" formatted="false">"Last successful check: %1$s"</string>
+    <string name="update_progress" formatted="false">"Checking GitHub for updates…"</string>
+    <string name="update_none" formatted="false">"No installable public stable release was found. Visit the GitHub releases page."</string>
+    <string name="update_latest" formatted="false">"Your version (%1$s) is up to date."</string>
+    <string name="update_failure" formatted="false">"Unable to check for updates"</string>
+    <string name="update_prompt" formatted="false">"A new Qinglan version is available. View the release notes and download it from GitHub."</string>
+    <string name="update_view" formatted="false">"View update"</string>
+    <string name="update_later" formatted="false">"Later"</string>
+    <string name="update_compare" formatted="false">"Installed %1$s → Available %2$s"</string>
+    <string name="update_no_notes" formatted="false">"No release notes were provided for this version."</string>
+    <string name="update_install" formatted="false">"Download the APK from GitHub and follow the system installation prompts. Upgrading requires the same signing key as your installed version."</string>
+    <string name="update_download" formatted="false">"Download from GitHub"</string>
+    <string name="update_description" formatted="false">"View stable releases, release notes and downloads on GitHub."</string>
+    <string name="update_auto_description" formatted="false">"Check GitHub stable releases once a day while using the app. New versions are announced on the home page."</string>
+    <string name="update_tagline" formatted="false">"A lightweight, simple Android browser"</string>
+    <string name="update_version" formatted="false">"Version %1$s (%2$s)"</string>
+    <string name="update_debug" formatted="false">"Debug build"</string>
+    <string name="update_release" formatted="false">"Release build"</string>
+    <string name="update_project" formatted="false">"Project home"</string>
+    <string name="update_feedback" formatted="false">"Report an issue"</string>
+    <string name="update_feedback_privacy" formatted="false">"Remove private data from screenshots, logs and files before submitting."</string>
+    <string name="update_data" formatted="false">"Data and privacy"</string>
+    <string name="update_local" formatted="false">"Browsing data is stored on your device."</string>
+    <string name="update_data_description" formatted="false">"Bookmarks, history, passwords and website accounts are stored on your device. WebDAV sync sends only settings to your chosen server. Update checks request GitHub release information without sending browsing history, settings, passwords or cookies. Web browsing, searches and filter subscriptions connect to their respective services."</string>
+    <string name="update_environment" formatted="false">"Android %1$s · WebView %2$s"</string>
+    <string name="home_empty_hint" formatted="false">"Enter a URL or search, and tap + to add favorite sites or folders."</string>
+    <string name="update_help_title" formatted="false">"Unable to check for app updates"</string>
+    <string name="update_help_body" formatted="false">"Check that your network can access GitHub, retry later or open the releases page manually. Qinglan checks published stable releases with an APK only; drafts and prereleases are excluded. You can turn off automatic checks in Settings."</string>
+    <string name="webdav_help_title" formatted="false">"WebDAV sync failed"</string>
+    <string name="webdav_help_body" formatted="false">"Check the HTTPS directory URL, username and app password. The directory must exist and allow writes. Nutstore requires a sync folder path; files cannot be uploaded directly to the root URL. Restart the operation if the remote version changes. Downloaded settings replace local settings only after confirmation."</string>
 </resources>

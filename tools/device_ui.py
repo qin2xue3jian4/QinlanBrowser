@@ -1,5 +1,6 @@
 """Small ADB inspection helper; saves captures only inside this project."""
 import subprocess
+import os
 import sys
 import re
 import time
@@ -7,7 +8,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ADB = r'D:\ProgramFiles\Android\Sdk\platform-tools\adb.exe'
+ADB = os.environ.get('ADB', 'adb')
 
 def adb(*args):
     return subprocess.check_output([ADB, *args], stderr=subprocess.STDOUT)

@@ -59,6 +59,8 @@ Linux / macOS 可使用 `mkdir -p .local && openssl base64 -A -in qinglan-releas
 
 发布附件为 `qinglan-<版本>.apk` 和 `SHA256SUMS`。检查报告和 R8 混淆映射保存在该次 Actions 运行的 artifacts 中，不放入公开下载附件。
 
+应用更新检查使用 GitHub 的 latest release API。正式版本需公开发布，标签为 `v<版本>`，且 APK 附件名为 `qinglan-<版本>.apk`。草稿、预发布版本和缺少 APK 的版本不会触发更新提示。每次发布应递增语义版本及 Android 版本号，保持相同的发行签名；不要用 Debug 包替代公开发行包。
+
 预发布版本可使用 `0.5.0-beta.1` / `v0.5.0-beta.1`，流程会标记为 prerelease。草稿阶段可以重跑工作流，已有说明会保留，附件会更新。公开发布后需要创建新版本，不能用重跑替换原 APK。
 
 若自动运行失败，在修复 Secrets 后可重跑该次任务；也可在 **Actions → Release APK → Run workflow** 中填写已有标签。修改过源码或工作流时，应创建包含修改的新版本标签。

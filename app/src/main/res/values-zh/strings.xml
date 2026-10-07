@@ -1102,4 +1102,47 @@
     <string name="webdav_description" formatted="false">"连接自己的 WebDAV 服务器，手动上传或恢复浏览器设置。"</string>
     <string name="webdav_keywords" formatted="false">"同步 坚果云 云端 设置"</string>
     <string name="webdav_save_failed" formatted="false">"保存同步设置失败，已恢复原设置"</string>
+    <string name="update_limited" formatted="false">"GitHub 暂时限制了请求，请稍后重试"</string>
+    <string name="update_http_error" formatted="false">"检查更新失败（HTTP %1$s）"</string>
+    <string name="update_large" formatted="false">"更新信息过大，请前往 GitHub 发布页查看"</string>
+    <string name="update_invalid" formatted="false">"无法读取更新信息，请前往 GitHub 发布页查看"</string>
+    <string name="update_network" formatted="false">"无法连接 GitHub，请检查网络后重试"</string>
+    <string name="update_title" formatted="false">"检查更新"</string>
+    <string name="update_current" formatted="false">"当前版本：%1$s"</string>
+    <string name="update_privacy" formatted="false">"仅检查 GitHub 公开发布的正式版本。自动检查最多每天一次，不发送浏览记录、设置或账号信息。"</string>
+    <string name="update_new" formatted="false">"发现新版本 %1$s"</string>
+    <string name="update_now" formatted="false">"立即检查更新"</string>
+    <string name="update_busy" formatted="false">"正在检查更新，请稍候"</string>
+    <string name="update_automatic" formatted="false">"自动检查更新"</string>
+    <string name="update_releases" formatted="false">"GitHub 发布页"</string>
+    <string name="update_checked" formatted="false">"上次成功检查：%1$s"</string>
+    <string name="update_progress" formatted="false">"正在检查 GitHub 更新…"</string>
+    <string name="update_none" formatted="false">"未找到可安装的公开正式版本，请前往 GitHub 发布页查看。"</string>
+    <string name="update_latest" formatted="false">"当前已是最新版本（%1$s）。"</string>
+    <string name="update_failure" formatted="false">"检查更新失败"</string>
+    <string name="update_prompt" formatted="false">"清岚有新版本可用，可查看更新说明并前往 GitHub 下载。"</string>
+    <string name="update_view" formatted="false">"查看更新"</string>
+    <string name="update_later" formatted="false">"稍后"</string>
+    <string name="update_compare" formatted="false">"当前 %1$s → 新版 %2$s"</string>
+    <string name="update_no_notes" formatted="false">"此版本未提供更新说明。"</string>
+    <string name="update_install" formatted="false">"前往 GitHub 下载 APK 后，按系统提示安装。覆盖升级需要安装包签名与当前版本一致。"</string>
+    <string name="update_download" formatted="false">"前往 GitHub 下载"</string>
+    <string name="update_description" formatted="false">"查看 GitHub 正式版本、更新说明和下载入口。"</string>
+    <string name="update_auto_description" formatted="false">"使用应用时每天检查一次 GitHub 正式版本；发现新版本后在主页提示。"</string>
+    <string name="update_tagline" formatted="false">"轻量、简洁的 Android 浏览器"</string>
+    <string name="update_version" formatted="false">"版本 %1$s（%2$s）"</string>
+    <string name="update_debug" formatted="false">"调试构建"</string>
+    <string name="update_release" formatted="false">"发行构建"</string>
+    <string name="update_project" formatted="false">"项目主页"</string>
+    <string name="update_feedback" formatted="false">"反馈问题"</string>
+    <string name="update_feedback_privacy" formatted="false">"提交前请移除截图、日志和文件中的私人数据。"</string>
+    <string name="update_data" formatted="false">"数据与隐私"</string>
+    <string name="update_local" formatted="false">"浏览数据保存在设备本地。"</string>
+    <string name="update_data_description" formatted="false">"书签、历史、密码和网站账号保存在设备本地。启用 WebDAV 后，仅将设置同步到你指定的服务器。更新检查仅请求 GitHub 发布信息；不发送浏览记录、设置、密码或 Cookie。访问网页、搜索和规则订阅会连接相应服务。"</string>
+    <string name="update_environment" formatted="false">"Android %1$s · WebView %2$s"</string>
+    <string name="home_empty_hint" formatted="false">"输入网址或搜索，点击「＋」添加常用网站或文件夹。"</string>
+    <string name="update_help_title" formatted="false">"无法检查应用更新"</string>
+    <string name="update_help_body" formatted="false">"检查网络是否可以访问 GitHub，稍后重试或手动打开发布页。清岚只检查已公开发布、带有 APK 的正式版本；草稿和预发布版本不会显示为更新。自动检查可以在设置中关闭。"</string>
+    <string name="webdav_help_title" formatted="false">"WebDAV 同步失败"</string>
+    <string name="webdav_help_body" formatted="false">"检查 HTTPS 目录地址、账号和应用密码，确认目录已存在并允许写入。坚果云需要填写同步文件夹路径，不能直接向根地址上传。远端版本改变时，请重新发起操作；下载需要确认后才会替换本机设置。"</string>
 </resources>

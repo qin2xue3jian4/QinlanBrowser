@@ -2,10 +2,11 @@
 The test instrumentation deletes it after import. Never prints credential contents.
 """
 import pathlib
+import os
 import subprocess
 import sys
 
-ADB=r'D:\ProgramFiles\Android\Sdk\platform-tools\adb.exe'
+ADB=os.environ.get('ADB', 'adb')
 source=pathlib.Path(sys.argv[1])
 payload=source.read_bytes()
 if len(payload)>1048576: raise SystemExit('File exceeds 1 MB')

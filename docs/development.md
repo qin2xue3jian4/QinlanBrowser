@@ -59,6 +59,8 @@ adb shell am instrument -w -e resources true dev.qinglan.browser.test/dev.qingla
 
 建议使用模拟器或专用测试设备。Debug 包与正式包可能签名不同，不能直接互相覆盖。
 
+设备辅助工具通过 PATH 查找 `adb`，也可使用 `ADB` 环境变量指定可执行文件；不需要修改源码填写本机安装路径。调试凭据、设备数据和构建产物保存在被忽略的本地目录，不应打包或提交。
+
 CI 在 `main` 分支提交和 Pull Request 时运行，检查 Debug / Release 构建、单元测试与 lint，并保存 Debug APK 和报告。CI 的 Debug APK 仅用于测试，签名不保证跨运行一致。
 
 ## 目录
@@ -123,7 +125,7 @@ core 检查导航状态、网址全选、边缘按钮、整页截图首尾、PNG
 
 证书例外属于用户明确选择的兼容模式，偏离 Android 默认建议，不能把这种连接视为已验证身份：[WebViewClient SSL 处理](https://developer.android.com/reference/android/webkit/WebViewClient#onReceivedSslError(android.webkit.WebView,android.webkit.SslErrorHandler,android.net.http.SslError))。原生默认仍取消，永久例外必须匹配 origin 和证书指纹；每次导航清除 WebView 自身 SSL 决策缓存。
 
-0.11.1 回归增加了未编辑地址栏显示标题、菜单覆盖边缘翻页控件，以及只命名默认账号时的收藏子菜单检测。`controls blobCsp` 使用 `/csp` 页面测试与私人传输站点相同的 `connect-src 'self' ws: wss:` 策略，同时禁用 Blob fetch，验证直接对象读取、程序点击及立即 revoke 后的文件完整性。`controls blobSite` 在问题站点的临时隔离账号中创建本地合成 Blob，不登录或发送真实文件，测试后删除临时账号。
+0.11.1 回归增加了未编辑地址栏显示标题、菜单覆盖边缘翻页控件，以及只命名默认账号时的收藏子菜单检测。`controls blobCsp` 使用 `/csp` 页面测试限制 Blob 请求的 `connect-src 'self' ws: wss:` 策略，同时禁用 Blob fetch，验证直接对象读取、程序点击及立即 revoke 后的文件完整性。需要远端复现时，使用 `-e controls blobSite -e controlSite HTTPS_URL` 明确指定可控测试服务。检查在临时隔离账号中创建合成 Blob，不登录或发送真实文件，结束后删除临时账号；源码不预置私人服务器地址。
 
 Blob 对象捕获在文档开始注册，只记录顶层页面创建且未撤销的下载大小范围内 Blob。撤销时释放引用；下载点击可临时保留当前对象，以适配立即 revoke 的网站。普通跨文档、跨 origin 和已关闭账号请求仍拒绝。不能通过移除 CSP 或全局降低 WebView 安全配置解决网站下载兼容问题。
 
@@ -156,7 +158,7 @@ remote 只抓取官方脚本源码验证链接解析。popular 实时读取全�
 
 用户脚本的原生接口只使用 AndroidX WebMessageListener，不使用 addJavascriptInterface。每个脚本桥校验随机凭据、WebView 提供的 sourceOrigin、匹配规则和操作授权；请求不复用浏览器 Cookie 或证书例外。原生消息桥保持到 WebView 销毁，启用/更新时轮换凭据并替换注入脚本，避免删除正在派发回复的原生监听器。document-start 时 `WebView.url` 可能仍为旧地址，loadDataWithBaseURL 的历史地址也可能为 about:blank，身份检查依赖可信 sourceOrigin 和文档绑定的回复代理。
 
-调试设备使用 `adb shell svc power stayon true` 在供电时保持唤醒。测试手机原始 screen_off_timeout 是 600000；本次调试延长为 86400000，恢复可用 `adb shell settings put system screen_off_timeout 600000`。原始充电唤醒设置已经是 7，测试结束继续保留充电常亮。USB 断开或手动安全锁屏仍可能影响界面测试。
+设备回归应使用模拟器或专用测试设备。需要延长亮屏时间时，先记录设备原值，在测试结束后恢复。不要在公开日志中包含设备序列号、账号、Cookie 或私有文件；USB 断开和锁屏可能影响界面测试。
 
 ## WebDAV 设置同步回归
 
@@ -173,6 +175,17 @@ adb shell am instrument -w -e webdav core dev.qinglan.browser.test/dev.qinglan.b
 真实服务测试仅显式运行 `-e webdav remote`：提前在目标应用的私有 `files/qa-webdav.json` 放入 `directory`、`username`、`password`，目录必须已存在且可写，凭据不得提交。检查会创建随机命名的 `qinglan-webdav-qa-*.json`，验证创建、下载、替换、确认期间的创建冲突和过期 ETag 拒绝，最后删除该文件及私有凭据。坚果云测试目录需位于已存在的同步文件夹下；测试后另行删除自行创建的空目录。
 
 坚果云忽略 PUT 的 `If-None-Match: *`，因此上传在确认后再次读取远端并比较内容和 ETag；首次创建仍有服务器不提供原子条件创建带来的短暂竞态。已有文件更新通过 `If-Match` 实测返回 412 拒绝过期版本。单线程操作、返回不自动恢复、1 MB 上限和系统 HTTPS 校验不依赖浏览器 Cookie 或证书例外。
+
+## 应用更新回归
+
+`AppUpdatesTest` 覆盖语义版本比较、预发布/草稿排除、项目 APK 和来源 URL 校验、每日检查间隔、请求错误、响应大小及设置备份边界。更新使用 [GitHub latest release API](https://docs.github.com/en/rest/releases/releases#get-the-latest-release)，不带认证信息，不复用浏览器 Cookie 或证书例外。
+
+```sh
+adb shell am instrument -w -e updates core dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+adb shell am instrument -w -e updates remote dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+```
+
+core 使用独立更新状态和合成版本，验证关闭自动检查、每日频率、缓存重读、手动重查、更新详情和关于页，结束后恢复原偏好并删除测试状态。remote 仅请求项目公开 API，报告最新可安装正式版本或暂无版本，不下载或安装文件。公开仓库不存在可安装正式版本时，不应把 404 当作网络失败或已是最新版本。
 
 `userscripts review` 把同批公开脚本保存到应用 cache/qa-popular-source 供静态分析，不执行代码。常用接口回归的剪贴板和新标签 API 使用合成接收器，不读取或覆盖用户剪贴板，也不打开外部网页。
 

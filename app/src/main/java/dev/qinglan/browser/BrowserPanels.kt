@@ -25,6 +25,7 @@ class BrowserPanels(val a:BrowserActivity){
     val reader=ReaderPanels(this)
     val settingsUi=SettingsPanels(this)
     val webdav=WebDavPanels(this)
+    val updates=UpdatePanels(this)
     val menuPanels=MenuPanels(this)
     fun dialog(view:View,bottom:Boolean=true):Dialog {val scroll=ScrollView(a).apply{addView(view)};val d=Dialog(a);if(a.isIncognito)d.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE);d.setContentView(scroll);d.window?.setBackgroundDrawable(u.round(u.panel,24));d.show();d.window?.apply{setGravity(if(bottom)Gravity.BOTTOM else Gravity.CENTER);setLayout(a.resources.displayMetrics.widthPixels-u.dp(20),-2)};return d}
     fun info(title:String,message:String){pages.show(title){it.addView(u.label(message))}}
@@ -90,13 +91,29 @@ class BrowserPanels(val a:BrowserActivity){
             tr("下载一直没有进度") to tr("下载由系统下载器处理。检查网络、可用存储空间，以及是否开启仅 Wi-Fi 下载。部分系统会先等待或重试；系统未返回失败前清岚不能判断原因。可取消任务后重试，或复制来源链接交给其他下载工具。带登录的链接可能会过期。"),
             tr("网站无法使用相机、麦克风或位置") to tr("只支持前台 HTTPS 同源网站的逐次请求。检查网站设置是否允许询问，再检查系统是否授予清岚对应权限。跨源嵌入页面和未知权限类型会被拒绝；位置只使用大致位置。"),
             tr("离线文章与备份") to tr("阅读模式保存的是纯文字正文，最多 100 篇 / 20 MB，不包含图片。离线文章保存在本机，卸载清岚会删除；重要文章可导出 TXT。设置备份不包含离线文章、Cookie、历史、下载和标签。"),
+            tr("无法检查应用更新") to tr("检查网络是否可以访问 GitHub，稍后重试或手动打开发布页。清岚只检查已公开发布、带有 APK 的正式版本；草稿和预发布版本不会显示为更新。自动检查可以在设置中关闭。"),
+            tr("WebDAV 同步失败") to tr("检查 HTTPS 目录地址、账号和应用密码，确认目录已存在并允许写入。坚果云需要填写同步文件夹路径，不能直接向根地址上传。远端版本改变时，请重新发起操作；下载需要确认后才会替换本机设置。"),
             tr("关闭历史是否等于无痕") to tr("不是。关闭历史记录只停止新增浏览历史，Cookie、缓存、当前标签与下载仍会保留。如需隔离登录和网站数据，请从菜单进入无痕模式；退出时清理该会话，主动保存的文件和书签仍会保留。")
         ).forEach{(title,body)->col.addView(u.item(title){info(title,body)})}
         col.addView(u.item(tr("系统应用权限")){runCatching{a.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:${a.packageName}")))}.onFailure{a.toast(tr("请打开系统应用设置"))}})
-        col.addView(u.button(tr("复制诊断信息")){a.copy(tr("清岚诊断"),tr("清岚 %1\$s (%2\$s)\nAndroid %3\$s / API %4\$s\nWebView %5\$s\n广告过滤：%6\$s\n用户脚本：请在反馈时说明是否启用\n请补充问题现象和复现步骤。", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, Build.VERSION.RELEASE, Build.VERSION.SDK_INT, WebView.getCurrentWebViewPackage()?.versionName?:tr("未知"), prefs.getBoolean("adblockEnabled",true)))})
+        col.addView(u.button(tr("复制诊断信息")){a.copy(tr("清岚诊断"),tr("清岚 %1\$s (%2\$s)\nAndroid %3\$s / API %4\$s\nWebView %5\$s\n广告过滤：%6\$s\n用户脚本：请在反馈时说明是否启用\n请补充问题现象和复现步骤。", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, Build.VERSION.RELEASE, Build.VERSION.SDK_INT, WebView.getCurrentWebViewPackage()?.versionName?:tr("未知"), if(prefs.getBoolean("adblockEnabled",true))tr("开启")else tr("关闭")))})
         col.addView(u.label(tr("诊断信息不包含网址、Cookie、密码或历史。复制后由你决定是否分享。"),12f,u.muted))
     }}
-    fun about(){pages.show(tr("关于项目")){col->col.addView(u.item(tr("正文提取开源许可"),"Mozilla Readability 0.6.0 · Apache 2.0"){info("Mozilla Readability",a.assets.open("reader/NOTICE.txt").bufferedReader().use{it.readText()}+"\n\n"+a.assets.open("reader/LICENSE.md").bufferedReader().use{it.readText()})});col.addView(u.label(tr("清岚 %1\$s\nAndroid %2\$s\nWebView %3\$s\n\n使用系统 WebView，数据保存在本机。", BuildConfig.VERSION_NAME, Build.VERSION.RELEASE, WebView.getCurrentWebViewPackage()?.versionName?:tr("未知"))));col.addView(u.item(tr("过滤规则与公共后缀表许可")){filter.information()});col.addView(u.item(tr("MPL 2.0 许可证")){info("MPL 2.0",a.assets.open("MPL-2.0.txt").bufferedReader().use{it.readText()})});col.addView(u.item(tr("开源许可"),"ZXing · Apache License 2.0"){info(tr("ZXing 开源许可"),a.assets.open("zxing-LICENSE.txt").bufferedReader().use{it.readText()})})}}
+    fun about(){pages.show(tr("关于项目")){col->
+        col.addView(u.title(tr("清岚")))
+        col.addView(u.label(tr("轻量、简洁的 Android 浏览器"),14f,u.muted))
+        col.addView(u.label(tr("版本 %1\$s（%2\$s）",BuildConfig.VERSION_NAME,BuildConfig.VERSION_CODE)))
+        col.addView(u.label(if(BuildConfig.DEBUG)tr("调试构建")else tr("发行构建"),12f,u.muted))
+        col.addView(u.item(tr("检查更新")){updates.show()})
+        col.addView(u.item(tr("项目主页"),"GitHub"){pages.close();a.open(ProjectLinks.repository,true)})
+        col.addView(u.item(tr("反馈问题"),tr("提交前请移除截图、日志和文件中的私人数据。")){pages.close();a.open(ProjectLinks.issues,true)})
+        col.addView(u.item(tr("数据与隐私"),tr("浏览数据保存在设备本地。")){info(tr("数据与隐私"),tr("书签、历史、密码和网站账号保存在设备本地。启用 WebDAV 后，仅将设置同步到你指定的服务器。更新检查仅请求 GitHub 发布信息；不发送浏览记录、设置、密码或 Cookie。访问网页、搜索和规则订阅会连接相应服务。"))})
+        col.addView(u.label(tr("Android %1\$s · WebView %2\$s",Build.VERSION.RELEASE,WebView.getCurrentWebViewPackage()?.versionName?:tr("未知")),12f,u.muted))
+        col.addView(u.item(tr("正文提取开源许可"),"Mozilla Readability 0.6.0 · Apache 2.0"){info("Mozilla Readability",a.assets.open("reader/NOTICE.txt").bufferedReader().use{it.readText()}+"\n\n"+a.assets.open("reader/LICENSE.md").bufferedReader().use{it.readText()})})
+        col.addView(u.item(tr("过滤规则与公共后缀表许可")){filter.information()})
+        col.addView(u.item(tr("MPL 2.0 许可证")){info("MPL 2.0",a.assets.open("MPL-2.0.txt").bufferedReader().use{it.readText()})})
+        col.addView(u.item(tr("开源许可"),"ZXing · Apache License 2.0"){info(tr("ZXing 开源许可"),a.assets.open("zxing-LICENSE.txt").bufferedReader().use{it.readText()})})
+    }}
     fun searchEngine(permanent:Boolean=false)=searches.show(permanent)
     fun clearData(){pages.show(tr("清理浏览数据")){col->col.addView(u.label(tr("历史记录共用；以下缓存、Cookie 和网站存储仅清理默认账号。独立账号请在网站多账号中删除对应空间。"),13f,u.muted));val labels=listOf(tr("历史记录和最近关闭"),tr("默认账号网页缓存"),tr("默认账号所有网站 Cookie（退出登录）"),tr("默认账号网站本地存储"));val boxes=labels.map{CheckBox(a).apply{text=it;setTextColor(u.text)}.also(col::addView)};col.addView(u.button(tr("清理所选数据")){val checks=boxes.map{it.isChecked};if(checks.none{it})return@button;confirm(tr("确认清理"),labels.filterIndexed{i,_->checks[i]}.joinToString("\n")){if(checks[0])a.clearHistoryData();if(checks[1]){val existing=a.tabs.filter{it.accountId.isEmpty()&&!it.incognito}.firstNotNullOfOrNull{it.web};if(existing!=null)existing.clearCache(true)else WebView(a).apply{clearCache(true);destroy()}};if(checks[2])CookieManager.getInstance().removeAllCookies{CookieManager.getInstance().flush()};if(checks[3])WebStorage.getInstance().deleteAllData();a.toast(tr("已清理"))}})}}
     fun reading(){pages.show(tr("朗读本页")){col->val status=u.label(if(a.speech.speaking)tr("正在朗读")else if(a.speech.paused)tr("已暂停")else tr("使用系统语音引擎朗读本页正文"));col.addView(status);a.speech.observe(status){status.text=if(a.speech.speaking)tr("正在朗读")else if(a.speech.paused)tr("已暂停")else tr("已停止")};col.addView(u.button(tr("开始 / 重新朗读"),true){a.speech.readPage()});col.addView(u.button(tr("暂停")){a.speech.pause()});col.addView(u.button(tr("继续")){a.speech.resume()});col.addView(u.button(tr("停止")){a.speech.stop()});col.addView(u.label(tr("离开应用时暂停；长页面最多读取前 8 万字符。"),12f,u.muted));col.addView(u.item(tr("系统语音设置")){runCatching{a.startActivity(Intent("com.android.settings.TTS_SETTINGS"))}.onFailure{a.toast(tr("系统未提供语音设置入口"))}})}}

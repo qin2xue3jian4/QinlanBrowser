@@ -67,6 +67,7 @@ jobs:
           QINGLAN_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           QINGLAN_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          python3 tools/localization.py
           python3 -m unittest discover -s tools/tests -v
           ./gradlew --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleRelease
       - name: Verify and package APK

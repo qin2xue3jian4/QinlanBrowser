@@ -29,7 +29,9 @@ jobs:
       - name: Install Android SDK components
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - name: Check release tooling
-        run: python3 -m unittest discover -s tools/tests -v
+        run: |
+          python3 tools/localization.py
+          python3 -m unittest discover -s tools/tests -v
       - name: Build and check
         run: ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease :app:testDebugUnitTest :app:lintDebug
       - name: Upload debug APK

@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 
 /** Local synthetic pages only. Restore existing preferences and selected tab after checks. */
 object ControlsChecks {
-    fun run(r:Instrumentation,mode:String){val result=Bundle();var passed=true;var a:BrowserActivity?=null;var oldTab=0L;val created=mutableListOf<Long>();var oldPrefs=mapOf<String,Any?>();var account=""
+    fun run(r:Instrumentation,mode:String,siteUrl:String=""){val result=Bundle();var passed=true;var a:BrowserActivity?=null;var oldTab=0L;val created=mutableListOf<Long>();var oldPrefs=mapOf<String,Any?>();var account=""
         val keys=listOf("httpsOnly","certificateExceptions","edgeScroll","blobDownloads","recordHistory","shareFormat","site.127.0.0.1.ua","site.127.0.0.1.desktop","certificate.https://127.0.0.1:8893")
         fun main(run:()->Unit){var failure:Throwable?=null;r.runOnMainSync{try{run()}catch(e:Throwable){failure=e}};failure?.let{throw it}}
         try{
@@ -38,7 +38,7 @@ object ControlsChecks {
             fun prompt():AlertDialog? {val f=WebSecurity::class.java.getDeclaredField("prompt");f.isAccessible=true;return f.get(activity.security) as? AlertDialog}
             fun choose(i:Int){waitFor{prompt()?.isShowing==true};main{prompt()!!.getButton(when(i){0->AlertDialog.BUTTON_NEGATIVE;1->AlertDialog.BUTTON_POSITIVE;else->AlertDialog.BUTTON_NEUTRAL}).performClick()}}
             if(mode in listOf("blobCsp","blobSite")){
-                val url=if(mode=="blobSite")"https://47.107.169.3:8002/"else"http://127.0.0.1:8892/csp"
+                val url=if(mode=="blobSite")siteUrl.also{check(FilterSubscriptions.validUrl(it)){"Provide an HTTPS test URL with -e controlSite"}}else"http://127.0.0.1:8892/csp"
                 main{
                     if(mode=="blobSite"){
                         check(PrivateSession.supported());account=activity.accounts.create("Controls CSP temporary",url).id
