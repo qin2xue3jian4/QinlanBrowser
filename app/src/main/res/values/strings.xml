@@ -1055,4 +1055,51 @@
     <string name="userscripts_016" formatted="false">"Too many script dependencies"</string>
     <string name="userscripts_017" formatted="false">"Invalid script resource"</string>
     <string name="userscripts_018" formatted="false">"Installed scripts exceed the total size limit"</string>
+    <string name="webdav_directory_error" formatted="false">"Enter an HTTPS WebDAV directory URL without credentials, query parameters or fragments"</string>
+    <string name="webdav_credentials_error" formatted="false">"Enter a valid WebDAV username and app password"</string>
+    <string name="webdav_too_large" formatted="false">"The settings sync file exceeds 1 MB"</string>
+    <string name="webdav_invalid_file" formatted="false">"The remote file is not valid Qinglan settings. Local settings were kept."</string>
+    <string name="webdav_missing_etag" formatted="false">"The server did not provide a valid ETag. Remote settings cannot be safely replaced."</string>
+    <string name="webdav_tls_error" formatted="false">"WebDAV certificate validation failed. Check the server certificate."</string>
+    <string name="webdav_network_error" formatted="false">"WebDAV connection failed or timed out. Check the network and directory URL."</string>
+    <string name="webdav_auth_error" formatted="false">"WebDAV authentication failed or permission was denied. Check your username and app password."</string>
+    <string name="webdav_directory_missing" formatted="false">"The WebDAV directory does not exist. Create it on the server first."</string>
+    <string name="webdav_conflict" formatted="false">"Remote settings have changed. Download again or restart the upload."</string>
+    <string name="webdav_redirect" formatted="false">"The server requires a redirect. Enter the final HTTPS directory URL."</string>
+    <string name="webdav_server_limit" formatted="false">"The settings sync file exceeds the server limit"</string>
+    <string name="webdav_rate_limit" formatted="false">"Too many WebDAV requests. Try again later."</string>
+    <string name="webdav_http_error" formatted="false">"WebDAV operation failed (HTTP %1$s)"</string>
+    <string name="webdav_decrypt_error" formatted="false">"Unable to decrypt the WebDAV configuration. Save it again; the original file was kept."</string>
+    <string name="webdav_title" formatted="false">"WebDAV settings sync"</string>
+    <string name="webdav_scope" formatted="false">"Manually sync browser, website, menu, search and filter settings, and interface language. Bookmarks, home favorites, passwords, cookies, history and tabs are excluded."</string>
+    <string name="webdav_storage" formatted="false">"Settings are stored as JSON in your WebDAV directory. Create the directory first; Nutstore requires a third-party app password."</string>
+    <string name="webdav_directory" formatted="false">"HTTPS WebDAV directory URL"</string>
+    <string name="webdav_username" formatted="false">"WebDAV username"</string>
+    <string name="webdav_password" formatted="false">"WebDAV app password"</string>
+    <string name="webdav_keep_password" formatted="false">"WebDAV app password (leave blank to keep saved password)"</string>
+    <string name="webdav_save" formatted="false">"Save WebDAV configuration"</string>
+    <string name="webdav_busy" formatted="false">"Sync in progress. Please wait."</string>
+    <string name="webdav_changed_server" formatted="false">"Re-enter the app password when changing the server or username"</string>
+    <string name="webdav_saved" formatted="false">"WebDAV configuration saved with encryption"</string>
+    <string name="webdav_file" formatted="false">"Remote file: %1$s"</string>
+    <string name="webdav_download" formatted="false">"Check connection / Download settings"</string>
+    <string name="webdav_downloading" formatted="false">"Downloading settings…"</string>
+    <string name="webdav_empty" formatted="false">"No remote settings file yet. Upload local settings to verify write access."</string>
+    <string name="webdav_restore" formatted="false">"Restore remote settings"</string>
+    <string name="webdav_restore_confirm" formatted="false">"The remote file contains %1$s settings. Confirm to replace local syncable settings; items absent from the file return to defaults."</string>
+    <string name="webdav_restored" formatted="false">"Remote settings restored"</string>
+    <string name="webdav_upload" formatted="false">"Upload local settings"</string>
+    <string name="webdav_checking" formatted="false">"Checking remote settings…"</string>
+    <string name="webdav_create_confirm" formatted="false">"A settings file will be created in the WebDAV directory. Upload the current local settings?"</string>
+    <string name="webdav_replace_confirm" formatted="false">"The remote file already has %1$s settings. Replace them with the current local settings?"</string>
+    <string name="webdav_uploading" formatted="false">"Uploading settings…"</string>
+    <string name="webdav_uploaded" formatted="false">"Local settings uploaded"</string>
+    <string name="webdav_delete" formatted="false">"Delete local WebDAV configuration"</string>
+    <string name="webdav_delete_confirm" formatted="false">"Delete the server and credentials saved on this device. The remote settings file is kept."</string>
+    <string name="webdav_save_first" formatted="false">"Save the WebDAV configuration first"</string>
+    <string name="webdav_leave" formatted="false">"You can go back. Settings will not be restored automatically when the transfer finishes."</string>
+    <string name="webdav_completed" formatted="false">"WebDAV operation completed"</string>
+    <string name="webdav_description" formatted="false">"Connect to your WebDAV server to manually upload or restore browser settings."</string>
+    <string name="webdav_keywords" formatted="false">"sync Nutstore cloud settings"</string>
+    <string name="webdav_save_failed" formatted="false">"Unable to save synced settings. Original settings were restored."</string>
 </resources>

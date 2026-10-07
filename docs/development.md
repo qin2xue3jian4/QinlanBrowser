@@ -158,6 +158,22 @@ remote 只抓取官方脚本源码验证链接解析。popular 实时读取全�
 
 调试设备使用 `adb shell svc power stayon true` 在供电时保持唤醒。测试手机原始 screen_off_timeout 是 600000；本次调试延长为 86400000，恢复可用 `adb shell settings put system screen_off_timeout 600000`。原始充电唤醒设置已经是 7，测试结束继续保留充电常亮。USB 断开或手动安全锁屏仍可能影响界面测试。
 
+## WebDAV 设置同步回归
+
+`WebDavSyncTest` 覆盖 HTTPS 目录及凭据校验、设置白名单与语言、损坏/超大文件、错误响应不泄漏、禁止重定向、条件创建、ETag 更新和确认后复查。标准强 ETag 按原样发送；坚果云返回不加引号的版本标识，实测需要原样发送 `If-Match`，不能补引号。服务器条件请求语义参考 [HTTP 条件请求](https://www.rfc-editor.org/rfc/rfc9110.html#section-13)。
+
+安装 Debug 和 AndroidTest APK 后运行：
+
+```sh
+adb shell am instrument -w -e webdav core dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+```
+
+该检查使用单独的合成配置文件和 Keystore alias，验证加密存储、篡改拒绝/保留原文件、默认值恢复、其他偏好保留和原生设置入口；结束后恢复原设置并删除测试文件与密钥。MIUI 阻止后台 Activity 启动时，从另一终端启动 BrowserActivity。
+
+真实服务测试仅显式运行 `-e webdav remote`：提前在目标应用的私有 `files/qa-webdav.json` 放入 `directory`、`username`、`password`，目录必须已存在且可写，凭据不得提交。检查会创建随机命名的 `qinglan-webdav-qa-*.json`，验证创建、下载、替换、确认期间的创建冲突和过期 ETag 拒绝，最后删除该文件及私有凭据。坚果云测试目录需位于已存在的同步文件夹下；测试后另行删除自行创建的空目录。
+
+坚果云忽略 PUT 的 `If-None-Match: *`，因此上传在确认后再次读取远端并比较内容和 ETag；首次创建仍有服务器不提供原子条件创建带来的短暂竞态。已有文件更新通过 `If-Match` 实测返回 412 拒绝过期版本。单线程操作、返回不自动恢复、1 MB 上限和系统 HTTPS 校验不依赖浏览器 Cookie 或证书例外。
+
 `userscripts review` 把同批公开脚本保存到应用 cache/qa-popular-source 供静态分析，不执行代码。常用接口回归的剪贴板和新标签 API 使用合成接收器，不读取或覆盖用户剪贴板，也不打开外部网页。
 
 安装入口另有 Greasy Fork 站点文档开始 hook：只接收官方 HTTPS 主框架的 .user.js 链接，真实点击先进入原生预览，避免站点扩展安装提示拦截；不会自动安装。安装回归使用受信任触摸事件与合成的扩展提示拦截器验证该顺序，并读取官方远程源码。

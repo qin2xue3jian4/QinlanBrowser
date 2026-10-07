@@ -59,6 +59,7 @@ object SettingCatalog {
         SettingSpec("readingList",tr("离线文章"),tr("数据管理"),tr("在阅读模式保存纯文字正文，不含图片；无需网络再次阅读。"),keywords=tr("稍后阅读 保存 本地")),
         SettingSpec("print",tr("打印 / 保存 PDF"),tr("网页工具"),tr("调用系统打印，可选择保存为 PDF。"),keywords=tr("导出 网页")),
         SettingSpec("backup",tr("备份与恢复"),tr("数据管理"),tr("文件保存在你选择的位置，不需要清岚账号或服务器。"),keywords=tr("导入 导出 书签")),
+        SettingSpec("webdav",tr("WebDAV 设置同步"),tr("数据管理"),tr("连接自己的 WebDAV 服务器，手动上传或恢复浏览器设置。"),keywords="WebDAV webdev "+tr("同步 坚果云 云端 设置")),
         SettingSpec("passwords",tr("密码管理"),tr("数据管理"),tr("本机加密，手动保存与填入；导出需要口令。"),keywords=tr("账号 登录")),
         SettingSpec("cookies",tr("Cookie 管理"),tr("数据管理"),tr("查看和管理网站 Cookie；导出可能包含登录凭据。"),keywords=tr("导入 导出 登录")),
         SettingSpec("clear",tr("清理浏览数据"),tr("数据管理"),tr("自行选择历史、缓存、Cookie 和网站存储。"),keywords=tr("删除 隐私 缓存")),
@@ -72,7 +73,7 @@ object SettingCatalog {
         tr("浏览与搜索") to listOf(Section(tr("搜索"),listOf("search","localSuggestions")),Section(tr("链接与标签"),listOf("collectionOpen","externalNewTab","restore","activeWebViews"))),
         tr("网站与隐私") to listOf(Section(tr("网站例外"),listOf("siteOverrides","accounts","certificateTrust")),Section(tr("连接安全"),listOf("httpsOnly","certificateExceptions")),Section(tr("内容与显示"),listOf("js","desktop","noImages","webDark","autoplay")),Section(tr("隐私与跳转"),listOf("incognito","thirdParty","recordHistory","externalApps")),Section(tr("网站权限询问"),listOf("cameraPrompt","microphonePrompt","locationPrompt"))),
         tr("工具") to listOf(Section(tr("标签整理"),listOf("tabSearch","undo","closeOtherTabs")),Section(tr("阅读与朗读"),listOf("reader","readerSize","readerSpacing","readerKeepAwake","speech","speechRate")),Section(tr("网页处理"),listOf("filter","scripts","resourceSniffing","downloadWifiOnly","blobDownloads","shareFormat","print","tools"))),
-        tr("数据管理") to listOf(Section(tr("保存的数据"),listOf("readingList","passwords","cookies")),Section(tr("备份与清理"),listOf("backup","clear"))),
+        tr("数据管理") to listOf(Section(tr("保存的数据"),listOf("readingList","passwords","cookies")),Section(tr("备份与清理"),listOf("backup","webdav","clear"))),
         tr("关于") to listOf(Section("",listOf("defaultBrowser","help","about")))
     )
     private val extra get()=listOf(

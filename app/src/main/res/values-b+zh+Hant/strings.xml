@@ -1055,4 +1055,51 @@
     <string name="userscripts_016" formatted="false">"腳本相依項目過多"</string>
     <string name="userscripts_017" formatted="false">"無效腳本資源"</string>
     <string name="userscripts_018" formatted="false">"腳本總大小超過限制"</string>
+    <string name="webdav_directory_error" formatted="false">"請輸入不含帳號、查詢參數或片段的 HTTPS WebDAV 目錄網址"</string>
+    <string name="webdav_credentials_error" formatted="false">"請輸入有效的 WebDAV 帳號和應用程式密碼"</string>
+    <string name="webdav_too_large" formatted="false">"同步設定檔案超過 1 MB"</string>
+    <string name="webdav_invalid_file" formatted="false">"遠端檔案不是有效的清嵐設定，未更改本機設定"</string>
+    <string name="webdav_missing_etag" formatted="false">"伺服器未提供有效的 ETag，無法安全覆寫遠端設定"</string>
+    <string name="webdav_tls_error" formatted="false">"WebDAV 憑證驗證失敗，請檢查伺服器憑證"</string>
+    <string name="webdav_network_error" formatted="false">"WebDAV 連線失敗或逾時，請檢查網路和目錄網址"</string>
+    <string name="webdav_auth_error" formatted="false">"WebDAV 驗證失敗或沒有權限，請檢查帳號和應用程式密碼"</string>
+    <string name="webdav_directory_missing" formatted="false">"WebDAV 目錄不存在，請先在伺服器建立目錄"</string>
+    <string name="webdav_conflict" formatted="false">"遠端設定已改變，請重新下載或重新開始上傳"</string>
+    <string name="webdav_redirect" formatted="false">"伺服器要求重新導向，請填寫最終 HTTPS 目錄網址"</string>
+    <string name="webdav_server_limit" formatted="false">"同步設定檔案超過伺服器限制"</string>
+    <string name="webdav_rate_limit" formatted="false">"WebDAV 請求過於頻繁，請稍後重試"</string>
+    <string name="webdav_http_error" formatted="false">"WebDAV 操作失敗（HTTP %1$s）"</string>
+    <string name="webdav_decrypt_error" formatted="false">"無法解密 WebDAV 設定，請重新儲存；原檔案已保留"</string>
+    <string name="webdav_title" formatted="false">"WebDAV 設定同步"</string>
+    <string name="webdav_scope" formatted="false">"手動同步瀏覽器、網站、選單、搜尋與過濾設定及介面語言。不會同步書籤、首頁收藏、密碼、Cookie、歷史或分頁。"</string>
+    <string name="webdav_storage" formatted="false">"設定以 JSON 儲存在你指定的 WebDAV 目錄。請先建立目錄；堅果雲使用第三方應用程式密碼。"</string>
+    <string name="webdav_directory" formatted="false">"HTTPS WebDAV 目錄網址"</string>
+    <string name="webdav_username" formatted="false">"WebDAV 帳號"</string>
+    <string name="webdav_password" formatted="false">"WebDAV 應用程式密碼"</string>
+    <string name="webdav_keep_password" formatted="false">"WebDAV 應用程式密碼（留空保留已儲存密碼）"</string>
+    <string name="webdav_save" formatted="false">"儲存 WebDAV 設定"</string>
+    <string name="webdav_busy" formatted="false">"正在同步，請稍候"</string>
+    <string name="webdav_changed_server" formatted="false">"更改伺服器或帳號時，請重新輸入應用程式密碼"</string>
+    <string name="webdav_saved" formatted="false">"WebDAV 設定已加密儲存"</string>
+    <string name="webdav_file" formatted="false">"遠端檔案：%1$s"</string>
+    <string name="webdav_download" formatted="false">"檢查連線 / 下載設定"</string>
+    <string name="webdav_downloading" formatted="false">"正在下載設定…"</string>
+    <string name="webdav_empty" formatted="false">"遠端尚無設定檔案，可上傳本機設定；上傳時驗證寫入權限"</string>
+    <string name="webdav_restore" formatted="false">"還原遠端設定"</string>
+    <string name="webdav_restore_confirm" formatted="false">"遠端包含 %1$s 項設定。確認後取代本機可同步設定，未在檔案中的項目還原預設值。"</string>
+    <string name="webdav_restored" formatted="false">"已還原遠端設定"</string>
+    <string name="webdav_upload" formatted="false">"上傳本機設定"</string>
+    <string name="webdav_checking" formatted="false">"正在檢查遠端設定…"</string>
+    <string name="webdav_create_confirm" formatted="false">"將在 WebDAV 目錄建立設定檔案。確認上傳目前本機設定？"</string>
+    <string name="webdav_replace_confirm" formatted="false">"遠端已有 %1$s 項設定，確認以目前本機設定取代？"</string>
+    <string name="webdav_uploading" formatted="false">"正在上傳設定…"</string>
+    <string name="webdav_uploaded" formatted="false">"本機設定已上傳"</string>
+    <string name="webdav_delete" formatted="false">"刪除本機 WebDAV 設定"</string>
+    <string name="webdav_delete_confirm" formatted="false">"刪除本機儲存的伺服器和憑據；遠端設定檔案仍保留。"</string>
+    <string name="webdav_save_first" formatted="false">"請先儲存 WebDAV 設定"</string>
+    <string name="webdav_leave" formatted="false">"可以返回；傳輸完成後不會自動還原設定。"</string>
+    <string name="webdav_completed" formatted="false">"WebDAV 操作已完成"</string>
+    <string name="webdav_description" formatted="false">"連線到自己的 WebDAV 伺服器，手動上傳或還原瀏覽器設定。"</string>
+    <string name="webdav_keywords" formatted="false">"同步 堅果雲 雲端 設定"</string>
+    <string name="webdav_save_failed" formatted="false">"儲存同步設定失敗，已還原原設定"</string>
 </resources>

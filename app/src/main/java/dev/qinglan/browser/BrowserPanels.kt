@@ -24,6 +24,7 @@ class BrowserPanels(val a:BrowserActivity){
     val resources=ResourcePanels(this)
     val reader=ReaderPanels(this)
     val settingsUi=SettingsPanels(this)
+    val webdav=WebDavPanels(this)
     val menuPanels=MenuPanels(this)
     fun dialog(view:View,bottom:Boolean=true):Dialog {val scroll=ScrollView(a).apply{addView(view)};val d=Dialog(a);if(a.isIncognito)d.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE);d.setContentView(scroll);d.window?.setBackgroundDrawable(u.round(u.panel,24));d.show();d.window?.apply{setGravity(if(bottom)Gravity.BOTTOM else Gravity.CENTER);setLayout(a.resources.displayMetrics.widthPixels-u.dp(20),-2)};return d}
     fun info(title:String,message:String){pages.show(title){it.addView(u.label(message))}}

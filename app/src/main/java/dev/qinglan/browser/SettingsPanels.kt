@@ -62,6 +62,7 @@ class SettingsPanels(private val p:BrowserPanels) {
             "incognito"->a.privateMode()
             "tabSearch"->p.searchTabs();"undo"->{p.pages.close();a.undoCloseTab()};"closeOtherTabs"->p.closeOtherTabs();"tools"->p.menuPanels.allTools()
             "backup"->p.vault.backup();"passwords"->p.vault.passwords();"cookies"->p.cookies()
+            "webdav"->p.webdav.show()
             "clear"->p.clearData();"about"->p.about();"help"->p.help()
             "defaultBrowser"->runCatching{
                 if(android.os.Build.VERSION.SDK_INT>=29){val roles=a.getSystemService(android.app.role.RoleManager::class.java);if(roles.isRoleHeld(android.app.role.RoleManager.ROLE_BROWSER))a.toast(tr("清岚已经是默认浏览器"))else if(roles.isRoleAvailable(android.app.role.RoleManager.ROLE_BROWSER))a.startActivityForResult(roles.createRequestRoleIntent(android.app.role.RoleManager.ROLE_BROWSER),106)else a.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))}
@@ -79,6 +80,26 @@ class SettingsPanels(private val p:BrowserPanels) {
         }
     }
     private fun set(s:SettingSpec,v:Any){val e=p.prefs.edit();when(v){is Boolean->e.putBoolean(s.id,v);is Int->e.putInt(s.id,v);is String->e.putString(s.id,v)};e.apply();apply(s.id)}
+    fun restoreSynced(snapshot:WebDavSettings.Snapshot) {
+        // Revalidate at the write boundary before removing anything.
+        val checked=WebDavSettings.parse(WebDavSettings.export(snapshot.settings,snapshot.language?:AppLanguage.choice(a)))
+        val old=p.prefs.all.filterKeys(BackupCodec::allowed)
+        fun replace(values:Map<String,*>)=p.prefs.edit().apply {
+            p.prefs.all.keys.filter(BackupCodec::allowed).forEach(::remove)
+            values.forEach{(key,value)->when(value){is Boolean->putBoolean(key,value);is Int->putInt(key,value);is String->putString(key,value)}}
+        }
+        if(!replace(checked.settings).commit()){
+            replace(old).commit()
+            error(tr("保存同步设置失败，已恢复原设置"))
+        }
+        a.security.clear()
+        a.webPermissions.cancel()
+        if(!p.prefs.getBoolean("blobDownloads",false))a.tabs.forEach{it.web?.let(a.blobs::finished)}
+        a.filtering.subscriptions.rebuild()
+        apply("httpsOnly")
+        a.retheme();a.trimTabs();a.showAddress();a.updateScrollButtons()
+        snapshot.language?.takeIf{it!=AppLanguage.choice(a)}?.let{p.pages.close();AppLanguage.set(a,it)}
+    }
     private fun apply(id:String){
         if(id in listOf("theme","bottomAddress","toolbarAction","homeColumns","homeTitle"))a.retheme()
         if(id=="autoHideAddress")a.showAddress()
