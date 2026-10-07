@@ -33,6 +33,12 @@ class AppUpdatesTest {
         val wrong=payload();wrong.getJSONArray("assets").getJSONObject(0).put("browser_download_url","https://example.test/fake.apk")
         assertNull(AppRelease.parse(wrong.toString()))
     }
+    @Test fun releaseUiTagsWithoutVKeepTheirExactOfficialDownloadPage() {
+        val release=AppRelease.parse(payload("1.0.0").toString())!!
+        assertEquals("1.0.0",release.tag);assertEquals("${ProjectLinks.releases}/tag/1.0.0",release.page)
+        assertTrue(release.newerThan("0.11.3"));assertEquals(release,AppRelease.parse(release.cache()))
+        assertFalse(release.newerThan("1.0.0"))
+    }
     @Test fun dailyChecksHandleFailuresAndClockChangesWithoutRequestLoops() {
         val now=UpdatePolicy.INTERVAL*10
         assertTrue(UpdatePolicy.due(now,0));assertFalse(UpdatePolicy.due(now,now))

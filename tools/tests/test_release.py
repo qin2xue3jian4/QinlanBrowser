@@ -22,6 +22,7 @@ class ReleaseTests(unittest.TestCase):
 
     def test_tag_must_match_version(self):
         self.assertEqual(4, release.validate('v0.4.0', self.version)['code'])
+        self.assertEqual('0.4.0', release.validate('0.4.0', self.version)['tag'])
         for tag in ('v0.5.0', 'main', 'v0.4.0\nother=value', '../v0.4.0'):
             with self.assertRaises(ValueError):
                 release.validate(tag, self.version)

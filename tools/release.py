@@ -25,8 +25,8 @@ def validate(tag, version_file=ROOT / 'version.properties'):
     code = int(properties.get('VERSION_CODE', '0'))
     if not 1 <= code <= 2100000000:
         raise ValueError('VERSION_CODE must be a positive Android version code')
-    if tag != f'v{version}':
-        raise ValueError(f'Tag must match version.properties: v{version}')
+    if tag not in (version, f'v{version}'):
+        raise ValueError(f'Tag must match version.properties: {version} or v{version}')
     return {'tag': tag, 'version': version, 'code': code, 'prerelease': '-' in version}
 
 

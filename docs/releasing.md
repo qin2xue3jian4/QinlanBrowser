@@ -5,9 +5,9 @@
 | 工作流 | 触发条件 | 产物 |
 | --- | --- | --- |
 | Android CI | `main` 提交、Pull Request、手动运行 | Debug APK、检查报告 |
-| Release APK | 推送 `v*` 标签、手动选择已有标签 | 签名 APK、SHA-256 校验文件、Release 草稿 |
+| Release APK | Releases 页面发布、推送版本标签、手动选择已有标签 | 签名 APK、SHA-256 校验文件；为现有 Release 附加文件，或创建草稿 |
 
-发布流程不会直接公开草稿，也不会覆盖已发布版本的安装包。
+当前版本为 **1.0.0**，Android 版本号为 **17**。正式发布使用标签 **v1.0.0**；现有 Release 的标题和正文会保留，已发布文件不会被覆盖。工作流创建的草稿需要手动发布。
 
 ## 首次配置签名
 
@@ -42,28 +42,46 @@ $keyPath = (Resolve-Path 'qinglan-release.jks').Path
 
 Linux / macOS 可使用 `mkdir -p .local && openssl base64 -A -in qinglan-release.jks -out .local/keystore-base64.txt`。用完后删除临时编码文件。
 
-## 发布一个版本
+## 从 Releases 页面发布 v1.0.0
 
-1. 修改根目录 `version.properties`。`VERSION_NAME` 为显示版本，`VERSION_CODE` 每次升级必须递增。
-2. 提交代码，并确认 CI 通过。
-3. 创建与 `VERSION_NAME` 一致的标签并推送。例如版本为 `0.4.0`：
+1. 完成上面的四项签名 Secrets 配置，并确保仓库允许 GitHub Actions 运行。签名密钥只配置一次，以后版本继续使用同一密钥。
+2. 将本次代码及工作流同步到 GitHub 的默认分支，等待 **Android CI** 通过。不要选择仍包含旧版 `version.properties` 的提交。
+3. 打开 **Releases → Draft a new release**，在 **Choose a tag** 输入 `v1.0.0`，选择 **Create new tag on publish**，目标选择包含本次修改的最新提交。
+4. 标题可填写 **清岚 1.0.0**，正文可复制 [1.0.0 发布说明](releases/1.0.0.md)。不要勾选 **Set as a pre-release**；将正式版本设为 latest。
+5. 点击 **Publish release**。发布事件会启动 **Release APK** 工作流，验证版本、运行测试和 lint、构建压缩后的签名 APK，并核对签名。
+6. 在 **Actions** 等待工作流完成，然后刷新 Release 页面。应出现 **qinglan-1.0.0.apk** 和 **SHA256SUMS** 两个附件。无需从 CI 下载 Debug 包，也无需手动上传安装包。
 
-   ```sh
-   git tag -a v0.4.0 -m "清岚 0.4.0"
-   git push origin main
-   git push origin v0.4.0
-   ```
+发布页面先创建，APK 附件随后生成；构建失败时该页面可能暂时只有源码压缩包。查看 Actions 失败步骤，修复签名 Secrets 或权限后重跑；附件齐全之前，应用更新检查不会将这个版本显示为可安装更新。
 
-4. 在 Actions 中等待 **Release APK** 完成。工作流会检查标签与源码版本一致、运行测试和 lint、验证 APK 签名，然后创建 Release 草稿。
-5. 打开 Releases，编辑草稿的版本说明，确认附件后点击 **Publish release**。
+如果只点击 **Save draft**，GitHub 不会发送发布事件，因此不会自动触发这条入口。[GitHub 发布事件说明](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#release)
 
-发布附件为 `qinglan-<版本>.apk` 和 `SHA256SUMS`。检查报告和 R8 混淆映射保存在该次 Actions 运行的 artifacts 中，不放入公开下载附件。
+**启用了不可变发布时：** 公开发布后 GitHub 禁止补充附件，必须先使用下面的草稿流程构建并附加文件，再从 Releases 页面发布已有草稿。希望使用“点击 Publish 后自动构建”的入口时，需要仓库未启用不可变发布。[GitHub 不可变发布说明](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#creating-a-release)
 
-应用更新检查使用 GitHub 的 latest release API。正式版本需公开发布，标签为 `v<版本>`，且 APK 附件名为 `qinglan-<版本>.apk`。草稿、预发布版本和缺少 APK 的版本不会触发更新提示。每次发布应递增语义版本及 Android 版本号，保持相同的发行签名；不要用 Debug 包替代公开发行包。
+## 先生成附件，再发布草稿
 
-预发布版本可使用 `0.5.0-beta.1` / `v0.5.0-beta.1`，流程会标记为 prerelease。草稿阶段可以重跑工作流，已有说明会保留，附件会更新。公开发布后需要创建新版本，不能用重跑替换原 APK。
+适用于需要先审核安装包，或仓库已启用不可变发布的情况。
 
-若自动运行失败，在修复 Secrets 后可重跑该次任务；也可在 **Actions → Release APK → Run workflow** 中填写已有标签。修改过源码或工作流时，应创建包含修改的新版本标签。
+```sh
+git tag -a v1.0.0 -m "清岚 1.0.0"
+git push origin main
+git push origin v1.0.0
+```
+
+推送版本标签会触发 **Release APK**，完成后自动创建含 APK、校验文件及默认说明的草稿。打开 Releases 检查附件，编辑说明并点击 **Publish release**。如果已有同标签的草稿，只更新附件并保留你填写的标题和正文。
+
+已有标签也可从 **Actions → Release APK → Run workflow** 手动填写 `v1.0.0`。此入口不会创建 Git 标签，标签必须已经存在；仅在 Releases 草稿中填写一个尚未创建的标签并不等于标签已经存在。
+
+## 重跑、校验和后续版本
+
+- 已发布且两个附件齐全时，重复事件或重跑会跳过构建，保留现有公开文件。
+- 上传部分成功时，仅在已上传文件与本次构建完全一致时补充缺失文件；不同文件不会被自动覆盖。若提示文件不一致，需先核对已有文件，或创建新版本。
+- 检查报告及 R8 混淆映射保存在该次 Actions 的 artifacts 中，不放入公开下载附件。
+- 构建和附件上传均固定到同一个 Git 提交；工作流只在最后上传附件的任务申请 `contents: write`。无需额外个人访问令牌。
+- 使用 `sha256sum -c SHA256SUMS` 校验下载文件。Windows 可执行 `Get-FileHash .\qinglan-1.0.0.apk -Algorithm SHA256`，与文件中的摘要比较。
+
+后续发布需修改 `version.properties`，递增 `VERSION_NAME` 和 `VERSION_CODE`，提交后创建对应标签，例如 `v1.0.1`；不要通过移动原标签替换已经发布的二进制文件。预发布可使用 `v1.1.0-beta.1`，并在 Releases 页面勾选 pre-release。
+
+应用更新检查使用 GitHub latest release API，接受带或不带 `v` 的版本标签。只有公开正式版及名为 `qinglan-<版本>.apk` 的附件会触发更新提示；草稿、预发布和缺少 APK 的版本不参与。后续版本必须保持相同发行签名，不能用 Debug 包替代发行包。
 
 ## 本地发行构建
 
@@ -79,4 +97,4 @@ QINGLAN_REQUIRE_SIGNING  设为 true 时禁止无签名构建
 
 配置后执行 `./gradlew :app:assembleRelease`，Windows 使用 `gradlew.bat` 或 `build.ps1`。四项签名配置必须齐全；未配置时只生成未签名 Release，发布工作流不允许使用未签名包。
 
-GitHub 工作流只需要仓库自带的 `GITHUB_TOKEN`，无需额外的个人访问令牌。创建草稿的独立任务拥有 `contents: write`；普通 CI 和签名构建只有仓库读取权限。
+GitHub 工作流只需要仓库自带的 `GITHUB_TOKEN`，无需额外的个人访问令牌。上传附件的独立任务拥有 `contents: write`；普通 CI、发布预检和签名构建只有仓库读取权限。

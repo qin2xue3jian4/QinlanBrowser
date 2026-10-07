@@ -39,8 +39,8 @@ data class AppVersion private constructor(val name:String,private val numbers:Li
     }
 }
 
-data class AppRelease(val version:AppVersion,val title:String,val notes:String) {
-    val tag get()="v${version.name}"
+data class AppRelease(val version:AppVersion,val title:String,val notes:String,val tag:String="v${version.name}") {
+    init { require(tag==version.name||tag=="v${version.name}") }
     val page get()="${ProjectLinks.releases}/tag/$tag"
     fun newerThan(installed:String)=AppVersion.parse(installed)?.let{version>it}?:false
     fun cache()=JSONObject().put("tag_name",tag).put("html_url",page).put("name",title).put("body",notes)
@@ -52,7 +52,7 @@ data class AppRelease(val version:AppVersion,val title:String,val notes:String) 
             val o=JSONObject(raw)
             if(o.getBoolean("draft")||o.getBoolean("prerelease"))return null
             val tag=o.getString("tag_name")
-            val version=AppVersion.parse(tag)?.takeIf{it.stable&&tag=="v${it.name}"}?:return null
+            val version=AppVersion.parse(tag)?.takeIf{it.stable&&tag in listOf(it.name,"v${it.name}")}?:return null
             val expectedPage="${ProjectLinks.releases}/tag/$tag"
             require(o.getString("html_url")==expectedPage){"Invalid release source"}
             val assets=o.getJSONArray("assets")
@@ -64,7 +64,7 @@ data class AppRelease(val version:AppVersion,val title:String,val notes:String) 
             if(!apk)return null
             val title=if(o.isNull("name"))version.name else o.optString("name").take(200).ifBlank{version.name}
             val notes=if(o.isNull("body"))""else o.optString("body").take(16_384)
-            return AppRelease(version,title,notes)
+            return AppRelease(version,title,notes,tag)
         }
     }
 }
