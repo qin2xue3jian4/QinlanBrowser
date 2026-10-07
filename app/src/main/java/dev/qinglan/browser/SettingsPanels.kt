@@ -41,6 +41,11 @@ class SettingsPanels(private val p:BrowserPanels) {
     }}
     fun open(id:String){val s=SettingCatalog.find(id)?:return
         when(id){
+            "certificateTrust"->p.pages.show(s.title){col->
+                val keys=p.prefs.all.keys.filter{it.startsWith("certificate.")}.sorted()
+                if(keys.isEmpty())col.addView(u.label(tr("没有已信任的证书网址")))
+                keys.forEach{key->col.addView(u.item(key.removePrefix("certificate."),tr("点击删除此例外")){p.prefs.edit().remove(key).apply();a.security.clear();p.pages.refresh()})}
+            }
             "language"->p.pages.show(s.title){col->
                 col.addView(u.label(s.description,14f,u.muted))
                 val selected=AppLanguage.choice(a)
@@ -78,6 +83,10 @@ class SettingsPanels(private val p:BrowserPanels) {
         if(id in listOf("theme","bottomAddress","toolbarAction","homeColumns","homeTitle"))a.retheme()
         if(id=="autoHideAddress")a.showAddress()
         if(id=="activeWebViews")a.trimTabs()
+        if(id=="edgeScroll")a.updateScrollButtons()
+        if(id=="certificateExceptions")a.security.clear()
+        if(id=="blobDownloads")a.tabs.forEach{it.web?.let(a.blobs::finished)}
+        if(id=="httpsOnly"&&p.prefs.getBoolean(id,false)){a.security.clear();a.tabs.filter{it.url.startsWith("http://")}.forEach{t->t.url=NavigationPolicy.secure(t.url,true);t.saved=null;t.web?.stopLoading();t.web?.loadUrl(t.url)}}
         a.tabs.forEach{t->t.web?.let{a.configure(it,t.url)}}
     }
     fun zoom(url:String?){p.pages.show(if(url==null)tr("网页字号")else tr("此网站字号")){col->

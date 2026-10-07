@@ -1,1 +1,1 @@
-# No JavaScript bridges, reflective application models, or remotely loaded code.
+# User script messaging uses AndroidX WebMessageListener, not reflective JavascriptInterface APIs.

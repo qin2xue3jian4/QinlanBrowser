@@ -66,6 +66,7 @@ class LibraryPanels(private val p:BrowserPanels){
         }
     }
     private fun bookmarkActions(v:Visit,anchor:View){PopupMenu(a,anchor).apply{
+        if(!v.folder)CollectionActions.add(a,menu,v.url)
         menu.add(tr("编辑")).setOnMenuItemClickListener{editBookmark(v,v.folder);true}
         if(!v.folder)menu.add(tr("收藏到主页")).setOnMenuItemClickListener{collect(v.title,v.url,false,true);true}
         menu.add(tr("删除")).setOnMenuItemClickListener{p.confirm(tr("删除书签"),if(v.folder)tr("文件夹内的网站移回根目录。")else tr("删除 %1\$s？", v.title)){LibraryOrder.deleteBookmarks(store.bookmarks,setOf(v.id));store.save();pages.refresh()};true};show()

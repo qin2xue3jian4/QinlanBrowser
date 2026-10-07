@@ -110,6 +110,23 @@ WebView 权限实现参考 Android 官方 `PermissionRequest`、`GeolocationPerm
 
 账号资料与引擎分离：`AccountCodec` 只序列化备注/ID/无查询参数的入口，`AccountProfiles` 用 AtomicFile 保存列表，`BrowserTab.accountId` 跟随标签生命周期。删账号需先销毁所有引用视图，移除索引后清理数据；启动删除未登记的账号 profile。列表损坏时禁止孤立配置清理。Cookie 面板捕获具体 CookieManager，下载记录保存来源账号 ID，防止后台页面与下载重试使用当前前台标签的登录。
 
+## 浏览控件回归
+
+`python tools/controls_fixture.py --cert .local/controls/cert.pem --key .local/controls/key.pem` 提供合成 HTTP 8892 / 自签名 HTTPS 8893 页面；测试证书只保存在忽略目录中。设置 `adb reverse tcp:8892 tcp:8892` 和 `adb reverse tcp:8893 tcp:8893` 后，可运行：
+
+```sh
+adb shell am instrument -w -e controls core dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+adb shell am instrument -w -e controls tls dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+```
+
+core 检查导航状态、网址全选、边缘按钮、整页截图首尾、PNG/JPEG/PDF 输出、二维码分享提供器、UA、文本选择菜单、收藏多账号直达和 200003 字节 Blob 跨块内容完整性。文件保存选择器由测试拦截并取消，不写入公共文件。厂商分享选择器可能绕过 ActivityMonitor，此时检查实际生成文件和内容提供器，再手动取消系统分享。tls 检查默认拒绝、一次性例外、再次访问询问、指纹绑定例外及 HTTPS 升级。`screenshotPreview` / `sharePreview` 各停留 30 秒用于合成页面视觉检查，再恢复设置和标签。异常中断遗留的合成标签可用 `cleanup` 清理；该清理也移除新功能测试设置，使其回到默认值。测试完成后移除端口转发并停止 fixture。JVM `NavigationPolicyTest` 检查协议升级、证书 origin 范围和备份不包含证书信任。
+
+证书例外属于用户明确选择的兼容模式，偏离 Android 默认建议，不能把这种连接视为已验证身份：[WebViewClient SSL 处理](https://developer.android.com/reference/android/webkit/WebViewClient#onReceivedSslError(android.webkit.WebView,android.webkit.SslErrorHandler,android.net.http.SslError))。原生默认仍取消，永久例外必须匹配 origin 和证书指纹；每次导航清除 WebView 自身 SSL 决策缓存。
+
+0.11.1 回归增加了未编辑地址栏显示标题、菜单覆盖边缘翻页控件，以及只命名默认账号时的收藏子菜单检测。`controls blobCsp` 使用 `/csp` 页面测试与私人传输站点相同的 `connect-src 'self' ws: wss:` 策略，同时禁用 Blob fetch，验证直接对象读取、程序点击及立即 revoke 后的文件完整性。`controls blobSite` 在问题站点的临时隔离账号中创建本地合成 Blob，不登录或发送真实文件，测试后删除临时账号。
+
+Blob 对象捕获在文档开始注册，只记录顶层页面创建且未撤销的下载大小范围内 Blob。撤销时释放引用；下载点击可临时保留当前对象，以适配立即 revoke 的网站。普通跨文档、跨 origin 和已关闭账号请求仍拒绝。不能通过移除 CSP 或全局降低 WebView 安全配置解决网站下载兼容问题。
+
 ## 界面本地化
 
 运行 `python tools/localization.py` 检查三套资源的键、占位符和源码引用；更新源文案后运行 `python tools/localization.py --generate` 刷新 `TextResources.kt`。默认 `values/strings.xml` 为英语，`values-zh` 为简体中文，`values-b+zh+Hant` 为繁体中文。新增资源建议使用有意义的名称；`text_XXXX` 是这次一次性迁移生成的稳定 ID。
@@ -121,3 +138,28 @@ WebView 权限实现参考 Android 官方 `PermissionRequest`、`GeolocationPerm
 JVM 的 LanguageTest 覆盖中文脚本/地区与系统语言列表回退、参数重排、用户参数不被二次处理、百分号/搜索模板保持、设置搜索及内部标签重新本地化。无设备时可完成资源检查、单元测试和 APK 构建，但不能声称已完成真机布局或 Android 系统设置交互验收。
 
 Android 接口依据：[应用语言偏好](https://developer.android.com/guide/topics/resources/app-languages)。不新增 AppCompat、在线翻译 SDK 或服务器。
+
+## 用户脚本扩展回归
+
+`python tools/userscript_fixture.py` 配合 `adb reverse tcp:8895 tcp:8895`，在真实 WebView 验证存储、网络、依赖和安装：
+
+```sh
+adb shell am instrument -w -e userscripts true dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+adb shell am instrument -w -e userscripts install dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+adb shell am instrument -w -e userscripts remote dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+adb shell am instrument -w -e userscripts popular dev.qinglan.browser.test/dev.qinglan.browser.CookieInstrumentation
+```
+
+接口测试使用独立 qa 文件、保留 .test 域名及合成本机响应。安装测试暂时关闭历史与 HTTPS-only，在临时标签上验证预览、默认关闭、启用和更新，清理合成脚本并恢复设置/标签。MIUI 阻止测试 Activity 后台启动时，从另一终端 `adb shell am start -n dev.qinglan.browser/.BrowserActivity`。
+
+remote 只抓取官方脚本源码验证链接解析。popular 实时读取全语言总安装量榜单前 30 项，在独立库中下载依赖并安装为关闭状态，验证保存重读，不执行第三方代码；结果保存到 `files/qa-popular-report.json`，可通过 debug 的 run-as 取回。测试结束删除隔离安装库。不要把安装通过等同于各网站所有功能通过。
+
+用户脚本的原生接口只使用 AndroidX WebMessageListener，不使用 addJavascriptInterface。每个脚本桥校验随机凭据、WebView 提供的 sourceOrigin、匹配规则和操作授权；请求不复用浏览器 Cookie 或证书例外。原生消息桥保持到 WebView 销毁，启用/更新时轮换凭据并替换注入脚本，避免删除正在派发回复的原生监听器。document-start 时 `WebView.url` 可能仍为旧地址，loadDataWithBaseURL 的历史地址也可能为 about:blank，身份检查依赖可信 sourceOrigin 和文档绑定的回复代理。
+
+调试设备使用 `adb shell svc power stayon true` 在供电时保持唤醒。测试手机原始 screen_off_timeout 是 600000；本次调试延长为 86400000，恢复可用 `adb shell settings put system screen_off_timeout 600000`。原始充电唤醒设置已经是 7，测试结束继续保留充电常亮。USB 断开或手动安全锁屏仍可能影响界面测试。
+
+`userscripts review` 把同批公开脚本保存到应用 cache/qa-popular-source 供静态分析，不执行代码。常用接口回归的剪贴板和新标签 API 使用合成接收器，不读取或覆盖用户剪贴板，也不打开外部网页。
+
+安装入口另有 Greasy Fork 站点文档开始 hook：只接收官方 HTTPS 主框架的 .user.js 链接，真实点击先进入原生预览，避免站点扩展安装提示拦截；不会自动安装。安装回归使用受信任触摸事件与合成的扩展提示拦截器验证该顺序，并读取官方远程源码。
+
+脚本执行放在 API 定义外层的内层异步作用域，避免管理器 clone 等辅助变量与脚本自己的顶层定义冲突。保存/安装时保留未变脚本的消息桥与凭据；只有停用或修改的脚本才撤销凭据。请求最多全局 32 个、每桥 8 个；已停用/销毁视图的排队请求不再发起。

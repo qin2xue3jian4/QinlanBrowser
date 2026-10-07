@@ -68,6 +68,10 @@ class IconView @JvmOverloads constructor(context:Context,private var name:String
         fun line(vararg pts:Float){path.reset();path.moveTo(pts[0],pts[1]);for(i in 2 until pts.size step 2)path.lineTo(pts[i],pts[i+1]);canvas.drawPath(path,p)}
         fun rect(l:Float,t:Float,r:Float,b:Float)=canvas.drawRoundRect(l,t,r,b,2f,2f,p)
         when(name){
+            "screenshot"->{rect(3f,6f,21f,21f);line(7f,6f,9f,3f,15f,3f,17f,6f);canvas.drawCircle(12f,13f,4f,p)}
+            "exit"->{line(9f,3f,3f,3f,3f,21f,9f,21f);line(8f,12f,22f,12f);line(17f,7f,22f,12f,17f,17f)}
+            "source"->{line(8f,6f,2f,12f,8f,18f);line(16f,6f,22f,12f,16f,18f);line(14f,3f,10f,21f)}
+            "ua"->{canvas.drawCircle(12f,12f,9f,p);line(3f,12f,21f,12f);canvas.drawOval(8f,3f,16f,21f,p);line(16f,20f,22f,20f)}
             "media"->{rect(2f,4f,22f,20f);line(10f,8f,16f,12f,10f,16f,10f,8f)}
             "shield"->{line(12f,2f,21f,6f,20f,15f,12f,22f,4f,15f,3f,6f,12f,2f);line(8f,12f,11f,15f,17f,9f)}
             "back"->line(15f,5f,8f,12f,15f,19f)

@@ -12,10 +12,16 @@ data class SettingSpec(
 /** Small, local metadata shared by settings search, defaults and backup validation. */
 object SettingCatalog {
     private val specs get()=listOf(
+        SettingSpec("httpsOnly",tr("仅 HTTPS 模式"),tr("网站与隐私"),tr("HTTP 地址自动尝试 HTTPS，阻止 HTTP 子资源和下载，不自动回退。校园登录页可能需要暂时关闭。"),false),
+        SettingSpec("certificateExceptions",tr("证书异常处理"),tr("网站与隐私"),tr("默认阻止。开启后可询问信任一次或信任当前网址；网址例外绑定当前证书，可随时删除。"),false,labels=listOf(tr("阻止异常证书（默认）"),tr("询问是否信任"))),
+        SettingSpec("certificateTrust",tr("已信任的证书网址"),tr("网站与隐私"),tr("查看并删除证书例外；证书改变时需要重新确认。")),
+        SettingSpec("edgeScroll",tr("右侧翻页按钮"),tr("外观"),tr("在网页右侧中央显示回到顶部、上滑一页、下滑一页、跳到页底四个图标。"),false),
+        SettingSpec("shareFormat",tr("链接分享格式"),tr("网页工具"),tr("每次询问，或直接以默认格式打开系统分享。"),"ask",listOf("ask","url","title","qr"),listOf(tr("每次询问"),tr("仅网址"),tr("标题 + 网址"),tr("二维码"))),
+        SettingSpec("blobDownloads",tr("支持 Blob 下载"),tr("网页工具"),tr("读取当前网页生成的 Blob 文件，选择位置保存；每个文件最多 64 MB。"),false),
         SettingSpec("theme",tr("界面主题"),tr("外观"),tr("只改变浏览器界面；网页深色可单独设置。"),"system",listOf("system","light","dark"),listOf(tr("跟随系统"),tr("浅色"),tr("深色")),tr("夜间 日间")),
         SettingSpec("palette",tr("配色方案"),tr("外观"),tr("选择预设颜色或自定义配色。"),keywords=tr("颜色")),
         SettingSpec("menuLayout",tr("菜单定制"),tr("外观"),tr("显示常用工具，拖动排序；设置入口始终保留。"),keywords=tr("工具 隐藏 排序")),
-        SettingSpec("menuColumns",tr("工具菜单每行数量"),tr("外观"),tr("列数越少，文字与按钮越宽。"),3,(3..6).toList(),(3..6).map{tr("每行 %1\$s 个", it)}),
+        SettingSpec("menuColumns",tr("工具菜单每行数量"),tr("外观"),tr("列数越少，文字与按钮越宽。"),MenuLayout.defaultColumns,(3..6).toList(),(3..6).map{tr("每行 %1\$s 个", it)}),
         SettingSpec("bottomAddress",tr("地址栏位置"),tr("外观"),tr("顶部更熟悉，底部更容易单手操作。"),false,keywords=tr("顶部 底部 单手")),
         SettingSpec("autoHideAddress",tr("滚动时隐藏地址栏"),tr("外观"),tr("向下阅读时收起，向上滚动时重新显示。"),true,keywords=tr("全屏 自动隐藏")),
         SettingSpec("textZoom",tr("网页字号"),tr("外观"),tr("放大网页文字，不改变浏览器按钮大小；网站可单独覆盖。"),100,(50..200 step 5).toList(),(50..200 step 5).map{"$it%"},tr("缩放 字体 大小")),
@@ -62,10 +68,10 @@ object SettingCatalog {
     )
     data class Section(val title:String,val ids:List<String>)
     val sections get()=linkedMapOf(
-        tr("外观") to listOf(Section(tr("主题与网页文字"),listOf("language","theme","palette","textZoom")),Section(tr("地址栏"),listOf("bottomAddress","toolbarAction","autoHideAddress")),Section(tr("主页与菜单"),listOf("homeColumns","homeTitle","menuLayout","menuColumns"))),
+        tr("外观") to listOf(Section(tr("主题与网页文字"),listOf("language","theme","palette","textZoom")),Section(tr("地址栏"),listOf("bottomAddress","toolbarAction","autoHideAddress","edgeScroll")),Section(tr("主页与菜单"),listOf("homeColumns","homeTitle","menuLayout","menuColumns"))),
         tr("浏览与搜索") to listOf(Section(tr("搜索"),listOf("search","localSuggestions")),Section(tr("链接与标签"),listOf("collectionOpen","externalNewTab","restore","activeWebViews"))),
-        tr("网站与隐私") to listOf(Section(tr("网站例外"),listOf("siteOverrides","accounts")),Section(tr("内容与显示"),listOf("js","desktop","noImages","webDark","autoplay")),Section(tr("隐私与跳转"),listOf("incognito","thirdParty","recordHistory","externalApps")),Section(tr("网站权限询问"),listOf("cameraPrompt","microphonePrompt","locationPrompt"))),
-        tr("工具") to listOf(Section(tr("标签整理"),listOf("tabSearch","undo","closeOtherTabs")),Section(tr("阅读与朗读"),listOf("reader","readerSize","readerSpacing","readerKeepAwake","speech","speechRate")),Section(tr("网页处理"),listOf("filter","scripts","resourceSniffing","downloadWifiOnly","print","tools"))),
+        tr("网站与隐私") to listOf(Section(tr("网站例外"),listOf("siteOverrides","accounts","certificateTrust")),Section(tr("连接安全"),listOf("httpsOnly","certificateExceptions")),Section(tr("内容与显示"),listOf("js","desktop","noImages","webDark","autoplay")),Section(tr("隐私与跳转"),listOf("incognito","thirdParty","recordHistory","externalApps")),Section(tr("网站权限询问"),listOf("cameraPrompt","microphonePrompt","locationPrompt"))),
+        tr("工具") to listOf(Section(tr("标签整理"),listOf("tabSearch","undo","closeOtherTabs")),Section(tr("阅读与朗读"),listOf("reader","readerSize","readerSpacing","readerKeepAwake","speech","speechRate")),Section(tr("网页处理"),listOf("filter","scripts","resourceSniffing","downloadWifiOnly","blobDownloads","shareFormat","print","tools"))),
         tr("数据管理") to listOf(Section(tr("保存的数据"),listOf("readingList","passwords","cookies")),Section(tr("备份与清理"),listOf("backup","clear"))),
         tr("关于") to listOf(Section("",listOf("defaultBrowser","help","about")))
     )

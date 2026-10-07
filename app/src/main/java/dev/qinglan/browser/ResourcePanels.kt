@@ -43,7 +43,10 @@ class ResourcePanels(private val p: BrowserPanels) {
         col.addView(u.title(resource.name).apply { maxLines=2;ellipsize=TextUtils.TruncateAt.END })
         col.addView(u.label(tr("来源：%1\$s", tr(resource.source))+(if(resource.mime.isNotBlank())tr("\n类型：%1\$s", resource.mime) else ""),13f,u.muted))
         col.addView(u.label(resource.url,13f).apply{setTextIsSelectable(true)})
-        if(resource.kind==ResourceKind.BLOB)col.addView(u.label(tr("这是页面内的 Blob 地址，不能直接下载。可返回列表查找对应的 HTTP 资源或播放列表。"),14f,u.muted))
+        if(resource.kind==ResourceKind.BLOB){
+            col.addView(u.label(tr("读取当前网页生成的 Blob 文件，选择位置保存；每个文件最多 64 MB。"),14f,u.muted))
+            col.addView(u.button(tr("下载资源"),true){a.requestDownload(resource.url,resource.userAgent,"",resource.mime,resource.referer)})
+        }
         else {
             if(resource.playlist)col.addView(u.label(tr("这是播放列表，完整视频需要下载分片并合并。下方下载操作只保存清单。"),14f,u.muted))
             if(resource.kind==ResourceKind.SEGMENT)col.addView(u.label(tr("这是单个媒体分片，通常不是完整音视频。"),14f,u.muted))

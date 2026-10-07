@@ -14,7 +14,11 @@ class MenuPanels(private val p:BrowserPanels) {
         Action("downloads","download",tr("下载")){p.downloads()},
         Action("find","search",tr("页面查找")){a.showFind()},
         Action("collect","bookmarkAdd",tr("收藏网页")){if(a.isHttp(a.currentUrl))p.library.collect(a.current?.title.orEmpty(),a.currentUrl)else a.addHomeChoice()},
-        Action("share","share",tr("分享链接")){if(a.isHttp(a.currentUrl))a.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT,a.currentUrl),tr("分享链接")))else a.toast(tr("请先打开网页"))},
+        Action("share","share",tr("分享链接")){a.exports.share()},
+        Action("screenshot","screenshot",tr("网页截图")){a.exports.screenshot()},
+        Action("exit","exit",tr("退出浏览器")){a.exitBrowser()},
+        Action("ua","ua",tr("浏览器标识（UA）")){a.exports.ua()},
+        Action("source","source",tr("网页源码")){a.exports.source()},
         Action("site","site",tr("网站设置")){p.site()},
         Action("refresh","refresh",tr("刷新")){a.reload()},
         Action("desktop","desktop",if(p.store.siteBool(a.currentUrl,"desktop",p.prefs.getBoolean("desktop",false)))tr("电脑模式 · 开")else tr("电脑模式")){if(a.isHttp(a.currentUrl)){p.store.setSiteBool(a.currentUrl,"desktop",!p.store.siteBool(a.currentUrl,"desktop",p.prefs.getBoolean("desktop",false)));a.reload()}else a.toast(tr("请先打开网页"))},
@@ -41,7 +45,7 @@ class MenuPanels(private val p:BrowserPanels) {
         Action("settings","settings",tr("设置")){p.settings()}
     )
     fun show(){if(a.overlayKind=="menu"){a.dismissTabs();return};a.dismissTabs()
-        val col=u.column(8);val columns=p.prefs.getInt("menuColumns",3).coerceIn(3,6)
+        val col=u.column(8);val columns=p.prefs.getInt("menuColumns",MenuLayout.defaultColumns).coerceIn(3,6)
         val grid=GridLayout(a).apply{columnCount=columns}
         val available=actions().associateBy{it.id}
         val ids=if(a.isIncognito)listOf("bookmarks","downloads","find","refresh","reader","resources","collect","share","incognito")else MenuLayout.parse(p.prefs.getString("menuLayout",null))
@@ -57,7 +61,7 @@ class MenuPanels(private val p:BrowserPanels) {
     }
     fun allTools(){var query="";p.pages.show(tr("全部工具")){col->
         val input=u.edit(tr("搜索工具"),query);col.addView(input);val rows=u.column();col.addView(rows)
-        val groups=linkedMapOf(tr("阅读与页面") to listOf("reader","readingList","speech","find","print","qr","refresh","share","pageTop","pageBottom"),tr("收藏与标签") to listOf("collect","bookmarkAdds","history","downloads","tabSearch","undo","closeOtherTabs"),tr("网站与外观") to listOf("accounts","incognito","site","desktop","theme","images","fullscreen","filter","resources","cookies"))
+        val groups=linkedMapOf(tr("阅读与页面") to listOf("reader","readingList","speech","find","print","qr","refresh","share","screenshot","source","pageTop","pageBottom"),tr("收藏与标签") to listOf("collect","bookmarks","history","downloads","tabSearch","undo","closeOtherTabs","exit"),tr("网站与外观") to listOf("accounts","incognito","site","desktop","ua","theme","images","fullscreen","filter","resources","cookies"))
         fun render(){rows.removeAllViews();val map=actions().associateBy{it.id};var count=0
             groups.forEach{(title,ids)->val items=ids.mapNotNull{map[it]}.filter{it.title.contains(query,true)};if(items.isNotEmpty()){rows.addView(u.label(title,13f,u.accent));items.forEach{item->count++;rows.addView(u.item(item.title){p.pages.close();item.run()})}}}
             if(count==0)rows.addView(u.label(tr("没有匹配的工具")))
@@ -79,6 +83,6 @@ class MenuPanels(private val p:BrowserPanels) {
                 DragSupport.target(row,"menu"){drag,_,_->save(MenuLayout.move(active,drag.id,id))}
             };col.addView(row)
         }
-        col.addView(u.button(tr("恢复默认菜单")){p.prefs.edit().remove("menuLayout").apply();p.pages.refresh()})
+        col.addView(u.button(tr("恢复默认菜单")){p.prefs.edit().remove("menuLayout").remove("menuColumns").apply();p.pages.refresh()})
     }}
 }

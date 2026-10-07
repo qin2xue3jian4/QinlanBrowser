@@ -35,7 +35,20 @@ class BrowserPanels(val a:BrowserActivity){
     fun tabs(){if(a.dismissTabs())return;renderTabs()}
     private fun renderTabs(){val col=u.column(4)
         a.tabs.toList().forEachIndexed{i,t->val row=u.row().apply{setBackgroundColor(if(i==a.selected)u.soft else u.panel)};row.addView(a.icons.view(u,t.title,t.url));row.addView(u.label(a.accountTabTitle(t),14f).apply{maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;gravity=Gravity.CENTER_VERTICAL;setPadding(u.dp(8),0,0,0);setOnClickListener{a.switchTab(a.tabs.indexOf(t))}},LinearLayout.LayoutParams(0,u.dp(48),1f));row.addView(u.icon("close",tr("关闭 %1\$s", t.title.take(50))){a.closeTab(t.id);renderTabs()});col.addView(row,LinearLayout.LayoutParams(-1,u.dp(48)));col.addView(u.rule())}
-        col.addView(u.button(tr("＋ 新建标签页")){a.newHome()}.apply{background=u.round(u.panel,0);stateListAnimator=null},LinearLayout.LayoutParams(-1,u.dp(48)));a.showTabs(col)
+        fun plain(button:Button)=button.apply{background=u.round(u.panel,0);backgroundTintList=null;stateListAnimator=null}
+        val footer=u.row();footer.addView(plain(u.button(tr("＋ 新建标签页")){a.newHome()}),LinearLayout.LayoutParams(0,u.dp(48),1f))
+        footer.addView(plain(u.button(tr("关闭全部标签页")){confirmCloseAllTabs()}),LinearLayout.LayoutParams(0,u.dp(48),1f));col.addView(footer);a.showTabs(col)
+    }
+    fun confirmCloseAllTabs():AlertDialog {
+        a.dismissTabs()
+        val dialog=AlertDialog.Builder(a)
+            .setTitle(tr("关闭全部标签页？"))
+            .setMessage(tr("未提交的表单无法恢复。普通标签可通过撤销关闭恢复。"))
+            .setNegativeButton(tr("取消"),null)
+            .setPositiveButton(tr("确认")){_,_->a.closeAllTabs()}.create()
+        if(a.isIncognito)dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        dialog.show()
+        return dialog
     }
     fun closeOtherTabs(){if(a.tabs.size<2){a.toast(tr("没有其他标签"));return};confirm(tr("关闭其他 %1\$s 个标签？", a.tabs.size-1),tr("当前页面会保留。未提交的表单无法通过撤销恢复。")){pages.close();a.closeOtherTabs()}}
     fun searchTabs(){var query="";pages.show(tr("搜索标签")){col->
@@ -50,7 +63,7 @@ class BrowserPanels(val a:BrowserActivity){
         col.addView(u.item(tr("搜索引擎 · %1\$s", searches.name(a.current?.searchOverride?:prefs.getString("search",SearchEngines.default)!!)),if(a.current?.searchOverride!=null)tr("仅当前标签页")else tr("使用默认搜索引擎")){searchEngine()})
         if(a.isHttp(url)){
             col.addView(u.label(Uri.parse(url).host.orEmpty(),18f))
-            col.addView(u.label(if(a.current?.error!=null)tr("页面未成功加载，无法确认连接状态。")else if(url.startsWith("https://"))tr("HTTPS 连接；加密连接不代表网站内容可信。")else tr("HTTP 连接未加密，请勿输入敏感信息。"),13f,u.muted))
+            col.addView(u.label(if(a.current?.error!=null)tr("页面未成功加载，无法确认连接状态。")else if(a.current?.let{a.security.trusted(it)}==true)tr("已使用证书例外，网站身份未经可信验证。")else if(url.startsWith("https://"))tr("HTTPS 连接；加密连接不代表网站内容可信。")else tr("HTTP 连接未加密，请勿输入敏感信息。"),13f,u.muted))
             col.addView(u.item(tr("Cookie 管理")){cookies()});col.addView(u.item(tr("本网站密码"),tr("手动保存与填入")){vault.passwords()})
             fun option(title:String,key:String,default:Boolean){val scope=if(store.siteOverridden(url,key))tr("此网站单独设置")else tr("继承默认")
                 val enabled=store.siteBool(url,key,default)
@@ -71,7 +84,7 @@ class BrowserPanels(val a:BrowserActivity){
     fun settings()=settingsUi.show()
     fun help(){pages.show(tr("帮助与排错")){col->
         listOf(
-            tr("网页打不开或反复出错") to tr("检查网址、网络、设备日期时间，然后重新加载。遇到证书错误时清岚会停止连接，不提供跳过验证。可在系统应用商店更新 Android System WebView。网页进程退出后需要手动重试，避免重复崩溃。"),
+            tr("网页打不开或反复出错") to tr("检查网址、网络和设备时间。证书异常默认停止；可在证书异常处理设置中开启逐次询问，选择信任一次或信任当前网址。仅 HTTPS 模式不会回退 HTTP，校园登录页可能需要暂时关闭该模式。"),
             tr("网页白屏、登录或按钮失效") to tr("先在网站设置中检查 JavaScript 和第三方 Cookie，尝试恢复此网站默认并刷新。广告过滤可能误拦截，可仅对此网站关闭后比较。用户脚本也可能影响页面，可逐个停用排查。"),
             tr("下载一直没有进度") to tr("下载由系统下载器处理。检查网络、可用存储空间，以及是否开启仅 Wi-Fi 下载。部分系统会先等待或重试；系统未返回失败前清岚不能判断原因。可取消任务后重试，或复制来源链接交给其他下载工具。带登录的链接可能会过期。"),
             tr("网站无法使用相机、麦克风或位置") to tr("只支持前台 HTTPS 同源网站的逐次请求。检查网站设置是否允许询问，再检查系统是否授予清岚对应权限。跨源嵌入页面和未知权限类型会被拒绝；位置只使用大致位置。"),

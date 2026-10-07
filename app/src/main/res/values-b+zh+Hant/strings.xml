@@ -968,4 +968,91 @@
     <string name="picker_tip" formatted="false">"點選要封鎖的元素 · 點此取消"</string>
     <string name="app_name" formatted="false">"清嵐"</string>
     <string name="text_search" formatted="false">"清嵐搜尋"</string>
+    <string name="browser_controls_000" formatted="false">"僅 HTTPS 模式"</string>
+    <string name="browser_controls_001" formatted="false">"HTTP 位址自動嘗試 HTTPS，阻止 HTTP 子資源和下載，不自動回退。校園登入頁可能需要暫時關閉。"</string>
+    <string name="browser_controls_002" formatted="false">"憑證異常處理"</string>
+    <string name="browser_controls_003" formatted="false">"預設阻止。開啟後可詢問信任一次或信任目前網址；網址例外綁定目前憑證，可隨時刪除。"</string>
+    <string name="browser_controls_004" formatted="false">"阻止異常憑證（預設）"</string>
+    <string name="browser_controls_005" formatted="false">"詢問是否信任"</string>
+    <string name="browser_controls_006" formatted="false">"已信任的憑證網址"</string>
+    <string name="browser_controls_007" formatted="false">"檢視並刪除憑證例外；憑證改變時需要重新確認。"</string>
+    <string name="browser_controls_008" formatted="false">"右側翻頁按鈕"</string>
+    <string name="browser_controls_009" formatted="false">"在網頁右側中央顯示回到頂部、上滑一頁、下滑一頁、跳到頁底四個圖示。"</string>
+    <string name="browser_controls_010" formatted="false">"連結分享格式"</string>
+    <string name="browser_controls_011" formatted="false">"每次詢問，或直接以預設格式開啟系統分享。"</string>
+    <string name="browser_controls_012" formatted="false">"僅網址"</string>
+    <string name="browser_controls_013" formatted="false">"標題 + 網址"</string>
+    <string name="browser_controls_014" formatted="false">"QR 碼"</string>
+    <string name="browser_controls_015" formatted="false">"支援 Blob 下載"</string>
+    <string name="browser_controls_016" formatted="false">"讀取目前網頁產生的 Blob 檔案，選擇位置儲存；每個檔案最多 64 MB。"</string>
+    <string name="browser_controls_017" formatted="false">"連線安全"</string>
+    <string name="browser_controls_018" formatted="false">"信任一次"</string>
+    <string name="browser_controls_019" formatted="false">"信任目前網址"</string>
+    <string name="browser_controls_020" formatted="false">"憑證發行者不可信"</string>
+    <string name="browser_controls_021" formatted="false">"憑證與網址不符"</string>
+    <string name="browser_controls_022" formatted="false">"憑證已過期"</string>
+    <string name="browser_controls_023" formatted="false">"憑證尚未生效"</string>
+    <string name="browser_controls_024" formatted="false">"憑證無效"</string>
+    <string name="browser_controls_025" formatted="false">"憑證異常"</string>
+    <string name="browser_controls_026" formatted="false">"%1$s\n%2$s\n此連線無法驗證網站身分。例外僅適用於該網址及目前憑證，憑證變更後會重新詢問。\nSHA-256：%3$s"</string>
+    <string name="browser_controls_027" formatted="false">"已使用憑證例外，網站身分未經可信驗證。"</string>
+    <string name="browser_controls_028" formatted="false">"沒有已信任的憑證網址"</string>
+    <string name="browser_controls_029" formatted="false">"點擊刪除此例外"</string>
+    <string name="browser_controls_030" formatted="false">"僅 HTTPS 模式已阻止 HTTP 下載"</string>
+    <string name="browser_controls_031" formatted="false">"上滑一頁"</string>
+    <string name="browser_controls_032" formatted="false">"下滑一頁"</string>
+    <string name="browser_controls_033" formatted="false">"關閉全部分頁"</string>
+    <string name="browser_controls_034" formatted="false">"關閉全部分頁？"</string>
+    <string name="browser_controls_035" formatted="false">"未送出的表單無法復原。一般分頁可透過復原關閉恢復。"</string>
+    <string name="browser_controls_036" formatted="false">"退出瀏覽器"</string>
+    <string name="browser_controls_037" formatted="false">"網頁截圖"</string>
+    <string name="browser_controls_038" formatted="false">"整個網頁"</string>
+    <string name="browser_controls_039" formatted="false">"目前區域"</string>
+    <string name="browser_controls_040" formatted="false">"截圖範圍與格式"</string>
+    <string name="browser_controls_041" formatted="false">"截圖失敗，頁面可能過大或含受保護內容"</string>
+    <string name="browser_controls_042" formatted="false">"拖曳框選範圍，預設全部。長頁預覽可雙指縮放與移動。"</string>
+    <string name="browser_controls_043" formatted="false">"選擇全部"</string>
+    <string name="browser_controls_044" formatted="false">"截圖框選預覽"</string>
+    <string name="browser_controls_045" formatted="false">"瀏覽器識別（UA）"</string>
+    <string name="browser_controls_046" formatted="false">"手機識別"</string>
+    <string name="browser_controls_047" formatted="false">"電腦識別"</string>
+    <string name="browser_controls_048" formatted="false">"自訂 UA"</string>
+    <string name="browser_controls_049" formatted="false">"套用自訂 UA"</string>
+    <string name="browser_controls_050" formatted="false">"UA 需為 1–2048 個字元且不能包含換行"</string>
+    <string name="browser_controls_051" formatted="false">"網頁原始碼"</string>
+    <string name="browser_controls_052" formatted="false">"網址 QR 碼"</string>
+    <string name="browser_controls_053" formatted="false">"QR 碼產生失敗"</string>
+    <string name="browser_controls_054" formatted="false">"未找到分享應用程式"</string>
+    <string name="browser_controls_055" formatted="false">"翻譯"</string>
+    <string name="browser_controls_056" formatted="false">"未找到系統翻譯服務，請安裝支援文字處理的翻譯應用程式"</string>
+    <string name="browser_controls_057" formatted="false">"無法開啟翻譯應用程式"</string>
+    <string name="browser_controls_058" formatted="false">"Blob 下載失敗"</string>
+    <string name="browser_controls_059" formatted="false">"Blob 下載失敗，請在原網頁重試"</string>
+    <string name="browser_controls_060" formatted="false">"Blob 檔案超過 64 MB 或大小無效"</string>
+    <string name="browser_controls_061" formatted="false">"Blob 檔案由目前網頁產生，儲存到你選擇的位置。大小：%1$s"</string>
+    <string name="browser_controls_062" formatted="false">"請在設定中開啟 Blob 下載"</string>
+    <string name="browser_controls_063" formatted="false">"請更新系統 WebView 後使用 Blob 下載"</string>
+    <string name="browser_controls_064" formatted="false">"請回到產生 Blob 的原網頁下載"</string>
+    <string name="browser_controls_065" formatted="false">"請回到原網頁重新下載"</string>
+    <string name="browser_controls_066" formatted="false">"請先完成目前儲存"</string>
+    <string name="browser_controls_067" formatted="false">"檢查網址、網路和裝置時間。憑證異常預設停止；可在憑證異常處理設定中開啟逐次詢問，選擇信任一次或信任目前網址。僅 HTTPS 模式不會回退 HTTP，校園登入頁可能需要暫時關閉該模式。"</string>
+    <string name="userscripts_000" formatted="false">"腳本相依項目必須使用 HTTPS"</string>
+    <string name="userscripts_001" formatted="false">"暫不支援此相依項目校驗格式"</string>
+    <string name="userscripts_002" formatted="false">"支援常用 GM 介面、腳本設定儲存、網路請求與相依項目。腳本可讀取和修改符合規則的網頁，請只安裝可信來源。"</string>
+    <string name="userscripts_003" formatted="false">"請更新系統 WebView 以使用腳本儲存、網路請求和選單命令。"</string>
+    <string name="userscripts_004" formatted="false">"從網址安裝"</string>
+    <string name="userscripts_005" formatted="false">"腳本網址"</string>
+    <string name="userscripts_006" formatted="false">"可輸入 Greasy Fork 腳本頁面或 .user.js 安裝連結。"</string>
+    <string name="userscripts_007" formatted="false">"瀏覽 Greasy Fork"</string>
+    <string name="userscripts_008" formatted="false">"支援網址萬用字元和正規表示式、start/body/end/idle、iframe（@noframes 可關閉）、@require / @resource 快取、GM 設定儲存及變更監聽、選單命令、樣式與元素、資源讀取和 GM_xmlhttpRequest / GM.xmlHttpRequest。\n\n網路請求依 @connect 限制，不自動攜帶瀏覽器登入 Cookie；支援文字、JSON、ArrayBuffer、Blob 和 HTML 文件回應。剪貼簿寫入需要 GM_setClipboard 授權。\n\n腳本與網頁共用 JavaScript 環境，無獨立擴充沙箱。無自動更新、GM_download、通知、Cookie 管理或完整油猴擴充介面。連網相依項目僅允許 HTTPS，支援 data 內嵌相依項目。單腳本原始碼上限 2 MB，網路回應上限 4 MB。\n\n匯出 .user.js 只包含原始碼，重新安裝時重新下載相依項目；設定儲存不包含在瀏覽器設定備份中。"</string>
+    <string name="userscripts_009" formatted="false">"正在讀取腳本及相依項目"</string>
+    <string name="userscripts_010" formatted="false">"授權：%1$s\n連網範圍：%2$s\n相依項目與資源：%3$s"</string>
+    <string name="userscripts_011" formatted="false">"腳本與網頁共用 JavaScript 環境，請確認來源與授權。"</string>
+    <string name="userscripts_012" formatted="false">"更新保留原腳本的啟用狀態和設定。"</string>
+    <string name="userscripts_013" formatted="false">"更新腳本"</string>
+    <string name="userscripts_014" formatted="false">"檢查腳本更新"</string>
+    <string name="userscripts_015" formatted="false">"腳本超過大小限制"</string>
+    <string name="userscripts_016" formatted="false">"腳本相依項目過多"</string>
+    <string name="userscripts_017" formatted="false">"無效腳本資源"</string>
+    <string name="userscripts_018" formatted="false">"腳本總大小超過限制"</string>
 </resources>
