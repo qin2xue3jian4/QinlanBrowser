@@ -83,6 +83,18 @@ git push origin v1.0.0
 
 应用更新检查使用 GitHub latest release API，接受带或不带 `v` 的版本标签。只有公开正式版及名为 `qinglan-<版本>.apk` 的附件会触发更新提示；草稿、预发布和缺少 APK 的版本不参与。后续版本必须保持相同发行签名，不能用 Debug 包替代发行包。
 
+## 仓库改名
+
+当前仓库为 `qin2xue3jian4/QinlanBrowser`。仓库改名后，应更新 `AppUpdates.kt` 中的项目地址和 API 地址、README 与发布说明中的绝对链接，以及本地 Git remote：
+
+```sh
+git remote set-url origin https://github.com/qin2xue3jian4/QinlanBrowser.git
+```
+
+更新检查禁止 HTTP 重定向，并严格核对发布页和 APK 来源地址，因此旧版 APK 不能依赖 GitHub 的改名跳转。将地址修复随递增版本发布，例如 `v1.0.1`，同时递增 Android `VERSION_CODE`；保留已发布的 `v1.0.0` 标签和附件。
+
+Release 工作流使用动态的 `GITHUB_REPOSITORY`，无需修改仓库名。仓库改名不改变应用包名、安装数据或发行签名，后续安装包继续使用原发行密钥。保持仓库私有时，应用的匿名更新检查无法读取其 Release；不要把仓库访问令牌打包到 APK。
+
 ## 本地发行构建
 
 Gradle 从以下环境变量读取签名配置：

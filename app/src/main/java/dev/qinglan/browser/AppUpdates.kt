@@ -7,10 +7,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 object ProjectLinks {
-    const val repository="https://github.com/qin2xue3jian4/AndroidBrowser"
+    const val repository="https://github.com/qin2xue3jian4/QinlanBrowser"
     const val releases="$repository/releases"
     const val issues="$repository/issues"
-    const val latestApi="https://api.github.com/repos/qin2xue3jian4/AndroidBrowser/releases/latest"
+    const val latestApi="https://api.github.com/repos/qin2xue3jian4/QinlanBrowser/releases/latest"
 }
 
 /** Semantic versions, rather than lexical comparison (0.10.0 follows 0.9.0). */

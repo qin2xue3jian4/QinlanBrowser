@@ -2,7 +2,7 @@
 
 轻量 Android 浏览器，基于系统 WebView。把常用浏览功能、可整理的主页和站点管理放在一个小巧的安装包里。
 
-[下载安装](https://github.com/qin2xue3jian4/AndroidBrowser/releases) · [使用指南](docs/guide.md) · [数据与隐私](docs/privacy.md) · [构建与开发](docs/development.md) · [发布指南](docs/releasing.md)
+[下载安装](https://github.com/qin2xue3jian4/QinlanBrowser/releases) · [使用指南](docs/guide.md) · [数据与隐私](docs/privacy.md) · [构建与开发](docs/development.md) · [发布指南](docs/releasing.md)
 
 ## 功能
 
@@ -24,7 +24,7 @@
 
 需要 **Android 8.0 或更高版本**，以及可用的 Android System WebView。
 
-在 [Releases](https://github.com/qin2xue3jian4/AndroidBrowser/releases) 下载 APK 后安装。更新时使用相同来源、相同签名的安装包即可覆盖升级。
+在 [Releases](https://github.com/qin2xue3jian4/QinlanBrowser/releases) 下载 APK 后安装。更新时使用相同来源、相同签名的安装包即可覆盖升级。
 
 公开发布的安装包来自 **Release APK** 工作流，启用代码压缩和资源裁剪。**Android CI** 生成的 Debug 包供开发测试使用，体积较大，也可能因签名不同而无法覆盖正式版。初次使用的主页不预置网站，可自行添加收藏。
 
@@ -44,7 +44,7 @@ WebDAV 仅同步设置和界面语言，服务器凭据在本机加密保存；�
 
 ## 反馈
 
-欢迎通过 [Issues](https://github.com/qin2xue3jian4/AndroidBrowser/issues) 提交问题或建议。网页兼容问题请附上网址、Android 版本、WebView 版本和复现步骤；不要上传 Cookie、密码或含有这些数据的备份。
+欢迎通过 [Issues](https://github.com/qin2xue3jian4/QinlanBrowser/issues) 提交问题或建议。网页兼容问题请附上网址、Android 版本、WebView 版本和复现步骤；不要上传 Cookie、密码或含有这些数据的备份。
 
 ## 过滤与资源识别
 
